@@ -79,6 +79,7 @@ export async function POST(request) {
     const {
       firstName,
       lastName,
+      email,
       yearOfBirth,
       phoneNumber,
       placeOfResidence,
@@ -93,6 +94,7 @@ export async function POST(request) {
 
     const normalizedFirstName = String(firstName || '').trim();
     const normalizedLastName = String(lastName || '').trim() || 'User';
+    const normalizedEmail = String(email || '').trim().toLowerCase();
     const normalizedPhoneNumber = String(phoneNumber || '').trim();
     const normalizedPlaceOfResidence = String(placeOfResidence || '').trim();
     const normalizedRegisteredWithSEA = String(registeredWithSEA || '').trim();
@@ -102,7 +104,7 @@ export async function POST(request) {
     const normalizedWhereDidYouHearAboutUs = String(whereDidYouHearAboutUs || '').trim();
 
     // Validation
-    if (!normalizedFirstName || !yearOfBirth || !normalizedPhoneNumber || !normalizedPlaceOfResidence ||
+    if (!normalizedFirstName || !normalizedLastName || !normalizedEmail || !yearOfBirth || !normalizedPhoneNumber || !normalizedPlaceOfResidence ||
         !normalizedRegisteredWithSEA || !normalizedEligibleForRustaOchMatcha || !normalizedLookingForJobOrTraining ||
         !normalizedWouldYouLikeUsToCall || !normalizedWhereDidYouHearAboutUs) {
       return NextResponse.json(

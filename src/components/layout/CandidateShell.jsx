@@ -6,10 +6,12 @@ import { usePathname, useRouter } from 'next/navigation';
 import CandidateSidebar from '@/components/layout/CandidateSidebar';
 
 const EXCLUDED_ROUTES = new Set([
+  '/candidate/step1',
   '/candidate/step2',
   '/candidate/step3',
   '/candidate/selection-pending',
   '/candidate/not-eligible',
+  '/candidate/waiting-for-coach',
 ]);
 
 function initialsFromName(name = '') {
@@ -26,12 +28,21 @@ export default function CandidateShell({ children }) {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [user, setUser] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
+  // Set mounted state to true on client side to avoid hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const useShell = useMemo(() => {
+    // Only determine shell visibility on the client side
+    if (!isMounted) return false;
     if (!pathname?.startsWith('/candidate/') || EXCLUDED_ROUTES.has(pathname)) return false;
+    
     try {
       const stored = localStorage.getItem('user');
       if (!stored) return false;
@@ -42,10 +53,10 @@ export default function CandidateShell({ children }) {
     } catch {
       return false;
     }
-  }, [pathname]);
+  }, [pathname, isMounted]);
 
   useEffect(() => {
-    if (!useShell) return;
+    if (!useShell || !isMounted) return;
     const storedUser = localStorage.getItem('user');
     if (!storedUser) {
       router.push('/login');
@@ -57,10 +68,13 @@ export default function CandidateShell({ children }) {
     } catch {
       setUser(null);
     }
-  }, [useShell, router]);
+  }, [useShell, router, isMounted]);
 
   useEffect(() => {
-    if (!pathname?.startsWith('/candidate/') || useShell) return;
+    // Only redirect to step1 if we are on a candidate route that SHOULD have a shell
+    // but the shell is inactive for some reason (e.g. role mismatch or missing data)
+    // AND we are not already on an excluded (onboarding) route.
+    if (!isMounted || !pathname?.startsWith('/candidate/') || useShell || EXCLUDED_ROUTES.has(pathname)) return;
 
     const storedUser = localStorage.getItem('user');
     if (!storedUser) return;
@@ -69,24 +83,25 @@ export default function CandidateShell({ children }) {
       const parsed = JSON.parse(storedUser);
       const normalizedRole = String(parsed?.role || parsed?.userType || '').toLowerCase();
       if (normalizedRole === 'candidate' || parsed?.isCandidate === true) {
+        // Only redirect if we're not already on the onboarding flow
         router.replace('/candidate/step1');
       }
     } catch {
-      // Ignore parse errors and leave route handling unchanged.
+      // Ignore parse errors
     }
-  }, [pathname, router, useShell]);
+  }, [pathname, router, useShell, isMounted]);
 
   useEffect(() => {
-    if (!useShell || !user?.email) return;
+    if (!useShell || !user?.email || !isMounted) return;
 
-    let isMounted = true;
+    let active = true;
     const fetchNotifications = async () => {
       try {
         const response = await fetch(
           `/api/candidate/notifications?email=${encodeURIComponent(user.email)}`
         );
         const payload = await response.json();
-        if (!isMounted || !payload?.success) return;
+        if (!active || !payload?.success) return;
         setNotifications(payload.data || []);
       } catch {
         // Non-blocking refresh for header notifications.
@@ -96,10 +111,10 @@ export default function CandidateShell({ children }) {
     fetchNotifications();
     const timer = setInterval(fetchNotifications, 30000);
     return () => {
-      isMounted = false;
+      active = false;
       clearInterval(timer);
     };
-  }, [useShell, user?.email]);
+  }, [useShell, user?.email, isMounted]);
 
   const unreadNotifications = notifications.filter((item) => !item.read).length;
   const firstName = user?.firstName || user?.name?.split(' ')[0] || 'Candidate';
@@ -116,6 +131,11 @@ export default function CandidateShell({ children }) {
       router.push('/login');
     }
   };
+
+  // If not mounted yet, render a plain container to avoid mismatch
+  if (!isMounted) {
+    return <div className="min-h-screen bg-gray-50">{children}</div>;
+  }
 
   if (!useShell) {
     return <>{children}</>;

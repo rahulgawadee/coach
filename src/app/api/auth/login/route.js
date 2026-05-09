@@ -56,6 +56,7 @@ export async function POST(request) {
           role: user.role,
           onboardingStep: user.onboardingStep,
           profileCompleted: user.profileCompleted,
+          status: user.status,
         },
         token,
       },

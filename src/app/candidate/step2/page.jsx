@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
+import { useAuth } from '@/context/AuthContext';
 import { ai, candidate } from '@/services/api';
 
 const educationOptions = [
@@ -29,8 +30,14 @@ const languageOptions = ['Swedish', 'English', 'Arabic', 'Spanish', 'French', 'O
 
 export default function Step2Page() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState({
+    skills: false,
+    strengths: false,
+    bio: false,
+    occupation: false
+  });
   const [error, setError] = useState('');
   const [aiMessage, setAiMessage] = useState('');
   const [occupationSuggestions, setOccupationSuggestions] = useState([]);
@@ -113,6 +120,55 @@ export default function Step2Page() {
   };
 
   useEffect(() => {
+    if (authLoading || !authUser) return;
+
+    // Check status for redirects
+    if (authUser.status === 'new') {
+      router.replace('/candidate/step1');
+    } else if (authUser.status === 'profile_complete') {
+      router.replace('/candidate/step3');
+    } else if (authUser.status === 'pending_acceptance' || authUser.status === 'active') {
+      router.replace('/candidate/dashboard');
+    } else if (authUser.status === 'not_eligible') {
+      router.replace('/candidate/not-eligible');
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/candidate/profile');
+        const result = await res.json();
+        if (result.success && result.data) {
+          const d = result.data;
+          setFormData(prev => ({
+            ...prev,
+            firstName: d.firstName || '',
+            lastName: d.lastName || '',
+            currentOccupation: d.currentOccupation || '',
+            educationLevel: d.educationLevel || '',
+            yearsExperience: d.yearsExperience || '',
+            industryPreferences: d.industryPreferences || [],
+            desiredJobType: d.desiredJobType || '',
+            availableToStart: d.availableToStart ? d.availableToStart.split('T')[0] : '',
+            weeklyHoursAvailable: d.weeklyHoursAvailable || '',
+            preferredMeetingTimes: d.preferredMeetingTimes || [],
+            skills: Array.isArray(d.skills) ? d.skills.join(', ') : d.skills || '',
+            topStrengths: Array.isArray(d.topStrengths) ? d.topStrengths.join(', ') : d.topStrengths || '',
+            aboutYourself: d.aboutYourself || '',
+            supportNeeded: d.supportNeeded || [],
+            hasPersonnummer: d.hasPersonnummer || 'No',
+            hasDriverLicense: d.hasDriverLicense || 'No',
+            languagesSpoken: d.languagesSpoken || [],
+          }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      }
+    };
+
+    fetchProfile();
+  }, [authLoading, authUser, router]);
+
+  useEffect(() => {
     const timeout = setTimeout(async () => {
       if (!formData.currentOccupation.trim()) {
         setOccupationSuggestions([]);
@@ -152,35 +208,15 @@ export default function Step2Page() {
     if (!formData.hasDriverLicense) newErrors.hasDriverLicense = 'Required';
     if (formData.languagesSpoken.length === 0) newErrors.languagesSpoken = 'Select at least one';
 
+    if (Object.keys(newErrors).length > 0) {
+      console.log('Validation failed:', newErrors);
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleAISuggestSkills = async () => {
-    setAiLoading(true);
-    setAiMessage('');
-
-    try {
-      const response = await ai.suggestSkills({
-        currentOccupation: formData.currentOccupation,
-        industryPreferences: formData.industryPreferences,
-      });
-
-      const items = Array.isArray(response?.data) ? response.data : response || [];
-      const skills = items.map((item) => (typeof item === 'string' ? item : item.skill)).filter(Boolean);
-      if (skills.length > 0) {
-        setFormData((prev) => ({ ...prev, skills: skills.join(', ') }));
-        setAiMessage('AI suggested relevant skills for your profile.');
-      }
-    } catch {
-      setAiMessage('AI suggestion failed. Please enter skills manually.');
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   const handleAISuggestStrengths = async () => {
-    setAiLoading(true);
+    setAiLoading(prev => ({ ...prev, strengths: true }));
     setAiMessage('');
 
     try {
@@ -200,12 +236,12 @@ export default function Step2Page() {
     } catch {
       setAiMessage('AI suggestion failed. Please enter strengths manually.');
     } finally {
-      setAiLoading(false);
+      setAiLoading(prev => ({ ...prev, strengths: false }));
     }
   };
 
   const handleAIEnhanceBio = async () => {
-    setAiLoading(true);
+    setAiLoading(prev => ({ ...prev, bio: true }));
     setAiMessage('');
 
     try {
@@ -222,12 +258,14 @@ export default function Step2Page() {
     } catch {
       setAiMessage('AI enhancement failed. Please edit manually.');
     } finally {
-      setAiLoading(false);
+      setAiLoading(prev => ({ ...prev, bio: false }));
     }
   };
 
   const handleContinue = async () => {
+    console.log('Form submission started');
     if (!validateForm()) {
+      setError('Please fill in all required fields.');
       return;
     }
 
@@ -240,25 +278,29 @@ export default function Step2Page() {
         yearsExperience: parseInt(formData.yearsExperience, 10) || 0,
         weeklyHoursAvailable: parseInt(formData.weeklyHoursAvailable, 10) || 0,
         skills: parsedSkills,
+        topStrengths: formData.topStrengths.split(',').map(s => s.trim()).filter(Boolean),
         aiSuggestions: {
           occupationSuggestions,
         },
       };
 
-      const response = await candidate.submitDetailedForm(payload);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to save profile');
+      console.log('Submitting payload:', payload);
+
+      const response = await fetch('/api/candidate/step2-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      const result = await response.json();
+      console.log('Submission result:', result);
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to save profile');
       }
 
-      const candidateProfile = JSON.parse(localStorage.getItem('candidateProfile') || '{}');
-      candidateProfile.step2 = payload;
-      candidateProfile.profileSaved = true;
-      localStorage.setItem('candidateProfile', JSON.stringify(candidateProfile));
-
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      user.onboardingStep = 3;
-      localStorage.setItem('user', JSON.stringify(user));
-
+      // Update global user status
+      updateUser({ status: 'profile_complete', onboardingStep: 3 });
+      
       router.push('/candidate/step3');
     } catch (err) {
       setError(err.message || 'Error saving profile. Please try again.');
@@ -292,8 +334,13 @@ export default function Step2Page() {
         )}
 
         {aiMessage && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-700 text-sm">{aiMessage}</p>
+          <div className="mb-6 p-4 bg-linear-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg shadow-sm animate-in fade-in slide-in-from-top-4">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="flex h-5 items-center rounded-full bg-blue-600 px-2 text-[10px] font-bold text-white uppercase tracking-wider">
+                ✨ AI Suggestion
+              </span>
+            </div>
+            <p className="text-blue-800 text-sm font-medium">{aiMessage}</p>
           </div>
         )}
 
@@ -455,9 +502,6 @@ export default function Step2Page() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-semibold text-gray-700">Your Skills *</label>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAISuggestSkills} disabled={aiLoading}>
-                    {aiLoading ? 'AI...' : 'AI Suggest Skills'}
-                  </Button>
                 </div>
                 <Input
                   label=""
@@ -473,8 +517,8 @@ export default function Step2Page() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-semibold text-gray-700">What are your top 3 strengths? *</label>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAISuggestStrengths} disabled={aiLoading}>
-                    {aiLoading ? 'AI...' : 'AI Suggest Strengths'}
+                  <Button type="button" variant="outline" size="sm" onClick={handleAISuggestStrengths} disabled={aiLoading.strengths}>
+                    {aiLoading.strengths ? 'AI...' : 'AI Suggest Strengths'}
                   </Button>
                 </div>
                 <Input
@@ -491,8 +535,8 @@ export default function Step2Page() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-semibold text-gray-700">Tell us about yourself *</label>
-                  <Button type="button" variant="outline" size="sm" onClick={handleAIEnhanceBio} disabled={aiLoading}>
-                    {aiLoading ? 'AI...' : 'AI Enhance Bio'}
+                  <Button type="button" variant="outline" size="sm" onClick={handleAIEnhanceBio} disabled={aiLoading.bio}>
+                    {aiLoading.bio ? 'AI...' : 'AI Enhance Bio'}
                   </Button>
                 </div>
                 <textarea
@@ -578,10 +622,10 @@ export default function Step2Page() {
           </Card>
 
           <div className="flex gap-4 pt-6">
-            <Button type="button" variant="outline" size="lg" onClick={() => router.back()} disabled={isLoading || aiLoading}>
+            <Button type="button" variant="outline" size="lg" onClick={() => router.back()} disabled={isLoading}>
               Back
             </Button>
-            <Button type="button" variant="primary" size="lg" onClick={handleContinue} disabled={isLoading || aiLoading} className="flex-1">
+            <Button type="button" variant="primary" size="lg" onClick={handleContinue} disabled={isLoading} className="flex-1">
               {isLoading ? 'Saving Profile...' : 'Save & Continue →'}
             </Button>
           </div>

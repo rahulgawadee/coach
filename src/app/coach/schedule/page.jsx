@@ -60,8 +60,21 @@ export default function SchedulePage() {
 
         const data = await response.json();
         if (data.success) {
-          setSchedule(data.schedule || []);
-          setPendingRequests(data.pendingRequests || []);
+          // API returns an object { confirmedSessions, pendingRequests, blockedSlots }
+          const sessions = data.schedule?.confirmedSessions || [];
+          
+          // Map dates to days (Mon, Tue, etc.) for the UI
+          const enrichedSessions = sessions.map(s => {
+            const date = new Date(s.date);
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            return {
+              ...s,
+              day: days[date.getDay()]
+            };
+          });
+
+          setSchedule(enrichedSessions);
+          setPendingRequests(data.schedule?.pendingRequests || []);
         } else {
           setError(data.error || 'Failed to load schedule');
         }
@@ -269,7 +282,7 @@ export default function SchedulePage() {
                 <div key={request.id} className="flex items-center justify-between bg-white p-4 rounded-lg border border-yellow-200">
                   <div className="flex-1">
                     <p className="font-semibold text-gray-900">{request.candidateName || 'Candidate'}</p>
-                    <p className="text-sm text-gray-600">{request.date} | {request.startTime} - {request.endTime}</p>
+                    <p className="text-sm text-gray-600">{request.date} | {request.time || `${request.startTime} - ${request.endTime}`}</p>
                     {request.notes && <p className="text-sm text-gray-500 mt-1">{request.notes}</p>}
                   </div>
                   <div className="flex gap-2">

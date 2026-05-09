@@ -18,17 +18,18 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    let coachUserId;
-    try {
-      const decoded = verifyToken(token);
-      coachUserId = decoded.userId;
-    } catch {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    const result = verifyToken(token);
+    console.log('API Debug (Pending) - Token Result:', JSON.stringify(result));
+    
+    if (!result.valid) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: ' + result.error }, { status: 401 });
     }
 
-    // Verify user is a coach
+    const coachUserId = result.userId;
     const coachUser = await User.findById(coachUserId);
-    if (!coachUser || coachUser.role !== 'Coach') {
+    console.log('API Debug (Pending) - Coach ID:', coachUserId, 'User found:', !!coachUser, 'Role:', coachUser?.role);
+    
+    if (!coachUser || coachUser.role?.toLowerCase() !== 'coach') {
       return NextResponse.json(
         { success: false, error: 'Only coaches can view pending requests' },
         { status: 403 }
@@ -49,7 +50,7 @@ export async function GET(request) {
       coachId: coachProfile._id,
       status: 'pending_acceptance',
     })
-      .populate('candidateId', 'firstName lastName email')
+      .populate('candidateId', 'name email')
       .sort({ assignedAt: -1 });
 
     // Enrich with candidate profile data
@@ -59,24 +60,28 @@ export async function GET(request) {
           userId: assignment.candidateId._id,
         });
 
+        // Use profile names as fallback if user names are missing
+        const fName = candidateProfile?.firstName || assignment.candidateId.name?.split(' ')[0] || 'Candidate';
+        const lName = candidateProfile?.lastName || assignment.candidateId.name?.split(' ').slice(1).join(' ') || '';
+
         return {
           assignmentId: assignment._id,
           candidateId: assignment.candidateId._id,
-          candidateName: `${assignment.candidateId.firstName} ${assignment.candidateId.lastName}`,
+          candidateName: `${fName} ${lName}`.trim(),
           candidateEmail: assignment.candidateId.email,
-          matchScore: assignment.matchScore,
+          matchScore: assignment.matchScore || 0,
           rank: assignment.rank,
           reason: assignment.reason,
           requestedAt: assignment.assignedAt,
           profile: candidateProfile
             ? {
-                occupation: candidateProfile.occupation,
-                location: candidateProfile.location,
-                industryPreferences: candidateProfile.industryPreferences,
-                experience: candidateProfile.experience,
-                education: candidateProfile.education,
-                skills: candidateProfile.skills,
-                about: candidateProfile.about,
+                occupation: candidateProfile.currentOccupation || 'Unknown',
+                location: candidateProfile.location || 'Unknown',
+                industryPreferences: candidateProfile.industryPreferences || [],
+                experience: candidateProfile.yearsExperience || 0,
+                education: candidateProfile.educationLevel || 'Unknown',
+                skills: candidateProfile.skills || [],
+                about: candidateProfile.aboutYourself || '',
               }
             : null,
         };

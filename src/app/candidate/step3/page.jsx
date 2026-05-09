@@ -4,10 +4,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { useAuth } from '@/context/AuthContext';
 import { ai, candidate, coach } from '@/services/api';
 
 export default function Step3Page() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(true);
   const [error, setError] = useState('');
@@ -18,29 +20,36 @@ export default function Step3Page() {
   const [modalCoach, setModalCoach] = useState(null);
   const [confirmingCoach, setConfirmingCoach] = useState(null);
 
-  const storedProfile = useMemo(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return JSON.parse(localStorage.getItem('candidateProfile') || 'null');
-    } catch {
-      return null;
-    }
-  }, []);
-
   useEffect(() => {
+    if (authLoading || !authUser) return;
+
+    // Check status for redirects
+    if (authUser.status === 'new') {
+      router.replace('/candidate/step1');
+    } else if (authUser.status === 'eligible') {
+      router.replace('/candidate/step2');
+    } else if (authUser.status === 'pending_acceptance' || authUser.status === 'active') {
+      router.replace('/candidate/dashboard');
+    } else if (authUser.status === 'not_eligible') {
+      router.replace('/candidate/not-eligible');
+    }
+
     const loadData = async () => {
       try {
-        const [profileResponse, coachesResult] = await Promise.all([
-          fetch('/api/candidate/my-profile', { credentials: 'include' }).then((response) => response.json()).catch(() => ({ success: false })),
-          coach.getAvailableCoaches().catch(() => ({ success: false })),
+        const [profileRes, coachesRes] = await Promise.all([
+          fetch('/api/candidate/profile'),
+          fetch('/api/coaches/available')
         ]);
 
-        const candidateProfile = profileResponse?.data || storedProfile?.step2 || storedProfile?.step1 || {};
-        const coachList = Array.isArray(coachesResult?.data)
-          ? coachesResult.data
-          : Array.isArray(coachesResult?.coaches)
-            ? coachesResult.coaches
-            : [];
+        const profileResult = await profileRes.json();
+        const coachesResult = await coachesRes.json();
+
+        if (!profileResult.success || !coachesResult.success) {
+          throw new Error('Failed to load data');
+        }
+
+        const candidateProfile = profileResult.data;
+        const coachList = coachesResult.data || [];
 
         setProfile(candidateProfile);
         setCoaches(coachList);
@@ -48,20 +57,20 @@ export default function Step3Page() {
         const matchPayload = {
           candidateProfile: {
             industryPreferences: candidateProfile.industryPreferences || [],
-            location: candidateProfile.location || storedProfile?.step1?.placeOfResidence || '',
+            location: candidateProfile.location || '',
             availability: candidateProfile.preferredMeetingTimes?.[0] || '',
             skillsTags: candidateProfile.skills || [],
           },
-          coachesList: coachList.map((coach) => ({
-            coachId: coach.coachId || coach._id || coach.id,
-            name: coach.name,
-            expertiseAreas: coach.expertiseAreas || coach.specialties || [],
-            companyCity: coach.companyCity || coach.city || 'Stockholm',
-            rating: coach.rating || 4.5,
-            successRate: coach.successRate || 80,
-            currentCandidates: coach.currentCandidates || 0,
-            maxCapacity: coach.maxCapacity || 15,
-            languages: coach.languages || ['Swedish', 'English'],
+          coachesList: coachList.map((c) => ({
+            coachId: c.coachId || c._id || c.id,
+            name: c.name,
+            expertiseAreas: c.expertiseAreas || [],
+            companyCity: c.companyCity || 'Stockholm',
+            rating: c.rating || 4.5,
+            successRate: c.successRate || 80,
+            currentCandidates: c.currentCandidates || 0,
+            maxCapacity: c.maxCapacity || 15,
+            languages: c.languages || ['Swedish', 'English'],
           })),
         };
 
@@ -72,21 +81,24 @@ export default function Step3Page() {
             ? matchResponse.data
             : [];
 
-        const ranked = matches
-          .map((match) => {
-            const coach = coachList.find((item) => (item.coachId || item._id || item.id) === match.coachId);
-            if (!coach) return null;
-            return {
-              ...coach,
-              coachId: match.coachId,
-              rank: match.rank,
-              matchScore: match.matchScore,
-              reason: match.reason,
-            };
-          })
-          .filter(Boolean);
-
-        setRankedCoaches(ranked.length > 0 ? ranked : coachList.slice(0, 3));
+        if (matches.length === 0) {
+          // If AI matching fails, show coaches but show warning or just fallback gracefully
+          setRankedCoaches(coachList.slice(0, 3));
+        } else {
+          const ranked = matches
+            .map((match) => {
+              const c = coachList.find((item) => (item.coachId || item._id || item.id) === match.coachId);
+              if (!c) return null;
+              return {
+                ...c,
+                rank: match.rank,
+                matchScore: match.matchScore,
+                reason: match.reason,
+              };
+            })
+            .filter(Boolean);
+          setRankedCoaches(ranked);
+        }
       } catch (err) {
         setError(err.message || 'Unable to load coach recommendations');
       } finally {
@@ -95,7 +107,7 @@ export default function Step3Page() {
     };
 
     loadData();
-  }, [storedProfile]);
+  }, [authLoading, authUser, router]);
 
   const handleSelectCoach = async (coach) => {
     setConfirmingCoach(coach);
@@ -108,17 +120,21 @@ export default function Step3Page() {
     setError('');
 
     try {
-      const response = await candidate.selectCompany(confirmingCoach.coachId || confirmingCoach.id || confirmingCoach._id);
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to select coach');
+      const coachId = confirmingCoach.coachId || confirmingCoach._id || confirmingCoach.id;
+      const response = await fetch('/api/candidate/select-coach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coachId }),
+      });
+      
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to select coach');
       }
 
-      const savedProfile = JSON.parse(localStorage.getItem('candidateProfile') || '{}');
-      savedProfile.selectedCoach = confirmingCoach;
-      savedProfile.selectionStatus = 'pending_acceptance';
-      localStorage.setItem('candidateProfile', JSON.stringify(savedProfile));
-
-      setSelectedCoach(confirmingCoach);
+      // Update global user status
+      updateUser({ status: 'pending_acceptance', onboardingStep: 4 });
+      
       router.push('/candidate/waiting-for-coach');
     } catch (err) {
       setError(err.message || 'Unable to select coach');

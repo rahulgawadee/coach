@@ -18,17 +18,18 @@ export async function GET(request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    let coachUserId;
-    try {
-      const decoded = verifyToken(token);
-      coachUserId = decoded.userId;
-    } catch {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    const result = verifyToken(token);
+    console.log('API Debug - Token Result:', JSON.stringify(result));
+    
+    if (!result.valid) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: ' + result.error }, { status: 401 });
     }
 
-    // Verify user is a coach
+    const coachUserId = result.userId;
     const coachUser = await User.findById(coachUserId);
-    if (!coachUser || coachUser.role !== 'Coach') {
+    console.log('API Debug - Coach ID:', coachUserId, 'User found:', !!coachUser, 'Role:', coachUser?.role);
+    
+    if (!coachUser || coachUser.role?.toLowerCase() !== 'coach') {
       return NextResponse.json(
         { success: false, error: 'Only coaches can view active candidates' },
         { status: 403 }
@@ -49,7 +50,7 @@ export async function GET(request) {
       coachId: coachProfile._id,
       status: 'accepted',
     })
-      .populate('candidateId', 'firstName lastName email')
+      .populate('candidateId', 'name email')
       .sort({ assignedAt: -1 });
 
     // Enrich with candidate profile data
@@ -59,22 +60,26 @@ export async function GET(request) {
           userId: assignment.candidateId._id,
         });
 
+        // Construct name from profile or User name
+        const fName = candidateProfile?.firstName || assignment.candidateId.name?.split(' ')[0] || 'Candidate';
+        const lName = candidateProfile?.lastName || assignment.candidateId.name?.split(' ').slice(1).join(' ') || '';
+
         // Calculate progress percentage (mock for now)
         const progressPercentage = Math.floor(Math.random() * 100);
 
         return {
           candidateId: assignment.candidateId._id,
           assignmentId: assignment._id,
-          candidateName: `${assignment.candidateId.firstName} ${assignment.candidateId.lastName}`,
+          candidateName: `${fName} ${lName}`.trim(),
           candidateEmail: assignment.candidateId.email,
           startDate: assignment.assignedAt,
           progress: progressPercentage,
           nextSession: assignment.nextSession || null,
           profileData: candidateProfile
             ? {
-                occupation: candidateProfile.occupation,
-                location: candidateProfile.location,
-                experience: candidateProfile.experience,
+                occupation: candidateProfile.currentOccupation || 'Unknown',
+                location: candidateProfile.location || 'Unknown',
+                experience: candidateProfile.yearsExperience || 0,
               }
             : null,
         };

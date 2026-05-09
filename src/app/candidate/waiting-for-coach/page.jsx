@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button';
 
 export default function WaitingForCoachPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: authUser, loading: authLoading, updateUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coachInfo, setCoachInfo] = useState(null);
   const [status, setStatus] = useState('pending');
@@ -16,71 +16,55 @@ export default function WaitingForCoachPage() {
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-  // Poll for status updates every 10 seconds
   useEffect(() => {
+    if (authLoading || !authUser) return;
+
+    // Check status for initial redirects
+    if (authUser.status === 'new') {
+      router.replace('/candidate/step1');
+    } else if (authUser.status === 'eligible') {
+      router.replace('/candidate/step2');
+    } else if (authUser.status === 'profile_complete') {
+      router.replace('/candidate/step3');
+    } else if (authUser.status === 'active') {
+      router.replace('/candidate/dashboard');
+    }
+
     const fetchStatus = async () => {
       try {
-        const response = await fetch('/api/candidate/selection-status', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
+        const response = await fetch('/api/candidate/selection-status');
+        const result = await response.json();
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch selection status');
-        }
+        if (!response.ok) throw new Error(result.error || 'Failed to fetch status');
 
-        const data = await response.json();
-        const assignment = data.data;
+        const assignment = result.data;
 
         if (!assignment || assignment.status === 'none') {
-          setError('No coach selection found. Redirecting...');
+          setError('No coach selection found. Redirecting to selection...');
           setTimeout(() => router.push('/candidate/step3'), 2000);
           return;
         }
 
         setStatus(assignment.status);
 
-        // If coach accepted, redirect to dashboard
+        // If coach accepted, update global state and redirect
         if (assignment.status === 'accepted') {
-          // Update user status to 'active'
-          const userData = JSON.parse(localStorage.getItem('user') || '{}');
-          userData.status = 'active';
-          userData.onboardingStep = 5;
-          localStorage.setItem('user', JSON.stringify(userData));
-
-          setError('');
-          setTimeout(() => {
-            router.push('/candidate/dashboard');
-          }, 1500);
+          updateUser({ status: 'active', onboardingStep: 5 });
+          setTimeout(() => router.push('/candidate/dashboard'), 1500);
           return;
         }
 
-        // If coach rejected, show error and option to select another
         if (assignment.status === 'rejected') {
-          setError(`Coach declined: ${assignment.reason || 'Not available at this time'}`);
-          setStatus('rejected');
-          return;
+          setError(`Coach declined: ${assignment.reason || 'Not available'}`);
         }
 
-        // Get coach info
+        // Get coach info if not already loaded
         if (assignment.coachId && !coachInfo) {
-          try {
-            const coachResponse = await fetch(
-              `/api/coaches/${assignment.coachId}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
-                },
-              }
-            );
-
-            if (coachResponse.ok) {
-              const coachData = await coachResponse.json();
-              setCoachInfo(coachData.coach || coachData.data);
-            }
-          } catch (err) {
-            console.error('Failed to fetch coach info:', err);
+          const coachRes = await fetch(`/api/coaches/available`); // Using list to find our coach
+          const coachResult = await coachRes.json();
+          if (coachResult.success) {
+            const ourCoach = coachResult.data.find(c => (c.coachId || c._id || c.id) === assignment.coachId);
+            if (ourCoach) setCoachInfo(ourCoach);
           }
         }
       } catch (err) {
@@ -91,39 +75,21 @@ export default function WaitingForCoachPage() {
       }
     };
 
-    // Fetch immediately on mount
     fetchStatus();
-
-    // Set up polling interval (every 10 seconds)
-    const interval = setInterval(fetchStatus, 10000);
+    const interval = setInterval(fetchStatus, 15000); // 15s polling fallback
 
     return () => clearInterval(interval);
-  }, [router, coachInfo]);
+  }, [authLoading, authUser, router, coachInfo, updateUser]);
 
   const handleCancelSelection = async () => {
     setCancelLoading(true);
     setError('');
 
     try {
-      const response = await fetch('/api/candidate/cancel-selection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const response = await fetch('/api/candidate/cancel-selection', { method: 'POST' });
+      if (!response.ok) throw new Error('Failed to cancel selection');
 
-      if (!response.ok) {
-        throw new Error('Failed to cancel selection');
-      }
-
-      // Update user status back to 'profile_complete'
-      const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      userData.status = 'profile_complete';
-      userData.onboardingStep = 3;
-      localStorage.setItem('user', JSON.stringify(userData));
-
-      setShowCancelConfirm(false);
+      updateUser({ status: 'profile_complete', onboardingStep: 3 });
       router.push('/candidate/step3');
     } catch (err) {
       setError(err.message);

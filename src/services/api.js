@@ -308,19 +308,19 @@ export const ai = {
     }),
 
   validateFormAnswers: (answers) =>
-    ai.callOpenAI('validateFormAnswers', answers),
+    ai.callOpenAI('validate-form', answers),
 
   suggestSkills: (background) =>
-    ai.callOpenAI('suggestSkills', background),
+    ai.callOpenAI('suggest-skills', background),
 
   getCompanyMatches: (candidateProfile, companies) =>
-    ai.callOpenAI('getCompanyMatches', { candidateProfile, companies }),
+    ai.callOpenAI('company-matches', { candidateProfile, companies }),
 
   suggestMeetingTimes: (candidateAvailability, coachSchedule) =>
-    ai.callOpenAI('suggestMeetingTimes', { candidateAvailability, coachSchedule }),
+    ai.callOpenAI('suggest-meeting-times', { candidateAvailability, coachSchedule }),
 
   summarizeConversation: (messages) =>
-    ai.callOpenAI('summarizeConversation', messages),
+    ai.callOpenAI('summarize-conversation', messages),
 
   enhanceProfile: (profileData) =>
     apiCall('/ai/profile-enhance', {

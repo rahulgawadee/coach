@@ -1,5 +1,18 @@
 import { NextResponse } from 'next/server';
-import { verifyToken } from './src/lib/jwt';
+
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    if (!base64Url) return null;
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;
@@ -18,9 +31,9 @@ export function middleware(request) {
   let role = null;
 
   if (authToken) {
-    const result = verifyToken(authToken);
-    if (result.valid) {
-      role = String(result.decoded?.role || '').toLowerCase();
+    const decoded = decodeJwt(authToken);
+    if (decoded) {
+      role = String(decoded.role || '').toLowerCase();
     }
   }
 

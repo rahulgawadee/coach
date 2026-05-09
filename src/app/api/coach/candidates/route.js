@@ -16,7 +16,7 @@ export async function GET(request) {
     await dbConnect();
 
     const user = await User.findById(decoded.userId);
-    if (!user || user.role !== 'Coach') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    if (!user || user.role?.toLowerCase() !== 'coach') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
@@ -50,15 +50,20 @@ export async function GET(request) {
     const candidates = await Promise.all(
       assignments.map(async (a) => {
         const workspace = await CandidateWorkspace.findOne({ userId: a.candidateId._id }).lean();
+        const profile = await CandidateProfile.findOne({ userId: a.candidateId._id }).lean();
+        
         const lastSession = workspace?.events?.sort((b, a) => new Date(a.date) - new Date(b.date))[0];
         const nextSession = workspace?.events?.find(e => new Date(e.date) > new Date() && e.status === 'confirmed');
+
+        const fName = profile?.firstName || a.candidateId.name?.split(' ')[0] || 'Candidate';
+        const lName = profile?.lastName || a.candidateId.name?.split(' ').slice(1).join(' ') || '';
 
         return {
           id: a._id,
           candidateId: a.candidateId._id,
-          name: `${a.candidateId.firstName} ${a.candidateId.lastName}`,
+          name: `${fName} ${lName}`.trim(),
           email: a.candidateId.email,
-          phone: a.candidateId.phone,
+          phone: a.candidateId.phone || profile?.phone || '',
           startDate: a.startDate,
           progress: calculateProgress(workspace),
           lastSessionDate: lastSession?.date || null,

@@ -86,11 +86,6 @@ export async function POST(request) {
     const body = await request.json();
     const { action, payload } = body;
 
-    const mock = mockResponse(action, payload);
-    if (!getApiKey() && mock !== null) {
-      return NextResponse.json({ success: true, data: mock });
-    }
-
     let prompt = '';
     if (action === 'validate-form') {
       prompt = `Analyze form answers for completeness and return JSON with missingFields, incompleteFields, issues, suggestions. Answers: ${JSON.stringify(payload?.answers || {}, null, 2)}`;
@@ -109,6 +104,7 @@ export async function POST(request) {
     const data = await callOpenAi(prompt);
     return NextResponse.json({ success: true, data });
   } catch (error) {
+    console.error('AI Route Error:', error);
     return NextResponse.json({ success: false, error: error.message || 'AI request failed' }, { status: 500 });
   }
 }

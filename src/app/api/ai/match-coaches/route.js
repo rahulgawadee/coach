@@ -1,35 +1,56 @@
 import { NextResponse } from 'next/server';
 
-function calculateScore(candidateProfile, coach) {
-  let score = 50;
-  const candidateIndustries = candidateProfile?.industryPreferences || [];
-  const coachExpertise = coach?.expertiseAreas || [];
+const API_BASE_URL = 'https://api.openai.com/v1';
 
-  const industryMatches = candidateIndustries.filter((industry) => coachExpertise.includes(industry)).length;
-  score += industryMatches * 15;
-
-  if ((candidateProfile?.location || '').toLowerCase().includes((coach?.companyCity || '').toLowerCase())) score += 10;
-  if (candidateProfile?.availability && coach?.availabilitySlots?.length) score += 5;
-  if ((coach?.currentCandidates || 0) < (coach?.maxCapacity || 0)) score += 10;
-  score += Math.round((coach?.rating || 4.5) * 3);
-  score += Math.round((coach?.successRate || 80) / 10);
-
-  return Math.max(1, Math.min(100, score));
+function getApiKey() {
+  return process.env.OPENAI_API_KEY || '';
 }
 
 export async function POST(request) {
-  const body = await request.json();
-  const candidateProfile = body?.candidateProfile || {};
-  const coachesList = body?.coachesList || [];
+  try {
+    const body = await request.json();
+    const candidateProfile = body?.candidateProfile || {};
+    const coachesList = body?.coachesList || [];
+    const apiKey = getApiKey();
 
-  const matches = coachesList
-    .map((coach) => ({
-      coachId: coach.coachId,
-      matchScore: calculateScore(candidateProfile, coach),
-      reason: `Matches ${coach.expertiseAreas?.join(', ') || 'your profile'} with available capacity and strong placement results.`,
-    }))
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .map((item, index) => ({ ...item, rank: index + 1 }));
+    if (!apiKey) {
+      throw new Error('OpenAI API key not found');
+    }
 
-  return NextResponse.json({ success: true, data: { matches } });
+    const response = await fetch(`${API_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a matchmaking expert. Rank the provided coaches for the candidate. Return a JSON object with key "matches" containing an array of objects with: coachId, matchScore (1-100), rank (1-N), and reason (max 2 sentences).' 
+          },
+          { 
+            role: 'user', 
+            content: `Candidate: ${JSON.stringify(candidateProfile)}. Coaches: ${JSON.stringify(coachesList)}` 
+          },
+        ],
+        temperature: 0.5,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`AI API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content || '{}';
+    const cleaned = content.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(cleaned);
+
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error('Match Coaches Error:', error);
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
 }

@@ -19,6 +19,7 @@ export const generateToken = (userId, email, role) => {
 
 export const verifyToken = (token) => {
   try {
+    console.log('JWT Debug - Verifying token (first 10 chars):', token?.substring(0, 10));
     const decoded = jwt.verify(token, JWT_SECRET);
     return {
       valid: true,

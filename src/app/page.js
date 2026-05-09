@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 const useInView = (threshold = 0.15) => {
   const ref = useRef(null);
@@ -224,11 +225,15 @@ export default function CoachLanding() {
 
               {/* CTAs */}
               <div style={{ ...fade(380), display:"flex", gap:12, flexWrap:"wrap" }}>
-                <button className="bp" style={{ fontSize:15, padding:"15px 36px" }}>Start for free →</button>
-                <button className="bg" style={{ fontSize:15, padding:"15px 32px", display:"flex", alignItems:"center", gap:10 }}>
-                  <span style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#6366f1,#38bdf8)", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>▶</span>
-                  Watch demo
-                </button>
+                <Link href="/signup">
+                  <button className="bp" style={{ fontSize:15, padding:"15px 36px" }}>Start for free →</button>
+                </Link>
+                <Link href="/login">
+                  <button className="bg" style={{ fontSize:15, padding:"15px 32px", display:"flex", alignItems:"center", gap:10 }}>
+                    <span style={{ width:28, height:28, borderRadius:"50%", background:"linear-gradient(135deg,#6366f1,#38bdf8)", display:"inline-flex", alignItems:"center", justifyContent:"center", fontSize:10 }}>→</span>
+                    Sign in
+                  </button>
+                </Link>
               </div>
 
               {/* social proof */}
@@ -350,7 +355,9 @@ export default function CoachLanding() {
                 <div style={{ display:"flex", gap:10, justifyContent:"center", maxWidth:440, margin:"0 auto" }}>
                   <input type="email" placeholder="Enter your work email" value={email} onChange={e=>setEmail(e.target.value)}
                     style={{ flex:1, padding:"13px 17px", borderRadius:13, fontSize:14, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", color:"#f1f5f9", outline:"none", fontFamily:"'DM Sans',sans-serif" }} />
-                  <button className="bp" style={{ flexShrink:0, padding:"13px 22px" }}>Get matched</button>
+                  <Link href={`/signup?email=${encodeURIComponent(email)}`}>
+                    <button className="bp" style={{ flexShrink:0, padding:"13px 22px" }}>Get matched</button>
+                  </Link>
                 </div>
                 <p style={{ fontSize:11, color:"rgba(148,163,184,.3)", marginTop:13 }}>Free forever · No credit card required · Cancel anytime</p>
               </div>

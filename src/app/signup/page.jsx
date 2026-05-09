@@ -3,9 +3,53 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
 import { useAuth } from '@/context/AuthContext';
+
+const inputBase = {
+  width: '100%',
+  padding: '0.75rem 1rem',
+  fontSize: '0.9375rem',
+  border: '1px solid #E2DDD8',
+  borderRadius: '10px',
+  outline: 'none',
+  background: '#FAFAF8',
+  color: '#1A1916',
+  transition: 'border-color 0.15s, box-shadow 0.15s',
+  boxSizing: 'border-box',
+  fontFamily: 'inherit',
+};
+
+function Field({ label, optional, textarea, rows = 4, ...props }) {
+  const [focused, setFocused] = useState(false);
+  const style = {
+    ...inputBase,
+    borderColor: focused ? '#B8A99A' : '#E2DDD8',
+    boxShadow: focused ? '0 0 0 3px rgba(184,169,154,0.18)' : 'none',
+    ...(textarea ? { resize: 'vertical', lineHeight: 1.6 } : {}),
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', letterSpacing: '0.01em', display: 'flex', gap: '6px', alignItems: 'center' }}>
+        {label}
+        {optional && <span style={{ fontWeight: 400, color: '#A09990', fontSize: '0.75rem' }}>optional</span>}
+      </label>
+      {textarea
+        ? <textarea {...props} rows={rows} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={style} />
+        : <input {...props} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={style} />}
+    </div>
+  );
+}
+
+const EXPERTISE_AREAS = ['IT & Technology', 'Healthcare', 'Construction', 'Finance', 'Education', 'Manufacturing', 'Retail & Trade'];
+
+const STEPS = [
+  { id: 1, label: 'Account' },
+  { id: 2, label: 'Company' },
+  { id: 3, label: 'Expertise' },
+  { id: 4, label: 'Contact' },
+  { id: 5, label: 'Capacity' },
+  { id: 6, label: 'Agreement' },
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,51 +57,32 @@ export default function SignupPage() {
   const [role, setRole] = useState('candidate');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1); // For coach multi-step form
+  const [step, setStep] = useState(1);
 
   const [formData, setFormData] = useState({
-    // Shared fields
-    email: '',
-    password: '',
-    confirmPassword: '',
-    // Coach fields
-    fullName: '',
-    phoneNumber: '',
-    companyName: '',
-    companyRegistrationNumber: '',
-    governmentAgencyId: '',
-    bio: '',
-    expertiseAreas: [],
-    yearsOfExperience: '',
-    certifications: '',
-    contactPersonName: '',
+    email: '', password: '', confirmPassword: '',
+    fullName: '', phoneNumber: '', companyName: '',
+    companyRegistrationNumber: '', governmentAgencyId: '',
+    bio: '', expertiseAreas: [], yearsOfExperience: '',
+    certifications: '', contactPersonName: '',
     maxCandidates: '15',
-    preferredWorkingHours: {
-      startTime: '09:00',
-      endTime: '17:00',
-    },
+    preferredWorkingHours: { startTime: '09:00', endTime: '17:00' },
     agreeToTermsOfService: false,
     confirmedRegisteredSupplier: false,
   });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const roleFromQuery = params.get('role');
-    if (roleFromQuery === 'coach') {
-      setRole('coach');
-    }
+    if (params.get('role') === 'coach') setRole('coach');
   }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     setError('');
   };
 
-  const handleExpertiseToggle = (area) => {
+  const toggleExpertise = (area) => {
     setFormData((prev) => ({
       ...prev,
       expertiseAreas: prev.expertiseAreas.includes(area)
@@ -66,658 +91,351 @@ export default function SignupPage() {
     }));
   };
 
-  const handleTimeChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      preferredWorkingHours: {
-        ...prev.preferredWorkingHours,
-        [field]: value,
-      },
-    }));
-  };
-
-  const validateCoachStep = (stepNum) => {
-    let errors = [];
-
-    if (stepNum === 1) {
-      // Account Information
-      if (!formData.email.trim()) errors.push('Email is required');
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-        errors.push('Invalid email format');
-      if (!formData.password) errors.push('Password is required');
-      else if (formData.password.length < 8)
-        errors.push('Password must be at least 8 characters');
-      if (formData.password !== formData.confirmPassword)
-        errors.push('Passwords do not match');
-      if (!formData.fullName.trim()) errors.push('Full name is required');
-    } else if (stepNum === 2) {
-      // Company Information
-      if (!formData.companyName.trim()) errors.push('Company name is required');
-      if (!formData.companyRegistrationNumber.trim())
-        errors.push('Company registration number is required');
-      if (!formData.governmentAgencyId.trim())
-        errors.push('Government agency ID is required');
-    } else if (stepNum === 3) {
-      // Professional Information
-      if (!formData.bio.trim()) errors.push('Bio is required');
-      if (formData.expertiseAreas.length === 0) errors.push('Select at least one expertise area');
-      if (!formData.yearsOfExperience) errors.push('Years of experience is required');
-    } else if (stepNum === 4) {
-      // Contact Information
-      if (!formData.phoneNumber.trim()) errors.push('Phone number is required');
-    } else if (stepNum === 5) {
-      // Capacity
-      const maxCandidates = parseInt(formData.maxCandidates);
-      if (maxCandidates < 5 || maxCandidates > 50)
-        errors.push('Maximum candidates must be between 5-50');
-    } else if (stepNum === 6) {
-      // Agreement
-      if (!formData.agreeToTermsOfService)
-        errors.push('You must agree to terms of service');
-      if (!formData.confirmedRegisteredSupplier)
-        errors.push('You must confirm you are a registered supplier');
+  const validateStep = (s) => {
+    const errs = [];
+    if (s === 1) {
+      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.push('Valid email is required');
+      if (!formData.password || formData.password.length < 8) errs.push('Password must be at least 8 characters');
+      if (formData.password !== formData.confirmPassword) errs.push('Passwords do not match');
+      if (!formData.fullName.trim()) errs.push('Full name is required');
+    } else if (s === 2) {
+      if (!formData.companyName.trim()) errs.push('Company name is required');
+      if (!formData.companyRegistrationNumber.trim()) errs.push('Company registration number is required');
+      if (!formData.governmentAgencyId.trim()) errs.push('Government agency ID is required');
+    } else if (s === 3) {
+      if (!formData.bio.trim()) errs.push('Bio is required');
+      if (formData.expertiseAreas.length === 0) errs.push('Select at least one expertise area');
+      if (!formData.yearsOfExperience) errs.push('Years of experience is required');
+    } else if (s === 4) {
+      if (!formData.phoneNumber.trim()) errs.push('Phone number is required');
+    } else if (s === 5) {
+      const n = parseInt(formData.maxCandidates);
+      if (n < 5 || n > 50) errs.push('Must be between 5 and 50 candidates');
+    } else if (s === 6) {
+      if (!formData.agreeToTermsOfService) errs.push('You must agree to the terms of service');
+      if (!formData.confirmedRegisteredSupplier) errs.push('You must confirm registered supplier status');
     }
-
-    if (errors.length > 0) {
-      setError(errors[0]);
-      return false;
-    }
+    if (errs.length) { setError(errs[0]); return false; }
     return true;
   };
 
   const handleCandidateSubmit = async (e) => {
     e.preventDefault();
     setError('');
-
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
+    if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return; }
     setIsLoading(true);
-
     try {
-      const result = await register(
-        formData.email,
-        formData.password,
-        formData.confirmPassword,
-        'Candidate',
-        formData.email.split('@')[0]
-      );
-
-      if (!result.success) {
-        setError(result.error || 'Registration failed');
-      } else {
-        router.push('/candidate/step1');
-      }
+      const result = await register(formData.email, formData.password, formData.confirmPassword, 'Candidate', formData.email.split('@')[0]);
+      if (!result.success) setError(result.error || 'Registration failed');
+      else router.push('/candidate/step1');
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
-    } finally {
-      setIsLoading(false);
-    }
+      setError(err.message || 'An error occurred');
+    } finally { setIsLoading(false); }
   };
 
-  const handleCoachNext = () => {
-    if (validateCoachStep(step)) {
-      setStep(step + 1);
-      setError('');
-    }
-  };
+  const handleCoachNext = () => { if (validateStep(step)) { setStep(step + 1); setError(''); } };
+  const handleCoachBack = () => { setStep(step - 1); setError(''); };
 
-  const handleCoachBack = () => {
-    setStep(step - 1);
-    setError('');
-  };
-
-  const handleCoachSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
-    if (!validateCoachStep(step)) {
-      return;
-    }
-
+  const handleCoachSubmit = async () => {
+    if (!validateStep(step)) return;
     setIsLoading(true);
-
     try {
-      // First register the user
-      const registerResult = await register(
-        formData.email,
-        formData.password,
-        formData.confirmPassword,
-        'Coach',
-        formData.fullName
-      );
-
-      if (!registerResult.success) {
-        setError(registerResult.error || 'Registration failed');
-        setIsLoading(false);
-        return;
-      }
-
-      // Then submit the coach profile
-      const response = await fetch('/api/coach/register', {
+      const regResult = await register(formData.email, formData.password, formData.confirmPassword, 'Coach', formData.fullName);
+      if (!regResult.success) { setError(regResult.error || 'Registration failed'); return; }
+      const res = await fetch('/api/coach/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          email: formData.email,
-          fullName: formData.fullName,
-          phoneNumber: formData.phoneNumber,
-          companyName: formData.companyName,
-          companyRegistrationNumber: formData.companyRegistrationNumber,
-          governmentAgencyId: formData.governmentAgencyId,
-          bio: formData.bio,
-          expertiseAreas: formData.expertiseAreas,
-          yearsOfExperience: parseInt(formData.yearsOfExperience),
-          certifications: formData.certifications,
-          contactPersonName: formData.contactPersonName,
-          maxCandidates: parseInt(formData.maxCandidates),
-          preferredWorkingHours: formData.preferredWorkingHours,
-          agreeToTermsOfService: formData.agreeToTermsOfService,
-          confirmedRegisteredSupplier: formData.confirmedRegisteredSupplier,
+          email: formData.email, fullName: formData.fullName, phoneNumber: formData.phoneNumber,
+          companyName: formData.companyName, companyRegistrationNumber: formData.companyRegistrationNumber,
+          governmentAgencyId: formData.governmentAgencyId, bio: formData.bio,
+          expertiseAreas: formData.expertiseAreas, yearsOfExperience: parseInt(formData.yearsOfExperience),
+          certifications: formData.certifications, contactPersonName: formData.contactPersonName,
+          maxCandidates: parseInt(formData.maxCandidates), preferredWorkingHours: formData.preferredWorkingHours,
+          agreeToTermsOfService: formData.agreeToTermsOfService, confirmedRegisteredSupplier: formData.confirmedRegisteredSupplier,
         }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to create coach profile');
-        setIsLoading(false);
-        return;
-      }
-
-      // Redirect to coach dashboard
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Failed to create coach profile'); return; }
       router.push('/coach/dashboard');
     } catch (err) {
-      setError(err.message || 'An error occurred during registration');
-    } finally {
-      setIsLoading(false);
-    }
+      setError(err.message || 'An error occurred');
+    } finally { setIsLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 to-purple-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl">
-        <div className="text-center mb-8">
-          <div className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            Coach
-          </div>
-          <p className="text-gray-600">
-            Sign up as {role === 'candidate' ? 'Candidate' : 'Coach/Mentor'}
-          </p>
+    <div style={{
+      minHeight: '100vh',
+      background: '#F7F5F2',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      padding: '2.5rem 1rem',
+
+      fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
+    }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+        * { box-sizing: border-box; }
+        ::placeholder { color: #BDB8B2; }
+        textarea { font-family: inherit; }
+        .primary-btn { transition: background 0.15s, transform 0.1s; }
+        .primary-btn:hover:not(:disabled) { background: #1A1916 !important; }
+        .primary-btn:active:not(:disabled) { transform: scale(0.985); }
+        .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .secondary-btn { transition: background 0.15s; }
+        .secondary-btn:hover:not(:disabled) { background: #EEEBE8 !important; }
+        .role-card { transition: border-color 0.15s, background 0.15s; cursor: pointer; }
+        .expertise-chip { transition: all 0.15s; cursor: pointer; user-select: none; }
+        .expertise-chip:hover { border-color: #B8A99A !important; }
+        .agree-row { transition: background 0.15s; cursor: pointer; }
+        .agree-row:hover { background: #F7F5F2 !important; }
+        a { text-decoration: none; }
+      `}</style>
+
+      <div style={{ width: '100%', maxWidth: role === 'coach' ? '560px' : '420px', transition: 'max-width 0.3s' }}>
+
+
+
+        {/* Role selector */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '1.5rem', marginTop: '80px' }}>
+          {[
+            { key: 'candidate', icon: '◎', title: 'Candidate', desc: 'Seeking mentorship & career growth' },
+            { key: 'coach', icon: '◈', title: 'Coach / Mentor', desc: 'Share expertise & guide others' },
+          ].map(({ key, icon, title, desc }) => {
+            const active = role === key;
+            return (
+              <div
+                key={key}
+                className="role-card"
+                onClick={() => { setRole(key); setStep(1); setError(''); }}
+                style={{
+                  background: active ? '#FFFFFF' : '#EEEBE8',
+                  border: `1.5px solid ${active ? '#2C2925' : '#E2DDD8'}`,
+                  borderRadius: '12px',
+                  padding: '1rem 1.125rem',
+                }}
+              >
+                <div style={{ fontSize: '1.125rem', marginBottom: '6px', color: active ? '#2C2925' : '#9C9690' }}>{icon}</div>
+                <p style={{ margin: '0 0 4px', fontSize: '0.9rem', fontWeight: 600, color: active ? '#1A1916' : '#6B6560' }}>{title}</p>
+                <p style={{ margin: 0, fontSize: '0.75rem', color: active ? '#6B6560' : '#9C9690', lineHeight: 1.4 }}>{desc}</p>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200">
-          {/* Role Selection */}
-          {role === 'candidate' || step === 0 ? (
-            <div className="p-8">
-              <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-700 mb-4">
-                  I want to join as a:
-                </label>
-                <div className="space-y-3">
-                  <label
-                    className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all"
-                    style={{
-                      borderColor: role === 'candidate' ? '#2563eb' : '#e5e7eb',
-                      backgroundColor: role === 'candidate' ? '#eff6ff' : 'transparent',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="candidate"
-                      checked={role === 'candidate'}
-                      onChange={(e) => {
-                        setRole(e.target.value);
-                        setStep(0);
-                      }}
-                      className="w-4 h-4"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900">Candidate</p>
-                      <p className="text-xs text-gray-600">
-                        Looking for mentorship & career growth
-                      </p>
-                    </div>
-                  </label>
+        {/* Main Card */}
+        <div style={{
+          background: '#FFFFFF',
+          borderRadius: '16px',
+          border: '1px solid #E8E4E0',
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.04)',
+        }}>
 
-                  <label
-                    className="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all"
-                    style={{
-                      borderColor: role === 'coach' ? '#2563eb' : '#e5e7eb',
-                      backgroundColor: role === 'coach' ? '#eff6ff' : 'transparent',
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="coach"
-                      checked={role === 'coach'}
-                      onChange={(e) => {
-                        setRole(e.target.value);
-                        setStep(1);
-                      }}
-                      className="w-4 h-4"
-                    />
-                    <div>
-                      <p className="font-semibold text-gray-900">Coach/Mentor</p>
-                      <p className="text-xs text-gray-600">
-                        Willing to share expertise & guide others
-                      </p>
+          {/* Coach step progress */}
+          {role === 'coach' && (
+            <div style={{ padding: '1.25rem 2rem 0', borderBottom: '1px solid #F0EDE9' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                {STEPS.map((s) => (
+                  <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
+                    <div style={{
+                      width: '28px', height: '28px', borderRadius: '50%',
+                      background: s.id < step ? '#2C2925' : s.id === step ? '#2C2925' : '#E8E4E0',
+                      border: s.id === step ? '2px solid #2C2925' : '2px solid transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.7rem', fontWeight: 600,
+                      color: s.id <= step ? '#F7F5F2' : '#A09990',
+                      transition: 'all 0.2s',
+                    }}>
+                      {s.id < step ? '✓' : s.id}
                     </div>
-                  </label>
-                </div>
+                    <span style={{ fontSize: '0.625rem', color: s.id === step ? '#2C2925' : '#A09990', fontWeight: s.id === step ? 600 : 400, letterSpacing: '0.02em' }}>
+                      {s.label}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-          ) : null}
-
-          {/* Candidate Form */}
-          {role === 'candidate' && (
-            <form onSubmit={handleCandidateSubmit} className="p-8 space-y-4">
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
-
-              <Input
-                label="Email Address"
-                type="email"
-                name="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                disabled={isLoading}
-                required
-              />
-
-              <Input
-                label="Password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                disabled={isLoading}
-                required
-              />
-
-              <Input
-                label="Confirm Password"
-                type="password"
-                name="confirmPassword"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                disabled={isLoading}
-                required
-              />
-
-              <label className="flex items-start gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 mt-0.5"
-                  disabled={isLoading}
-                  required
-                />
-                <span className="text-gray-600">
-                  I agree to the{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-700">
-                    Terms of Service
-                  </a>
-                  {' '}and{' '}
-                  <a href="#" className="text-blue-600 hover:text-blue-700">
-                    Privacy Policy
-                  </a>
-                </span>
-              </label>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                disabled={isLoading}
-                className="w-full mt-6"
-              >
-                {isLoading ? 'Creating account...' : 'Create Account'}
-              </Button>
-            </form>
           )}
 
-          {/* Coach Form - Multi-step */}
-          {role === 'coach' && (
-            <form className="p-8">
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              )}
+          <div style={{ padding: '2rem' }}>
 
-              {/* Progress indicator */}
-              <div className="mb-8">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Step {step} of 6
+            {/* Error */}
+            {error && (
+              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem' }}>
+                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#B91C1C' }}>{error}</p>
+              </div>
+            )}
+
+            {/* CANDIDATE FORM */}
+            {role === 'candidate' && (
+              <form onSubmit={handleCandidateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <Field label="Email address" type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} disabled={isLoading} required />
+                <Field label="Password" type="password" name="password" placeholder="Min. 8 characters" value={formData.password} onChange={handleChange} disabled={isLoading} required />
+                <Field label="Confirm password" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} required />
+
+                <label className="agree-row" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E8E4E0', marginTop: '0.25rem' }}>
+                  <input type="checkbox" required disabled={isLoading} style={{ marginTop: '2px', accentColor: '#2C2925', width: '15px', height: '15px', flexShrink: 0, cursor: 'pointer' }} />
+                  <span style={{ fontSize: '0.8125rem', color: '#5C5751', lineHeight: 1.5 }}>
+                    I agree to the{' '}
+                    <a href="#" style={{ color: '#2C2925', fontWeight: 500 }}>Terms of Service</a> and{' '}
+                    <a href="#" style={{ color: '#2C2925', fontWeight: 500 }}>Privacy Policy</a>
                   </span>
-                  <span className="text-sm text-gray-500">{Math.round((step / 6) * 100)}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${(step / 6) * 100}%` }}
-                  ></div>
-                </div>
-              </div>
+                </label>
 
-              {/* Step 1: Account Information */}
-              {step === 1 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Account Information
-                  </h3>
-                  <Input
-                    label="Email Address"
-                    type="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Full Name"
-                    type="text"
-                    name="fullName"
-                    placeholder="John Doe"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Password"
-                    type="password"
-                    name="password"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Confirm Password"
-                    type="password"
-                    name="confirmPassword"
-                    placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-              )}
+                <button type="submit" className="primary-btn" disabled={isLoading} style={{ marginTop: '0.5rem', width: '100%', padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                  {isLoading ? 'Creating account…' : 'Create account'}
+                </button>
+              </form>
+            )}
 
-              {/* Step 2: Company Information */}
-              {step === 2 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Company Information
-                  </h3>
-                  <Input
-                    label="Company Name"
-                    type="text"
-                    name="companyName"
-                    placeholder="Your Company"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Company Registration Number (Swedish Org Number)"
-                    type="text"
-                    name="companyRegistrationNumber"
-                    placeholder="123456-7890"
-                    value={formData.companyRegistrationNumber}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Government Agency ID (Arbetsförmedlingen Supplier ID)"
-                    type="text"
-                    name="governmentAgencyId"
-                    placeholder="Supplier ID"
-                    value={formData.governmentAgencyId}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-              )}
+            {/* COACH MULTI-STEP */}
+            {role === 'coach' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
 
-              {/* Step 3: Professional Information */}
-              {step === 3 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Professional Information
-                  </h3>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Bio / About Me
-                    </label>
-                    <textarea
-                      name="bio"
-                      placeholder="Tell us about your experience and expertise..."
-                      value={formData.bio}
+                {step === 1 && (
+                  <>
+                    <Field label="Full name" type="text" name="fullName" placeholder="Jane Doe" value={formData.fullName} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Email address" type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Password" type="password" name="password" placeholder="Min. 8 characters" value={formData.password} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Confirm password" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} required />
+                  </>
+                )}
+
+                {step === 2 && (
+                  <>
+                    <Field label="Company name" type="text" name="companyName" placeholder="Your Company AB" value={formData.companyName} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Swedish org number" type="text" name="companyRegistrationNumber" placeholder="123456-7890" value={formData.companyRegistrationNumber} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Arbetsförmedlingen supplier ID" type="text" name="governmentAgencyId" placeholder="Supplier ID" value={formData.governmentAgencyId} onChange={handleChange} disabled={isLoading} required />
+                  </>
+                )}
+
+                {step === 3 && (
+                  <>
+                    <Field label="Bio" textarea name="bio" placeholder="Tell us about your experience and approach…" value={formData.bio} onChange={handleChange} disabled={isLoading} required />
+
+                    <div>
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', display: 'block', marginBottom: '10px' }}>
+                        Expertise areas
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {EXPERTISE_AREAS.map((area) => {
+                          const selected = formData.expertiseAreas.includes(area);
+                          return (
+                            <div key={area} className="expertise-chip" onClick={() => toggleExpertise(area)} style={{
+                              padding: '6px 14px', borderRadius: '100px',
+                              border: `1.5px solid ${selected ? '#2C2925' : '#E2DDD8'}`,
+                              background: selected ? '#2C2925' : '#FAFAF8',
+                              color: selected ? '#F7F5F2' : '#5C5751',
+                              fontSize: '0.8125rem', fontWeight: selected ? 500 : 400,
+                            }}>
+                              {area}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <Field label="Years of experience" type="number" name="yearsOfExperience" placeholder="10" value={formData.yearsOfExperience} onChange={handleChange} disabled={isLoading} required />
+                      <Field label="Certifications" optional type="text" name="certifications" placeholder="e.g. PMP, ICF" value={formData.certifications} onChange={handleChange} disabled={isLoading} />
+                    </div>
+                  </>
+                )}
+
+                {step === 4 && (
+                  <>
+                    <Field label="Phone number" type="tel" name="phoneNumber" placeholder="+46 123 456 789" value={formData.phoneNumber} onChange={handleChange} disabled={isLoading} required />
+                    <Field label="Contact person name" optional type="text" name="contactPersonName" placeholder="If different from you" value={formData.contactPersonName} onChange={handleChange} disabled={isLoading} />
+                  </>
+                )}
+
+                {step === 5 && (
+                  <>
+                    <Field
+                      label="Max candidates (5–50)"
+                      type="number"
+                      name="maxCandidates"
+                      placeholder="15"
+                      value={formData.maxCandidates}
                       onChange={handleChange}
                       disabled={isLoading}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows="4"
-                      required
-                    ></textarea>
-                  </div>
+                      min="5" max="50" required
+                    />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Expertise Areas (select all that apply)
-                    </label>
-                    <div className="space-y-2">
-                      {['IT', 'Healthcare', 'Construction', 'Finance', 'Education'].map(
-                        (area) => (
-                          <label key={area} className="flex items-center gap-2">
+                    <div>
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', display: 'block', marginBottom: '10px' }}>
+                        Preferred working hours
+                      </label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        {[['startTime', 'From'], ['endTime', 'To']].map(([field, lbl]) => (
+                          <div key={field}>
+                            <label style={{ fontSize: '0.75rem', color: '#9C9690', display: 'block', marginBottom: '6px' }}>{lbl}</label>
                             <input
-                              type="checkbox"
-                              checked={formData.expertiseAreas.includes(area)}
-                              onChange={() => handleExpertiseToggle(area)}
-                              disabled={isLoading}
-                              className="w-4 h-4 rounded"
+                              type="time"
+                              value={formData.preferredWorkingHours[field]}
+                              onChange={(e) => setFormData((prev) => ({ ...prev, preferredWorkingHours: { ...prev.preferredWorkingHours, [field]: e.target.value } }))}
+                              style={{ ...inputBase, padding: '0.7rem 0.875rem' }}
                             />
-                            <span className="text-sm text-gray-700">{area}</span>
-                          </label>
-                        )
-                      )}
-                    </div>
-                  </div>
-
-                  <Input
-                    label="Years of Experience"
-                    type="number"
-                    name="yearsOfExperience"
-                    placeholder="10"
-                    value={formData.yearsOfExperience}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-
-                  <Input
-                    label="Certifications (optional)"
-                    type="text"
-                    name="certifications"
-                    placeholder="List your certifications"
-                    value={formData.certifications}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-              )}
-
-              {/* Step 4: Contact Information */}
-              {step === 4 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Contact Information
-                  </h3>
-                  <Input
-                    label="Phone Number"
-                    type="tel"
-                    name="phoneNumber"
-                    placeholder="+46 123 456 7890"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                  <Input
-                    label="Contact Person Name (if different from coach)"
-                    type="text"
-                    name="contactPersonName"
-                    placeholder="Jane Doe"
-                    value={formData.contactPersonName}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                  />
-                </div>
-              )}
-
-              {/* Step 5: Capacity */}
-              {step === 5 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Capacity</h3>
-                  <Input
-                    label="Maximum Candidates I can handle (5-50)"
-                    type="number"
-                    name="maxCandidates"
-                    placeholder="15"
-                    value={formData.maxCandidates}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    min="5"
-                    max="50"
-                    required
-                  />
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Working Hours
-                    </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-xs text-gray-600">Start Time</label>
-                        <input
-                          type="time"
-                          value={formData.preferredWorkingHours.startTime}
-                          onChange={(e) => handleTimeChange('startTime', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600">End Time</label>
-                        <input
-                          type="time"
-                          value={formData.preferredWorkingHours.endTime}
-                          onChange={(e) => handleTimeChange('endTime', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                        />
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  </>
+                )}
+
+                {step === 6 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {[
+                      { key: 'agreeToTermsOfService', text: 'I agree to the Terms of Service and Privacy Policy' },
+                      { key: 'confirmedRegisteredSupplier', text: 'I confirm I am a registered supplier with the Swedish Employment Agency (Arbetsförmedlingen)' },
+                    ].map(({ key, text }) => (
+                      <label key={key} className="agree-row" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '1rem', borderRadius: '10px', border: `1px solid ${formData[key] ? '#2C2925' : '#E8E4E0'}`, background: formData[key] ? '#F7F5F2' : '#FFFFFF' }}>
+                        <input
+                          type="checkbox"
+                          name={key}
+                          checked={formData[key]}
+                          onChange={handleChange}
+                          disabled={isLoading}
+                          style={{ marginTop: '2px', accentColor: '#2C2925', width: '15px', height: '15px', flexShrink: 0, cursor: 'pointer' }}
+                        />
+                        <span style={{ fontSize: '0.8125rem', color: '#5C5751', lineHeight: 1.5 }}>{text}</span>
+                      </label>
+                    ))}
                   </div>
-                </div>
-              )}
-
-              {/* Step 6: Agreements */}
-              {step === 6 && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Agreements</h3>
-                  <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      name="agreeToTermsOfService"
-                      checked={formData.agreeToTermsOfService}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      className="w-4 h-4 rounded mt-0.5"
-                    />
-                    <span className="text-sm text-gray-700">
-                      I agree to terms of service
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="checkbox"
-                      name="confirmedRegisteredSupplier"
-                      checked={formData.confirmedRegisteredSupplier}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      className="w-4 h-4 rounded mt-0.5"
-                    />
-                    <span className="text-sm text-gray-700">
-                      I confirm I am a registered supplier with Swedish Employment Agency
-                    </span>
-                  </label>
-                </div>
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="flex gap-4 mt-8">
-                {step > 1 && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleCoachBack}
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    Back
-                  </Button>
                 )}
-                {step < 6 ? (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    onClick={handleCoachNext}
-                    disabled={isLoading}
-                    className={step === 1 ? 'w-full' : 'flex-1'}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="primary"
-                    onClick={handleCoachSubmit}
-                    disabled={isLoading}
-                    className="flex-1"
-                  >
-                    {isLoading ? 'Creating account...' : 'Create Account'}
-                  </Button>
-                )}
+
+                {/* Nav buttons */}
+                <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem' }}>
+                  {step > 1 && (
+                    <button type="button" className="secondary-btn" onClick={handleCoachBack} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#F0EDE9', color: '#5C5751', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      ← Back
+                    </button>
+                  )}
+                  {step < 6 ? (
+                    <button type="button" className="primary-btn" onClick={handleCoachNext} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      Continue →
+                    </button>
+                  ) : (
+                    <button type="button" className="primary-btn" onClick={handleCoachSubmit} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {isLoading ? 'Creating account…' : 'Create account'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </form>
-          )}
+            )}
+          </div>
         </div>
 
-        <p className="text-center text-gray-600 mt-6">
+        <p style={{ textAlign: 'center', color: '#8C8680', fontSize: '0.875rem', marginTop: '1.5rem' }}>
           Already have an account?{' '}
-          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-            Sign in here
+          <Link href="/login" style={{ color: '#5C5751', fontWeight: 500 }}>
+            Sign in →
           </Link>
         </p>
       </div>
     </div>
   );
 }
-

@@ -54,11 +54,9 @@ export async function GET(request) {
       data: {
         assignmentId: assignment._id,
         coachId: assignment.coachId._id,
-        coachName: coachFullProfile?.firstName
-          ? `${coachFullProfile.firstName} ${coachFullProfile.lastName || ''}`
-          : coachUser?.firstName + ' ' + (coachUser?.lastName || ''),
+        coachName: coachFullProfile?.fullName || coachUser?.name || 'Your Coach',
         coachEmail: coachUser?.email,
-        coachPhone: coachUser?.phoneNumber,
+        coachPhone: coachFullProfile?.phoneNumber || coachUser?.phoneNumber,
         coachCompany: coachFullProfile?.companyName,
         coachBio: coachFullProfile?.bio,
         coachExpertise: coachFullProfile?.expertiseAreas || [],

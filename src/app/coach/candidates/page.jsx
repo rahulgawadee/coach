@@ -43,7 +43,7 @@ export default function CandidatesPage() {
 
         const data = await response.json();
         if (data.success) {
-          setCandidates(data.candidates || []);
+          setCandidates(data.data || []);
         } else {
           setError(data.error || 'Failed to load candidates');
         }
