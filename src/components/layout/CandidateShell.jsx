@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/layout/Sidebar';
 
 const EXCLUDED_ROUTES = new Set([
-  '/candidate/step1',
   '/candidate/step2',
   '/candidate/step3',
   '/candidate/selection-pending',
