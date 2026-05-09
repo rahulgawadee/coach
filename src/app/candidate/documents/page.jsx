@@ -5,6 +5,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import ProgressBar from '@/components/ui/ProgressBar';
+import SafeDate from '@/components/ui/SafeDate';
 
 const ALLOWED_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
 
@@ -192,7 +193,9 @@ export default function CandidateDocumentsPage() {
                 <div key={doc.id} className="rounded-lg border border-gray-200 p-3">
                   <p className="text-sm font-semibold text-gray-900">{doc.fileName || doc.name || 'Document'}</p>
                   <p className="mt-1 text-xs text-gray-500">{doc.fileType || doc.type || 'Unknown type'}</p>
-                  <p className="text-xs text-gray-500">{doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Unknown date'}</p>
+                  <p className="text-xs text-gray-500">
+                    {doc.uploadedAt ? <SafeDate date={doc.uploadedAt} format="toLocaleDateString" /> : 'Unknown date'}
+                  </p>
                   <p className="text-xs text-gray-500">{formatBytes(doc.fileSize || 0)}</p>
 
                   {activeFolder === 'message-docs' && (

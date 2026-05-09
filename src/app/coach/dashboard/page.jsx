@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import apiService from '@/services/api';
+import SafeDate from '@/components/ui/SafeDate';
 
 export default function CoachDashboardPage() {
   const router = useRouter();
@@ -328,7 +329,7 @@ export default function CoachDashboardPage() {
                         {candidate.candidateName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(candidate.startDate).toLocaleDateString()}
+                        <SafeDate date={candidate.startDate} format="toLocaleDateString" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center gap-2">
@@ -342,7 +343,7 @@ export default function CoachDashboardPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {candidate.nextSession ? new Date(candidate.nextSession).toLocaleDateString() : 'Not scheduled'}
+                        {candidate.nextSession ? <SafeDate date={candidate.nextSession} format="toLocaleDateString" /> : 'Not scheduled'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button className="text-blue-600 hover:text-blue-900">Message</button>

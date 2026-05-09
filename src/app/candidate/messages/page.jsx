@@ -5,6 +5,8 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 
+import SafeDate from '@/components/ui/SafeDate';
+
 const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
 
 function formatTime(value) {
@@ -230,7 +232,9 @@ export default function CandidateMessagesPage() {
                         ))}
                       </div>
                     )}
-                    <p className="mt-1 text-[10px] opacity-70">{formatTime(message.createdAt)}</p>
+                    <p className="mt-1 text-[10px] opacity-70">
+                      {message.createdAt ? <SafeDate date={message.createdAt} /> : 'Now'}
+                    </p>
                   </div>
                 );
               })

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 
+import SafeDate from '@/components/ui/SafeDate';
+
 export default function NotificationsPage() {
   const { isAuthenticated } = useAuth();
   const [authToken] = useLocalStorage('token', '');
@@ -115,7 +117,7 @@ export default function NotificationsPage() {
                   {!notif.read && <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 ml-2 flex-shrink-0" />}
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
-                  {notif.createdAt ? new Date(notif.createdAt).toLocaleDateString() : 'Just now'}
+                  {notif.createdAt ? <SafeDate date={notif.createdAt} format="toLocaleDateString" /> : 'Just now'}
                 </p>
               </div>
             ))}

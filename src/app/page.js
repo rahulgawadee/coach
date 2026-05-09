@@ -42,10 +42,13 @@ const Orb = ({ color, sz, style }) => (
 
 const StatPill = ({ n, suf, label, go }) => {
   const v = useCount(n, 2200, go);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   return (
     <div style={{ flex:1, minWidth:130, textAlign:"center", padding:"26px 16px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.07)", borderRadius:20 }}>
       <div style={{ fontFamily:"'Syne',sans-serif", fontSize:34, fontWeight:800, letterSpacing:"-0.04em", background:"linear-gradient(135deg,#38bdf8,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
-        {suf === "+" ? `${v.toLocaleString()}+` : `${v}${suf}`}
+        {mounted ? (suf === "+" ? `${v.toLocaleString()}+` : `${v}${suf}`) : (suf === "+" ? `${v}+` : `${v}${suf}`)}
       </div>
       <div style={{ fontSize:11, color:"rgba(148,163,184,.65)", marginTop:6, fontWeight:700, letterSpacing:".09em", textTransform:"uppercase" }}>{label}</div>
     </div>
@@ -123,12 +126,16 @@ const SHead = ({ chip, cc, h, sub, center=true }) => (
 const W = { maxWidth:1060, margin:"0 auto", padding:"0 32px" };
 
 export default function CoachLanding() {
+  const [mounted, setMounted] = useState(false);
   const [faq, setFaq] = useState(null);
   const [email, setEmail] = useState("");
   const [heroVis, setHeroVis] = useState(false);
   const [sRef, sVis] = useInView(0.3);
 
-  useEffect(() => { setTimeout(() => setHeroVis(true), 80); }, []);
+  useEffect(() => {
+    setMounted(true);
+    setTimeout(() => setHeroVis(true), 80);
+  }, []);
 
   const fade = (d=0) => ({
     opacity: heroVis ? 1 : 0,
@@ -184,7 +191,7 @@ export default function CoachLanding() {
           <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(148,163,184,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.04) 1px,transparent 1px)", backgroundSize:"56px 56px", pointerEvents:"none" }} />
           {/* particles */}
           <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
-            {pts.map(p => <div key={p.id} style={{ position:"absolute", left:`${p.x}%`, top:`${p.y}%`, width:p.sz, height:p.sz, borderRadius:"50%", background:`rgba(${p.c},${p.op})`, animation:`float ${p.dur}s ease-in-out ${p.delay}s infinite alternate` }} />)}
+            {mounted && pts.map(p => <div key={p.id} style={{ position:"absolute", left:`${p.x}%`, top:`${p.y}%`, width:p.sz, height:p.sz, borderRadius:"50%", background:`rgba(${p.c},${p.op})`, animation:`float ${p.dur}s ease-in-out ${p.delay}s infinite alternate` }} />)}
           </div>
           {/* rings */}
           <div style={{ position:"absolute", right:-30, top:"50%", transform:"translateY(-50%)", width:540, height:540, borderRadius:"50%", border:"1px solid rgba(99,102,241,.1)", animation:"spin 40s linear infinite", pointerEvents:"none" }}>
