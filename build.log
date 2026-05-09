@@ -1,0 +1,86 @@
+
+> coach@0.1.0 build
+> next build
+
+Γû▓ Next.js 16.2.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 77s
+  Running TypeScript ...
+  Finished TypeScript in 3.3s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/31) ...
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/agreement. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/calendar. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /_not-found. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/messages. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+  Generating static pages using 7 workers (7/31) 
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/my-coach. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/documents. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+  Generating static pages using 7 workers (15/31) 
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/step1. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/profile. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+  Generating static pages using 7 workers (23/31) 
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/step2. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /candidate/step3. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /coach/dashboard. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /login. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ΓÜá Unsupported metadata viewport is configured in metadata export in /signup. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+Γ£ô Generating static pages using 7 workers (31/31) in 8.8s
+  Finalizing page optimization ...
+
+Route (app)
+Γöî Γùï /
+Γö£ Γùï /_not-found
+Γö£ ╞Æ /api/ai
+Γö£ ╞Æ /api/ai/profile-enhance
+Γö£ ╞Æ /api/auth/login
+Γö£ ╞Æ /api/auth/logout
+Γö£ ╞Æ /api/auth/me
+Γö£ ╞Æ /api/auth/register
+Γö£ ╞Æ /api/candidate/agreement
+Γö£ ╞Æ /api/candidate/calendar
+Γö£ ╞Æ /api/candidate/companies
+Γö£ ╞Æ /api/candidate/dashboard
+Γö£ ╞Æ /api/candidate/documents
+Γö£ ╞Æ /api/candidate/messages
+Γö£ ╞Æ /api/candidate/notifications
+Γö£ ╞Æ /api/candidate/profile
+Γö£ Γùï /candidate/agreement
+Γö£ Γùï /candidate/calendar
+Γö£ Γùï /candidate/dashboard
+Γö£ Γùï /candidate/documents
+Γö£ Γùï /candidate/messages
+Γö£ Γùï /candidate/my-coach
+Γö£ Γùï /candidate/profile
+Γö£ Γùï /candidate/step1
+Γö£ Γùï /candidate/step2
+Γö£ Γùï /candidate/step3
+Γö£ Γùï /coach/dashboard
+Γö£ Γùï /login
+Γöö Γùï /signup
+
+
+╞Æ Proxy (Middleware)
+
+Γùï  (Static)   prerendered as static content
+╞Æ  (Dynamic)  server-rendered on demand
+
