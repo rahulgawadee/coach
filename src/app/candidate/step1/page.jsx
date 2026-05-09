@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -9,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function Step1Page() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -27,6 +27,8 @@ export default function Step1Page() {
     consentPrivacy: false,
   });
   const [errors, setErrors] = useState({});
+  const [started, setStarted] = useState(false);
+  const [stepIndex, setStepIndex] = useState(1);
 
   const yearOptions = Array.from({ length: 48 }, (_, i) => 2006 - i);
   const places = [
@@ -42,6 +44,26 @@ export default function Step1Page() {
     'Jönköping',
   ];
   const sources = ['TikTok', 'Instagram', 'Facebook', 'Google', 'Friend', 'Other'];
+  const agencyContact = {
+    name: 'Arbetsförmedlingen',
+    email: 'arbetsformedlingen@arbetsformedlingen.se',
+    phone: '+46 10 487 10 00',
+    website: 'https://www.arbetsformedlingen.se/',
+  };
+
+  useEffect(() => {
+    if (authLoading || !user) {
+      return;
+    }
+
+    const onboardingStep = Number(user.onboardingStep) || 0;
+
+    if (onboardingStep >= 3) {
+      router.replace('/candidate/dashboard');
+    } else if (onboardingStep >= 2) {
+      router.replace('/candidate/step2');
+    }
+  }, [authLoading, router, user]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -140,322 +162,207 @@ export default function Step1Page() {
     }
   };
 
+  // Short/condensed submit for stepper flow
+  const handleShortSubmit = async (e) => {
+    e?.preventDefault();
+
+    // minimal validation
+    if (!formData.phoneNumber || !formData.registeredWithSEA || !formData.eligibleForRustaOchMatcha || !formData.lookingForJobOrTraining || !formData.consentHelloLilly || !formData.consentPrivacy) {
+      setError('Please complete all required fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const payload = {
+        firstName: user?.name?.split(' ')[0] || 'Candidate',
+        lastName: user?.name?.split(' ')[1] || '',
+        yearOfBirth: formData.yearOfBirth || 1990,
+        phoneNumber: formData.phoneNumber,
+        placeOfResidence: formData.placeOfResidence || 'Unknown',
+        registeredWithSEA: formData.registeredWithSEA,
+        eligibleForRustaOchMatcha: formData.eligibleForRustaOchMatcha === "Don't know" ? 'Dont know' : formData.eligibleForRustaOchMatcha,
+        lookingForJobOrTraining: formData.lookingForJobOrTraining,
+        wouldYouLikeUsToCall: formData.wouldYouLikeUsToCall || 'No',
+        whereDidYouHearAboutUs: formData.whereDidYouHearAboutUs || 'Other',
+        consentHelloLilly: formData.consentHelloLilly,
+        consentPrivacy: formData.consentPrivacy,
+      };
+
+      const response = await fetch('/api/candidate/eligibility-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Failed to check eligibility');
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.data.eligibilityStatus === 'eligible') {
+        const candidateProfile = { step1: payload, completedAt: new Date().toISOString() };
+        localStorage.setItem('candidateProfile', JSON.stringify(candidateProfile));
+        router.push('/candidate/step2');
+      } else {
+        router.push('/candidate/not-eligible');
+      }
+    } catch (err) {
+      setError(err.message || 'An error occurred during eligibility check');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Step 1: Eligibility Check</h1>
-              <p className="text-gray-600 mt-2">Swedish Employment Agency Form</p>
+    <div className="min-h-screen bg-black/10 px-4 py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-4xl items-center justify-center">
+        <div className="w-full rounded-3xl border border-white/10 bg-white/95 shadow-2xl flex flex-col">
+        {/* Intro / Proceed control */}
+        {!started ? (
+          <div className="space-y-6 rounded-3xl p-10 text-center flex flex-col min-h-[500px]">
+            <div className="space-y-3 text-sm text-gray-700 flex-1">
+              <h1 className="text-2xl font-bold text-gray-900">Before you start: Eligibility check</h1>
+              <p className="text-gray-600">We will help you check your eligibility with the Swedish Employment Agency. You can contact them first if needed.</p>
+              <Card header="Before You Start">
+                <div className="space-y-3 text-left text-sm text-gray-700">
+                  <p>
+                    If you are unsure about your eligibility, contact the Swedish Employment Agency first.
+                    Their details are shown below so you can verify your status before submitting the form.
+                  </p>
+                  <div className="grid gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 md:grid-cols-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Email</p>
+                      <a href={`mailto:${agencyContact.email}`} className="font-medium text-blue-900 hover:underline">
+                        {agencyContact.email}
+                      </a>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Phone</p>
+                      <a href={`tel:${agencyContact.phone.replace(/\s/g, '')}`} className="font-medium text-blue-900 hover:underline">
+                        {agencyContact.phone}
+                      </a>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Website</p>
+                      <a href={agencyContact.website} target="_blank" rel="noreferrer" className="font-medium text-blue-900 hover:underline">
+                        Visit Arbetsförmedlingen
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Step 1 of 3</div>
-              <div className="w-32 h-2 bg-gray-200 rounded-full mt-2">
-                <div className="w-1/3 h-full bg-blue-600 rounded-full" />
+            <div className="grid gap-3 md:grid-cols-3 w-full">
+              <a href={`mailto:${agencyContact.email}`} className="rounded-md border px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50">Email Agency</a>
+              <a href={`tel:${agencyContact.phone.replace(/\s/g, '')}`} className="rounded-md border px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Call Agency</a>
+              <a href={agencyContact.website} target="_blank" rel="noreferrer" className="rounded-md border px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Visit Website</a>
+            </div>
+            <div className="flex justify-end pt-4">
+              <button onClick={() => { setStarted(true); setStepIndex(1); }} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 flex items-center gap-2">Proceed <span>→</span></button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 font-semibold">{error}</p>
               </div>
-            </div>
-          </div>
-        </div>
+            )}
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 font-semibold">{error}</p>
-          </div>
+            {/* Form or stepper */}
+            {stepIndex === 1 ? (
+              <div className="mb-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Step 1: Contact</h1>
+                    <p className="text-gray-600 mt-2">Confirm your contact details</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-500">Step 1 of 2</div>
+                  </div>
+                </div>
+
+                <Card header="Contact">
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <input value={user?.email || ''} disabled className="w-full px-3 py-2 border rounded-lg bg-gray-50" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Phone</label>
+                      <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="+46 70 123 4567" className="w-full px-3 py-2 border rounded-lg" />
+                    </div>
+                  </div>
+                  <div className="mt-4 flex gap-3">
+                    <button onClick={() => { setStepIndex(2); }} type="button" className="ml-auto rounded bg-blue-600 text-white px-4 py-2">Proceed to Questions</button>
+                  </div>
+                </Card>
+              </div>
+            ) : (
+              <form onSubmit={handleShortSubmit} className="space-y-6">
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900">Step 2: Quick Questions</h1>
+                      <p className="text-gray-600 mt-2">Answer a few short questions to check eligibility</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">Step 2 of 2</div>
+                    </div>
+                  </div>
+                </div>
+
+                <Card header="Quick Eligibility">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Are you registered with Swedish Employment Agency? *</label>
+                      <div className="flex gap-4">
+                        {['Yes','No'].map(opt => (
+                          <label key={opt} className="flex items-center gap-2 cursor-pointer"><input type="radio" name="registeredWithSEA" value={opt} checked={formData.registeredWithSEA===opt} onChange={handleChange} /> <span>{opt}</span></label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Are you eligible for Rusta och matcha? *</label>
+                      <div className="flex gap-4">
+                        {['Yes','No',"Don't know"].map(opt => (
+                          <label key={opt} className="flex items-center gap-2 cursor-pointer"><input type="radio" name="eligibleForRustaOchMatcha" value={opt} checked={formData.eligibleForRustaOchMatcha===opt} onChange={handleChange} /> <span>{opt}</span></label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Are you looking for a job or training? *</label>
+                      <div className="flex gap-4">
+                        {['Yes','No'].map(opt => (
+                          <label key={opt} className="flex items-center gap-2 cursor-pointer"><input type="radio" name="lookingForJobOrTraining" value={opt} checked={formData.lookingForJobOrTraining===opt} onChange={handleChange} /> <span>{opt}</span></label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <label className="flex items-center gap-2"><input type="checkbox" name="consentHelloLilly" checked={formData.consentHelloLilly} onChange={handleChange} /> <span className="text-sm">I consent to HelloLilly being a provider</span></label>
+                    <label className="flex items-center gap-2"><input type="checkbox" name="consentPrivacy" checked={formData.consentPrivacy} onChange={handleChange} /> <span className="text-sm">I agree to the Privacy Policy</span></label>
+                  </div>
+                </Card>
+
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setStepIndex(1)} className="rounded border px-4 py-2">Back</button>
+                  <button type="submit" className="ml-auto rounded bg-blue-600 text-white px-4 py-2">Check Eligibility</button>
+                </div>
+              </form>
+            )}
+          </>
         )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information Section */}
-          <Card header="Personal Information">
-            <div className="grid md:grid-cols-2 gap-4">
-              <Input
-                label="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleChange}
-                error={errors.firstName}
-                placeholder="John"
-                required
-              />
-              <Input
-                label="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleChange}
-                error={errors.lastName}
-                placeholder="Doe"
-                required
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Year of Birth *
-                </label>
-                <select
-                  name="yearOfBirth"
-                  value={formData.yearOfBirth}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none transition-all ${
-                    errors.yearOfBirth ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select year...</option>
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-                {errors.yearOfBirth && (
-                  <p className="text-sm text-red-600 mt-1">{errors.yearOfBirth}</p>
-                )}
-              </div>
-
-              <Input
-                label="Phone Number"
-                type="tel"
-                name="phoneNumber"
-                value={formData.phoneNumber}
-                onChange={handleChange}
-                error={errors.phoneNumber}
-                placeholder="+46 70 123 4567"
-                required
-              />
-            </div>
-
-            <div className="mt-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Place of Residence *
-                </label>
-                <select
-                  name="placeOfResidence"
-                  value={formData.placeOfResidence}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none transition-all ${
-                    errors.placeOfResidence ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                >
-                  <option value="">Select city...</option>
-                  {places.map((place) => (
-                    <option key={place} value={place}>
-                      {place}
-                    </option>
-                  ))}
-                </select>
-                {errors.placeOfResidence && (
-                  <p className="text-sm text-red-600 mt-1">{errors.placeOfResidence}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Employment Agency Section */}
-          <Card header="Employment Agency Questions">
-            <div className="space-y-4">
-              {/* Question 1 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Are you registered with Swedish Employment Agency? *
-                </label>
-                <div className="flex gap-4">
-                  {['Yes', 'No'].map((option) => (
-                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="registeredWithSEA"
-                        value={option}
-                        checked={formData.registeredWithSEA === option}
-                        onChange={handleChange}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.registeredWithSEA && (
-                  <p className="text-sm text-red-600 mt-1">{errors.registeredWithSEA}</p>
-                )}
-              </div>
-
-              {/* Question 2 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Are you eligible for Rusta och matcha? *
-                </label>
-                <div className="flex gap-4">
-                  {['Yes', 'No', "Don't know"].map((option) => (
-                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="eligibleForRustaOchMatcha"
-                        value={option}
-                        checked={formData.eligibleForRustaOchMatcha === option}
-                        onChange={handleChange}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.eligibleForRustaOchMatcha && (
-                  <p className="text-sm text-red-600 mt-1">{errors.eligibleForRustaOchMatcha}</p>
-                )}
-              </div>
-
-              {/* Question 3 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Are you looking for a job or training? *
-                </label>
-                <div className="flex gap-4">
-                  {['Yes', 'No'].map((option) => (
-                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="lookingForJobOrTraining"
-                        value={option}
-                        checked={formData.lookingForJobOrTraining === option}
-                        onChange={handleChange}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.lookingForJobOrTraining && (
-                  <p className="text-sm text-red-600 mt-1">{errors.lookingForJobOrTraining}</p>
-                )}
-              </div>
-
-              {/* Question 4 */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Would you like us to call you? *
-                </label>
-                <div className="flex gap-4">
-                  {['Yes', 'No'].map((option) => (
-                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="wouldYouLikeUsToCall"
-                        value={option}
-                        checked={formData.wouldYouLikeUsToCall === option}
-                        onChange={handleChange}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-gray-700">{option}</span>
-                    </label>
-                  ))}
-                </div>
-                {errors.wouldYouLikeUsToCall && (
-                  <p className="text-sm text-red-600 mt-1">{errors.wouldYouLikeUsToCall}</p>
-                )}
-              </div>
-            </div>
-          </Card>
-
-          {/* Additional Information */}
-          <Card header="Additional Information">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Where did you hear about us? *
-              </label>
-              <select
-                name="whereDidYouHearAboutUs"
-                value={formData.whereDidYouHearAboutUs}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 border-2 rounded-lg focus:outline-none transition-all ${
-                  errors.whereDidYouHearAboutUs ? 'border-red-500' : 'border-gray-300'
-                }`}
-              >
-                <option value="">Select source...</option>
-                {sources.map((source) => (
-                  <option key={source} value={source}>
-                    {source}
-                  </option>
-                ))}
-              </select>
-              {errors.whereDidYouHearAboutUs && (
-                <p className="text-sm text-red-600 mt-1">{errors.whereDidYouHearAboutUs}</p>
-              )}
-            </div>
-          </Card>
-
-          {/* Consents */}
-          <Card header="Agreements">
-            <div className="space-y-4">
-              <label className="flex items-start gap-3 cursor-pointer p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-                <input
-                  type="checkbox"
-                  name="consentHelloLilly"
-                  checked={formData.consentHelloLilly}
-                  onChange={handleChange}
-                  className="w-5 h-5 mt-0.5 rounded"
-                />
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    I consent to HelloLilly being a provider
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    HelloLilly will help facilitate your mentorship experience
-                  </p>
-                </div>
-              </label>
-              {errors.consentHelloLilly && (
-                <p className="text-sm text-red-600">{errors.consentHelloLilly}</p>
-              )}
-
-              <label className="flex items-start gap-3 cursor-pointer p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-                <input
-                  type="checkbox"
-                  name="consentPrivacy"
-                  checked={formData.consentPrivacy}
-                  onChange={handleChange}
-                  className="w-5 h-5 mt-0.5 rounded"
-                />
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    I agree to the Privacy Policy
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    I have read and accept our privacy terms and conditions
-                  </p>
-                </div>
-              </label>
-              {errors.consentPrivacy && (
-                <p className="text-sm text-red-600">{errors.consentPrivacy}</p>
-              )}
-            </div>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={() => router.back()}
-              disabled={isLoading}
-            >
-              Back
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              disabled={isLoading}
-              className="flex-1"
-            >
-              {isLoading ? 'Checking eligibility...' : 'Check Eligibility →'}
-            </Button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

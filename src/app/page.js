@@ -174,7 +174,7 @@ export default function Home() {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="bg-linear-to-br from-blue-600 via-blue-500 to-purple-600 text-white py-16 md:py-32 px-4">
+      <section id="top" className="bg-linear-to-br from-blue-600 via-blue-500 to-purple-600 text-white py-16 md:py-32 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Transform Your Career with Expert Mentorship
@@ -196,7 +196,7 @@ export default function Home() {
       </section>
 
       {/* About the Program */}
-      <section className="py-16 md:py-24 px-4 bg-white">
+      <section id="about" className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">About Our Program</h2>
@@ -218,7 +218,7 @@ export default function Home() {
       </section>
 
       {/* For Mentees Section */}
-      <section className="py-16 md:py-24 px-4 bg-gray-50">
+      <section id="mentees" className="py-16 md:py-24 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">For Mentees</h2>
           <p className="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -287,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* For Mentors Section */}
-      <section className="py-16 md:py-24 px-4 bg-white">
+      <section id="mentors" className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">For Mentors</h2>
           <p className="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -356,7 +356,7 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 md:py-24 px-4 bg-gray-50">
+      <section id="how-it-works" className="py-16 md:py-24 px-4 bg-gray-50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">How It Works</h2>
           <p className="text-lg text-gray-600 text-center mb-12 max-w-2xl mx-auto">
@@ -403,7 +403,7 @@ export default function Home() {
       </section>
 
       {/* FAQs Section */}
-      <section className="py-16 md:py-24 px-4 bg-white">
+      <section id="faq" className="py-16 md:py-24 px-4 bg-white">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">Frequently Asked Questions</h2>
           <p className="text-lg text-gray-600 text-center mb-12">
@@ -441,7 +441,7 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 md:py-24 px-4 bg-gray-50">
+      <section id="contact" className="py-16 md:py-24 px-4 bg-gray-50">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Stay Updated</h2>
           <p className="text-lg text-gray-600 mb-8">

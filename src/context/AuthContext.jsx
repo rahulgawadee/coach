@@ -56,7 +56,17 @@ export const AuthProvider = ({ children }) => {
       persistSession(userData, data.token);
 
       if (userData.role?.toLowerCase() === 'candidate') {
-        router.push(Number(userData.onboardingStep) >= 3 ? '/candidate/dashboard' : '/candidate/step1');
+        const onboardingStep = Number(userData.onboardingStep) || 0;
+
+        if (onboardingStep >= 3) {
+          router.push('/candidate/dashboard');
+        } else if (onboardingStep >= 2) {
+          router.push('/candidate/step2');
+        } else if (onboardingStep < 0) {
+          router.push('/candidate/dashboard');
+        } else {
+          router.push('/candidate/step1');
+        }
       } else if (userData.role?.toLowerCase() === 'coach') {
         router.push('/coach/dashboard');
       }

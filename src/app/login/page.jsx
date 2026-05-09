@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const [activeRole, setActiveRole] = useState('candidate');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -49,10 +50,42 @@ export default function LoginPage() {
           <div className="text-4xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Coach
           </div>
-          <p className="text-gray-600">Login as Candidate or Coach</p>
+          <p className="text-gray-600">Choose how you want to sign in</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-8 border border-gray-200">
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-xl bg-gray-100 p-1">
+            <button
+              type="button"
+              onClick={() => setActiveRole('candidate')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                activeRole === 'candidate' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600'
+              }`}
+            >
+              Login as Candidate
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRole('coach')}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                activeRole === 'coach' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600'
+              }`}
+            >
+              Login as Coach
+            </button>
+          </div>
+
+          <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4">
+            <p className="text-sm font-semibold text-blue-900">
+              {activeRole === 'candidate' ? 'Candidate login' : 'Coach login'}
+            </p>
+            <p className="mt-1 text-sm text-blue-700">
+              {activeRole === 'candidate'
+                ? 'Use your candidate credentials to continue onboarding or open your dashboard.'
+                : 'Use your coach credentials to access your coaching dashboard.'}
+            </p>
+          </div>
+
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-700">{error}</p>
@@ -103,51 +136,9 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'Signing in...' : activeRole === 'candidate' ? 'Sign in as Candidate' : 'Sign in as Coach'}
             </Button>
           </form>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              className="w-full"
-              onClick={() => {
-                setFormData({
-                  email: 'candidate@example.com',
-                  password: 'password123',
-                });
-              }}
-              disabled={isLoading}
-            >
-              Login as Candidate
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              className="w-full"
-              onClick={() => {
-                setFormData({
-                  email: 'coach@example.com',
-                  password: 'password123',
-                });
-              }}
-              disabled={isLoading}
-            >
-              Login as Coach
-            </Button>
-          </div>
         </div>
 
         <p className="text-center text-gray-600 mt-6">

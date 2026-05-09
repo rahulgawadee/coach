@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
+import { useAuth } from '@/context/AuthContext';
 
 function SkeletonCard() {
   return (
@@ -17,11 +18,13 @@ function SkeletonCard() {
 }
 
 export default function CandidateDashboardHomePage() {
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
   const [messages, setMessages] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [eligibility, setEligibility] = useState(null);
 
   useEffect(() => {
     const rawUser = localStorage.getItem('user');
@@ -64,6 +67,18 @@ export default function CandidateDashboardHomePage() {
 
         if (docsData?.success) {
           setDocuments(docsData.data || []);
+        }
+
+        const eligibilityRes = await fetch('/api/candidate/eligibility-check', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+          },
+        });
+        const eligibilityData = await eligibilityRes.json();
+        if (eligibilityRes.ok && eligibilityData?.data) {
+          setEligibility(eligibilityData.data);
+        } else {
+          setEligibility(null);
         }
       } catch {
         // Keep stable UI with fallbacks.
@@ -116,10 +131,48 @@ export default function CandidateDashboardHomePage() {
   const coachName = dashboard?.coach?.name || 'Your Coach';
   const coachRating = dashboard?.coach?.rating || 4.8;
   const nextSession = (dashboard?.upcomingEvents || [])[0] || null;
+  const isNotEligible = user?.onboardingStep === -1 || eligibility?.eligibilityStatus === 'not-eligible';
 
   return (
     <div className="grid gap-6 xl:grid-cols-12">
       <div className="space-y-6 xl:col-span-9">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Card>
+            <p className="text-sm font-semibold text-gray-500">Eligibility Status</p>
+            <p className="mt-2 text-lg font-semibold text-gray-900">
+              {eligibility?.eligibilityStatus || (user?.onboardingStep === -1 ? 'Not eligible' : 'Not checked')}
+            </p>
+            {isNotEligible ? (
+              <Link href="/candidate/step1" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
+                Check Eligibility Again
+              </Link>
+            ) : (
+              <p className="mt-4 text-sm text-gray-600">Eligibility check is complete.</p>
+            )}
+          </Card>
+
+          <Card>
+            <p className="text-sm font-semibold text-gray-500">Swedish Agency</p>
+            <p className="mt-2 text-lg font-semibold text-gray-900">Arbetsförmedlingen</p>
+            <a href="mailto:arbetsformedlingen@arbetsformedlingen.se" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
+              Email Agency
+            </a>
+          </Card>
+
+          <Card>
+            <p className="text-sm font-semibold text-gray-500">Current Step</p>
+            <p className="mt-2 text-lg font-semibold text-gray-900">{user?.onboardingStep ?? 0}</p>
+            <p className="mt-4 text-sm text-gray-600">Your onboarding progress</p>
+          </Card>
+
+          <Card>
+            <p className="text-sm font-semibold text-gray-500">Next Action</p>
+            <Link href={isNotEligible ? '/candidate/step1' : '/candidate/step3'} className="mt-2 inline-block text-lg font-semibold text-blue-600 hover:text-blue-700">
+              {isNotEligible ? 'Recheck Eligibility' : 'Continue Onboarding'}
+            </Link>
+          </Card>
+        </section>
+
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Card>
             <p className="text-sm font-semibold text-gray-500">Your Coach</p>
