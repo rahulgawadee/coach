@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 const Navbar = ({ role = 'candidate' }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -21,6 +22,9 @@ const Navbar = ({ role = 'candidate' }) => {
     { label: 'FAQ',          href: '/#faq' },
     { label: 'Contact',      href: '/#contact' },
   ];
+
+  const signInHref = role === 'coach' ? '/coach/login' : '/login';
+  const getStartedHref = role === 'coach' ? '/signup?role=coach' : '/signup';
 
   return (
     <>
@@ -102,8 +106,12 @@ const Navbar = ({ role = 'candidate' }) => {
 
           {/* Desktop CTAs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }} className="nav-desktop">
-            <button className="nav-btn-ghost">Sign in</button>
-            <button className="nav-btn-primary">Get started →</button>
+            <Link href={signInHref} className="nav-btn-ghost" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+              Sign in
+            </Link>
+            <Link href={getStartedHref} className="nav-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+              Get started →
+            </Link>
           </div>
 
           {/* Mobile burger */}
@@ -138,8 +146,12 @@ const Navbar = ({ role = 'candidate' }) => {
                 onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
             <div style={{ display: 'flex', gap: 10, padding: '12px 20px 0' }}>
-              <button className="nav-btn-ghost" style={{ flex: 1 }}>Sign in</button>
-              <button className="nav-btn-primary" style={{ flex: 1 }}>Get started →</button>
+              <Link href={signInHref} className="nav-btn-ghost" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
+                Sign in
+              </Link>
+              <Link href={getStartedHref} className="nav-btn-primary" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
+                Get started →
+              </Link>
             </div>
           </div>
         )}
