@@ -29,40 +29,33 @@ const Modal = ({
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
+    '4xl': 'max-w-4xl',
+    '6xl': 'max-w-6xl',
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/40 backdrop-blur-md transition-all"
         onClick={onClose}
       />
-      <div className={`relative bg-white rounded-lg shadow-xl ${sizeClasses[size]} w-full mx-4 max-h-[90vh] overflow-y-auto`}>
+      <div className={`relative bg-white rounded-[2rem] shadow-2xl ${sizeClasses[size]} w-full mx-auto max-h-[90vh] overflow-hidden flex flex-col border border-white/20 animate-in zoom-in-95 duration-300`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-white sticky top-0 z-10">
+          <h2 className="text-2xl font-black text-gray-900 tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all"
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Content */}
-        <div className="px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-8 py-6">
           {children}
         </div>
 
@@ -98,7 +91,7 @@ Modal.propTypes = {
       variant: require('prop-types').oneOf(['primary', 'secondary', 'outline', 'danger']),
     })
   ),
-  size: require('prop-types').oneOf(['sm', 'md', 'lg', 'xl']),
+  size: require('prop-types').oneOf(['sm', 'md', 'lg', 'xl', '2xl', '4xl', '6xl']),
 };
 
 export default Modal;

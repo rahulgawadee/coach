@@ -13,12 +13,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata = {
   title: "Coach - Mentorship & Professional Development Platform",
   description: "Connect with mentors, develop skills, and advance your career through our comprehensive mentorship platform.",
   keywords: ["mentorship", "coaching", "professional development", "career growth"],
   authors: [{ name: "Coach Platform" }],
-  viewport: "width=device-width, initial-scale=1.0",
   openGraph: {
     type: "website",
     url: "https://coach-platform.com",

@@ -6,22 +6,22 @@ import { useAuth } from '@/context/AuthContext';
 
 const inputBase = {
   width: '100%',
-  padding: '0.75rem 1rem',
+  padding: '0.875rem 1rem',
   fontSize: '0.9375rem',
-  border: '1px solid #E2DDD8',
-  borderRadius: '10px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '12px',
   outline: 'none',
-  background: '#FAFAF8',
-  color: '#1A1916',
-  transition: 'border-color 0.15s, box-shadow 0.15s',
+  background: 'rgba(255,255,255,0.05)',
+  color: '#FFFFFF',
+  transition: 'all 0.2s ease',
   boxSizing: 'border-box',
 };
 
-function Field({ label, hint, ...props }) {
+function Field({ label, ...props }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', letterSpacing: '0.01em' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
         {label}
       </label>
       <input
@@ -30,8 +30,9 @@ function Field({ label, hint, ...props }) {
         onBlur={() => setFocused(false)}
         style={{
           ...inputBase,
-          borderColor: focused ? '#B8A99A' : '#E2DDD8',
-          boxShadow: focused ? '0 0 0 3px rgba(184,169,154,0.18)' : 'none',
+          borderColor: focused ? '#6366F1' : 'rgba(255,255,255,0.1)',
+          background: focused ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)',
+          boxShadow: focused ? '0 0 0 4px rgba(99,102,241,0.15)' : 'none',
         }}
       />
     </div>
@@ -44,7 +45,6 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -70,107 +70,96 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#F7F5F2',
+      background: '#08080F',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '2rem 1rem',
-      fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
+      fontFamily: "'Syne', sans-serif",
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Animated Orbs */}
+      <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(56,189,248,0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
         * { box-sizing: border-box; }
-        ::placeholder { color: #BDB8B2; }
-        .role-btn { cursor: pointer; border: none; background: transparent; transition: all 0.18s; }
-        .role-btn:hover { background: rgba(255,255,255,0.7) !important; }
-        .submit-btn:hover:not(:disabled) { background: #1A1916 !important; }
-        .submit-btn:active:not(:disabled) { transform: scale(0.985); }
-        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .forgot-link:hover { color: #1A1916 !important; }
-        .signup-link:hover { color: #1A1916 !important; }
+        .glass-card {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .submit-btn {
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+        }
+        .submit-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.6);
+        }
+        .submit-btn:active:not(:disabled) {
+          transform: translateY(0);
+        }
+        .submit-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .role-tab {
+          flex: 1;
+          padding: 1rem;
+          font-size: 0.875rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.4);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+        }
+        .role-tab.active {
+          color: #FFFFFF;
+          border-bottom-color: #6366F1;
+          background: rgba(255,255,255,0.03);
+        }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: '420px' }}>
-
-        
-
-        {/* Card */}
-        <div style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E8E4E0',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.04)',
-        }}>
-
-          {/* Role switcher */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            borderBottom: '1px solid #E8E4E0',
-          }}>
-            {['candidate', 'coach'].map((role) => {
-              const active = activeRole === role;
-              return (
-                <button
-                  key={role}
-                  type="button"
-                  className="role-btn"
-                  onClick={() => setActiveRole(role)}
-                  style={{
-                    padding: '0.9rem',
-                    fontSize: '0.8125rem',
-                    fontWeight: active ? 600 : 400,
-                    color: active ? '#1A1916' : '#9C9690',
-                    background: active ? '#FFFFFF' : '#F7F5F2',
-                    borderRight: role === 'candidate' ? '1px solid #E8E4E0' : 'none',
-                    borderBottom: active ? '2px solid #1A1916' : '2px solid transparent',
-                    letterSpacing: '0.01em',
-                    fontFamily: 'inherit',
-                    transition: 'all 0.18s',
-                  }}
-                >
-                  {role === 'candidate' ? 'Candidate' : 'Coach'}
-                </button>
-              );
-            })}
+      <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1 }}>
+        <div className="glass-card overflow-hidden">
+          {/* Header */}
+          <div style={{ padding: '2.5rem 2.5rem 1.5rem' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>Welcome Back</h1>
+            <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem', fontSize: '0.9375rem', fontFamily: "'DM Sans', sans-serif" }}>
+              Sign in to your Coach account to continue.
+            </p>
           </div>
 
-          {/* Form body */}
-          <div style={{ padding: '2rem' }}>
+          {/* Role Switcher */}
+          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <button className={`role-tab ${isCandidate ? 'active' : ''}`} onClick={() => setActiveRole('candidate')}>Candidate</button>
+            <button className={`role-tab ${!isCandidate ? 'active' : ''}`} onClick={() => setActiveRole('coach')}>Coach</button>
+          </div>
 
-            {/* Context hint */}
-            <div style={{
-              background: '#F7F5F2',
-              borderRadius: '10px',
-              padding: '0.75rem 1rem',
-              marginBottom: '1.5rem',
-              borderLeft: '3px solid #C9BFB5',
-            }}>
-              <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6B6560', lineHeight: 1.5 }}>
-                {isCandidate
-                  ? 'Continue your onboarding or access your candidate dashboard.'
-                  : 'Access your coaching dashboard and manage your candidates.'}
-              </p>
-            </div>
-
-            {/* Error */}
+          {/* Form */}
+          <div style={{ padding: '2.5rem' }}>
             {error && (
-              <div style={{
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                borderRadius: '10px',
-                padding: '0.75rem 1rem',
-                marginBottom: '1.25rem',
-              }}>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#B91C1C' }}>{error}</p>
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.75rem 1rem', borderRadius: '10px', marginBottom: '1.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#F87171', fontWeight: 500 }}>{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <Field
-                label="Email address"
+                label="Email Address"
                 type="email"
                 name="email"
                 placeholder="you@example.com"
@@ -191,24 +180,8 @@ export default function LoginPage() {
                 required
               />
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '-0.25rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    disabled={isLoading}
-                    style={{ width: '15px', height: '15px', accentColor: '#1A1916', cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: '0.8125rem', color: '#6B6560' }}>Remember me</span>
-                </label>
-                <a
-                  href="#"
-                  className="forgot-link"
-                  style={{ fontSize: '0.8125rem', color: '#8C8680', textDecoration: 'none', transition: 'color 0.15s' }}
-                >
-                  Forgot password?
-                </a>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem' }}>
+                <a href="#" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>Forgot password?</a>
               </div>
 
               <button
@@ -217,34 +190,20 @@ export default function LoginPage() {
                 disabled={isLoading}
                 style={{
                   marginTop: '0.5rem',
-                  width: '100%',
-                  padding: '0.8125rem',
-                  background: '#2C2925',
-                  color: '#F7F5F2',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  letterSpacing: '0.01em',
-                  fontFamily: 'inherit',
-                  transition: 'background 0.15s, transform 0.1s',
+                  padding: '1rem',
+                  fontSize: '1rem'
                 }}
               >
-                {isLoading ? 'Signing in…' : `Sign in as ${isCandidate ? 'Candidate' : 'Coach'}`}
+                {isLoading ? 'Processing...' : `Sign in as ${isCandidate ? 'Candidate' : 'Coach'}`}
               </button>
             </form>
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', color: '#8C8680', fontSize: '0.875rem', marginTop: '1.5rem' }}>
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '2rem', fontFamily: "'DM Sans', sans-serif" }}>
           Don't have an account?{' '}
-          <Link
-            href="/signup"
-            className="signup-link"
-            style={{ color: '#5C5751', fontWeight: 500, textDecoration: 'none', transition: 'color 0.15s' }}
-          >
-            Sign up →
+          <Link href="/signup" style={{ color: '#818CF8', fontWeight: 700, textDecoration: 'none' }}>
+            Create one for free →
           </Link>
         </p>
       </div>

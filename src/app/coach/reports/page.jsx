@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import apiService from '@/services/api';
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -20,37 +21,20 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
-      router.push('/coach/login');
+      router.push('/login');
       return;
     }
 
     const fetchCandidates = async () => {
       try {
-        const response = await fetch('/api/coach/candidates', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/coach/login');
-            return;
-          }
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setCandidates(data.candidates || []);
-        } else {
-          setError(data.error || 'Failed to load candidates');
-        }
+        const data = await apiService.coach.getActiveCandidates();
+        setCandidates(data.data || []);
       } catch (err) {
         console.error('Candidates error:', err);
+        if (err.message === 'Unauthorized') {
+          router.push('/login');
+          return;
+        }
         setError('Failed to load candidates');
       } finally {
         setLoading(false);
@@ -72,30 +56,8 @@ export default function ReportsPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/coach/reports', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          candidateId: selectedCandidate,
-          startDate,
-          endDate,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate report');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setReport(data.report);
-      } else {
-        setError(data.error || 'Failed to generate report');
-      }
+      const data = await apiService.coach.getReports(selectedCandidate, startDate, endDate);
+      setReport(data.report);
     } catch (err) {
       console.error('Report generation error:', err);
       setError('Failed to generate report');

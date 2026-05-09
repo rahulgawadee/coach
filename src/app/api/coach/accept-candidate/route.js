@@ -110,6 +110,22 @@ export async function POST(request) {
     coachProfile.currentAssignmentCount = (coachProfile.currentAssignmentCount || 0) + 1;
     await coachProfile.save();
 
+    // Update CandidateWorkspace with real coach info
+    const CandidateWorkspace = (await import('@/models/CandidateWorkspace')).default;
+    const workspace = await CandidateWorkspace.findOne({ userId: assignment.candidateId._id.toString() });
+    if (workspace) {
+      workspace.coach = {
+        name: coachUser.name || 'Your Coach',
+        company: coachProfile.organization || 'Coach Mentorship',
+        rating: 5.0,
+        ratingCount: 1,
+        experienceYears: coachProfile.yearsOfExperience || 5,
+        bio: coachProfile.bio || 'Professional Coach',
+        specialties: coachProfile.expertise || []
+      };
+      await workspace.save();
+    }
+
     // TODO: Create initial calendar event (Welcome Session)
     // TODO: Send notification to candidate
     // TODO: Enable messaging between coach and candidate

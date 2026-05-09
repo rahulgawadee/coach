@@ -8,7 +8,11 @@ function getStoredAuthToken() {
   }
 
   try {
-    return window.localStorage.getItem('token') || '';
+    let token = window.localStorage.getItem('token') || '';
+    // Strip quotes and Bearer prefix if they exist
+    token = token.replace(/^"(.*)"$/, '$1');
+    token = token.replace(/^Bearer /i, '');
+    return token;
   } catch {
     return '';
   }
@@ -246,7 +250,7 @@ export const coach = {
   getProfile: () => apiCall('/coach/profile', { method: 'GET' }),
   updateProfile: (data) =>
     apiCall('/coach/profile', {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
   uploadProfileMedia: (formData) =>
@@ -274,6 +278,7 @@ export const coach = {
 
   // Dashboard
   getDashboard: () => apiCall('/coach/dashboard', { method: 'GET' }),
+  getCompanyInfo: () => apiCall('/coach/company-info', { method: 'GET' }),
 
   // Selections
   getAvailableCoaches: () => apiCall('/coaches/available', { method: 'GET' }),

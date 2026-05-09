@@ -7,31 +7,31 @@ import { useAuth } from '@/context/AuthContext';
 
 const inputBase = {
   width: '100%',
-  padding: '0.75rem 1rem',
+  padding: '0.875rem 1rem',
   fontSize: '0.9375rem',
-  border: '1px solid #E2DDD8',
-  borderRadius: '10px',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '12px',
   outline: 'none',
-  background: '#FAFAF8',
-  color: '#1A1916',
-  transition: 'border-color 0.15s, box-shadow 0.15s',
+  background: 'rgba(255,255,255,0.05)',
+  color: '#FFFFFF',
+  transition: 'all 0.2s ease',
   boxSizing: 'border-box',
-  fontFamily: 'inherit',
 };
 
 function Field({ label, optional, textarea, rows = 4, ...props }) {
   const [focused, setFocused] = useState(false);
   const style = {
     ...inputBase,
-    borderColor: focused ? '#B8A99A' : '#E2DDD8',
-    boxShadow: focused ? '0 0 0 3px rgba(184,169,154,0.18)' : 'none',
+    borderColor: focused ? '#6366F1' : 'rgba(255,255,255,0.1)',
+    background: focused ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)',
+    boxShadow: focused ? '0 0 0 4px rgba(99,102,241,0.15)' : 'none',
     ...(textarea ? { resize: 'vertical', lineHeight: 1.6 } : {}),
   };
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', letterSpacing: '0.01em', display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.05em', textTransform: 'uppercase', display: 'flex', gap: '6px', alignItems: 'center' }}>
         {label}
-        {optional && <span style={{ fontWeight: 400, color: '#A09990', fontSize: '0.75rem' }}>optional</span>}
+        {optional && <span style={{ fontWeight: 400, color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', textTransform: 'lowercase' }}>optional</span>}
       </label>
       {textarea
         ? <textarea {...props} rows={rows} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} style={style} />
@@ -74,6 +74,7 @@ export default function SignupPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('role') === 'coach') setRole('coach');
+    if (params.get('email')) setFormData(prev => ({ ...prev, email: params.get('email') }));
   }, []);
 
   const handleChange = (e) => {
@@ -125,9 +126,8 @@ export default function SignupPage() {
     if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return; }
     setIsLoading(true);
     try {
-      const result = await register(formData.email, formData.password, formData.confirmPassword, 'Candidate', formData.email.split('@')[0]);
+      const result = await register(formData.email, formData.password, formData.confirmPassword, 'Candidate', formData.fullName);
       if (!result.success) setError(result.error || 'Registration failed');
-      else router.push('/candidate/step1');
     } catch (err) {
       setError(err.message || 'An error occurred');
     } finally { setIsLoading(false); }
@@ -167,261 +167,233 @@ export default function SignupPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#F7F5F2',
+      background: '#08080F',
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'center',
       padding: '2.5rem 1rem',
-
-      fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
+      fontFamily: "'Syne', sans-serif",
+      position: 'relative',
+      overflow: 'hidden'
     }}>
+      {/* Animated Orbs */}
+      <div style={{ position: 'absolute', top: '10%', right: '-5%', width: '30%', height: '30%', background: 'radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', bottom: '10%', left: '-5%', width: '30%', height: '30%', background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
         * { box-sizing: border-box; }
-        ::placeholder { color: #BDB8B2; }
-        textarea { font-family: inherit; }
-        .primary-btn { transition: background 0.15s, transform 0.1s; }
-        .primary-btn:hover:not(:disabled) { background: #1A1916 !important; }
-        .primary-btn:active:not(:disabled) { transform: scale(0.985); }
+        .glass-card {
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 28px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .primary-btn {
+          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+        }
+        .primary-btn:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5);
+        }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .secondary-btn { transition: background 0.15s; }
-        .secondary-btn:hover:not(:disabled) { background: #EEEBE8 !important; }
-        .role-card { transition: border-color 0.15s, background 0.15s; cursor: pointer; }
-        .expertise-chip { transition: all 0.15s; cursor: pointer; user-select: none; }
-        .expertise-chip:hover { border-color: #B8A99A !important; }
-        .agree-row { transition: background 0.15s; cursor: pointer; }
-        .agree-row:hover { background: #F7F5F2 !important; }
-        a { text-decoration: none; }
+        .secondary-btn {
+          background: rgba(255,255,255,0.05);
+          color: white;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .secondary-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); }
+        .role-btn {
+          flex: 1;
+          padding: 1.25rem 1rem;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 16px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: left;
+        }
+        .role-btn.active {
+          background: rgba(99, 102, 241, 0.1);
+          border-color: #6366F1;
+          box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+        .expertise-chip {
+          padding: 8px 16px;
+          border-radius: 100px;
+          font-size: 0.8125rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.03);
+          color: rgba(255,255,255,0.6);
+        }
+        .expertise-chip.active {
+          background: #6366F1;
+          color: white;
+          border-color: #6366F1;
+          box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+        }
+        .step-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.1);
+          transition: all 0.3s ease;
+        }
+        .step-dot.active { background: #6366F1; box-shadow: 0 0 10px #6366F1; }
+        .step-dot.completed { background: #8B5CF6; }
       `}</style>
 
-      <div style={{ width: '100%', maxWidth: role === 'coach' ? '560px' : '420px', transition: 'max-width 0.3s' }}>
-
-
-
-        {/* Role selector */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '1.5rem', marginTop: '80px' }}>
-          {[
-            { key: 'candidate', icon: '◎', title: 'Candidate', desc: 'Seeking mentorship & career growth' },
-            { key: 'coach', icon: '◈', title: 'Coach / Mentor', desc: 'Share expertise & guide others' },
-          ].map(({ key, icon, title, desc }) => {
-            const active = role === key;
-            return (
-              <div
-                key={key}
-                className="role-card"
-                onClick={() => { setRole(key); setStep(1); setError(''); }}
-                style={{
-                  background: active ? '#FFFFFF' : '#EEEBE8',
-                  border: `1.5px solid ${active ? '#2C2925' : '#E2DDD8'}`,
-                  borderRadius: '12px',
-                  padding: '1rem 1.125rem',
-                }}
-              >
-                <div style={{ fontSize: '1.125rem', marginBottom: '6px', color: active ? '#2C2925' : '#9C9690' }}>{icon}</div>
-                <p style={{ margin: '0 0 4px', fontSize: '0.9rem', fontWeight: 600, color: active ? '#1A1916' : '#6B6560' }}>{title}</p>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: active ? '#6B6560' : '#9C9690', lineHeight: 1.4 }}>{desc}</p>
+      <div style={{ width: '100%', maxWidth: role === 'coach' ? '580px' : '460px', position: 'relative', zIndex: 1 }}>
+        
+        {/* Role Switcher */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '2rem' }}>
+          {['candidate', 'coach'].map(r => (
+            <button key={r} className={`role-btn ${role === r ? 'active' : ''}`} onClick={() => { setRole(r); setStep(1); }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: role === r ? '#818CF8' : 'rgba(255,255,255,0.3)', marginBottom: '4px' }}>
+                {r === 'candidate' ? 'Mentee' : 'Mentor'}
               </div>
-            );
-          })}
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#FFFFFF' }}>{r.charAt(0).toUpperCase() + r.slice(1)}</div>
+            </button>
+          ))}
         </div>
 
-        {/* Main Card */}
-        <div style={{
-          background: '#FFFFFF',
-          borderRadius: '16px',
-          border: '1px solid #E8E4E0',
-          overflow: 'hidden',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.04)',
-        }}>
-
-          {/* Coach step progress */}
+        <div className="glass-card">
+          {/* Coach Step Indicators */}
           {role === 'coach' && (
-            <div style={{ padding: '1.25rem 2rem 0', borderBottom: '1px solid #F0EDE9' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                {STEPS.map((s) => (
-                  <div key={s.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flex: 1 }}>
-                    <div style={{
-                      width: '28px', height: '28px', borderRadius: '50%',
-                      background: s.id < step ? '#2C2925' : s.id === step ? '#2C2925' : '#E8E4E0',
-                      border: s.id === step ? '2px solid #2C2925' : '2px solid transparent',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.7rem', fontWeight: 600,
-                      color: s.id <= step ? '#F7F5F2' : '#A09990',
-                      transition: 'all 0.2s',
-                    }}>
-                      {s.id < step ? '✓' : s.id}
-                    </div>
-                    <span style={{ fontSize: '0.625rem', color: s.id === step ? '#2C2925' : '#A09990', fontWeight: s.id === step ? 600 : 400, letterSpacing: '0.02em' }}>
-                      {s.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div style={{ padding: '1.5rem 2.5rem 0', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              {STEPS.map(s => (
+                <div key={s.id} className={`step-dot ${step === s.id ? 'active' : step > s.id ? 'completed' : ''}`} />
+              ))}
             </div>
           )}
 
-          <div style={{ padding: '2rem' }}>
+          <div style={{ padding: '2.5rem' }}>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#FFFFFF', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>
+              {role === 'candidate' ? 'Create Account' : `Coach Setup: ${STEPS[step-1].label}`}
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9375rem', marginBottom: '2rem', fontFamily: "'DM Sans', sans-serif" }}>
+              {role === 'candidate' ? 'Join 50k+ professionals accelerating their careers.' : `Step ${step} of 6: ${STEPS[step-1].label} information.`}
+            </p>
 
-            {/* Error */}
             {error && (
-              <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem' }}>
-                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#B91C1C' }}>{error}</p>
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '0.875rem 1rem', borderRadius: '12px', marginBottom: '1.5rem' }}>
+                <p style={{ margin: 0, fontSize: '0.8125rem', color: '#F87171', fontWeight: 500 }}>{error}</p>
               </div>
             )}
 
-            {/* CANDIDATE FORM */}
-            {role === 'candidate' && (
-              <form onSubmit={handleCandidateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <Field label="Email address" type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} disabled={isLoading} required />
-                <Field label="Password" type="password" name="password" placeholder="Min. 8 characters" value={formData.password} onChange={handleChange} disabled={isLoading} required />
-                <Field label="Confirm password" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} required />
-
-                <label className="agree-row" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '0.75rem', borderRadius: '10px', border: '1px solid #E8E4E0', marginTop: '0.25rem' }}>
-                  <input type="checkbox" required disabled={isLoading} style={{ marginTop: '2px', accentColor: '#2C2925', width: '15px', height: '15px', flexShrink: 0, cursor: 'pointer' }} />
-                  <span style={{ fontSize: '0.8125rem', color: '#5C5751', lineHeight: 1.5 }}>
-                    I agree to the{' '}
-                    <a href="#" style={{ color: '#2C2925', fontWeight: 500 }}>Terms of Service</a> and{' '}
-                    <a href="#" style={{ color: '#2C2925', fontWeight: 500 }}>Privacy Policy</a>
+            {role === 'candidate' ? (
+              <form onSubmit={handleCandidateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <Field label="Full Name" type="text" name="fullName" placeholder="Jane Doe" value={formData.fullName} onChange={handleChange} disabled={isLoading} required />
+                <Field label="Email Address" type="email" name="email" placeholder="jane@example.com" value={formData.email} onChange={handleChange} disabled={isLoading} required />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <Field label="Password" type="password" name="password" placeholder="Min. 8" value={formData.password} onChange={handleChange} disabled={isLoading} required />
+                  <Field label="Confirm" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} required />
+                </div>
+                
+                <label style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', cursor: 'pointer', marginTop: '0.5rem' }}>
+                  <input type="checkbox" required style={{ marginTop: '4px' }} />
+                  <span style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                    I agree to the <a href="#" style={{ color: '#818CF8' }}>Terms</a> and <a href="#" style={{ color: '#818CF8' }}>Privacy Policy</a>.
                   </span>
                 </label>
 
-                <button type="submit" className="primary-btn" disabled={isLoading} style={{ marginTop: '0.5rem', width: '100%', padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                  {isLoading ? 'Creating account…' : 'Create account'}
+                <button type="submit" className="primary-btn" disabled={isLoading} style={{ padding: '1.125rem', fontSize: '1rem', marginTop: '1rem' }}>
+                  {isLoading ? 'Creating Account...' : 'Get Started for Free →'}
                 </button>
               </form>
-            )}
-
-            {/* COACH MULTI-STEP */}
-            {role === 'coach' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 {step === 1 && (
-                  <>
-                    <Field label="Full name" type="text" name="fullName" placeholder="Jane Doe" value={formData.fullName} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Email address" type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Password" type="password" name="password" placeholder="Min. 8 characters" value={formData.password} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Confirm password" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} required />
-                  </>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <Field label="Full Name" type="text" name="fullName" placeholder="Jane Doe" value={formData.fullName} onChange={handleChange} required />
+                    <Field label="Email Address" type="email" name="email" placeholder="jane@example.com" value={formData.email} onChange={handleChange} required />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <Field label="Password" type="password" name="password" placeholder="Min. 8" value={formData.password} onChange={handleChange} required />
+                      <Field label="Confirm" type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} required />
+                    </div>
+                  </div>
                 )}
 
                 {step === 2 && (
-                  <>
-                    <Field label="Company name" type="text" name="companyName" placeholder="Your Company AB" value={formData.companyName} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Swedish org number" type="text" name="companyRegistrationNumber" placeholder="123456-7890" value={formData.companyRegistrationNumber} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Arbetsförmedlingen supplier ID" type="text" name="governmentAgencyId" placeholder="Supplier ID" value={formData.governmentAgencyId} onChange={handleChange} disabled={isLoading} required />
-                  </>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <Field label="Company Name" type="text" name="companyName" placeholder="Techvance AB" value={formData.companyName} onChange={handleChange} required />
+                    <Field label="Org Number" type="text" name="companyRegistrationNumber" placeholder="123456-7890" value={formData.companyRegistrationNumber} onChange={handleChange} required />
+                    <Field label="Supplier ID" type="text" name="governmentAgencyId" placeholder="AF-999-XYZ" value={formData.governmentAgencyId} onChange={handleChange} required />
+                  </div>
                 )}
 
                 {step === 3 && (
-                  <>
-                    <Field label="Bio" textarea name="bio" placeholder="Tell us about your experience and approach…" value={formData.bio} onChange={handleChange} disabled={isLoading} required />
-
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <Field label="Profile Bio" textarea name="bio" placeholder="Briefly describe your coaching style and background..." value={formData.bio} onChange={handleChange} required />
                     <div>
-                      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', display: 'block', marginBottom: '10px' }}>
-                        Expertise areas
-                      </label>
+                      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', display: 'block', marginBottom: '12px' }}>Areas of Expertise</label>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {EXPERTISE_AREAS.map((area) => {
-                          const selected = formData.expertiseAreas.includes(area);
-                          return (
-                            <div key={area} className="expertise-chip" onClick={() => toggleExpertise(area)} style={{
-                              padding: '6px 14px', borderRadius: '100px',
-                              border: `1.5px solid ${selected ? '#2C2925' : '#E2DDD8'}`,
-                              background: selected ? '#2C2925' : '#FAFAF8',
-                              color: selected ? '#F7F5F2' : '#5C5751',
-                              fontSize: '0.8125rem', fontWeight: selected ? 500 : 400,
-                            }}>
-                              {area}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <Field label="Years of experience" type="number" name="yearsOfExperience" placeholder="10" value={formData.yearsOfExperience} onChange={handleChange} disabled={isLoading} required />
-                      <Field label="Certifications" optional type="text" name="certifications" placeholder="e.g. PMP, ICF" value={formData.certifications} onChange={handleChange} disabled={isLoading} />
-                    </div>
-                  </>
-                )}
-
-                {step === 4 && (
-                  <>
-                    <Field label="Phone number" type="tel" name="phoneNumber" placeholder="+46 123 456 789" value={formData.phoneNumber} onChange={handleChange} disabled={isLoading} required />
-                    <Field label="Contact person name" optional type="text" name="contactPersonName" placeholder="If different from you" value={formData.contactPersonName} onChange={handleChange} disabled={isLoading} />
-                  </>
-                )}
-
-                {step === 5 && (
-                  <>
-                    <Field
-                      label="Max candidates (5–50)"
-                      type="number"
-                      name="maxCandidates"
-                      placeholder="15"
-                      value={formData.maxCandidates}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      min="5" max="50" required
-                    />
-
-                    <div>
-                      <label style={{ fontSize: '0.8125rem', fontWeight: 500, color: '#5C5751', display: 'block', marginBottom: '10px' }}>
-                        Preferred working hours
-                      </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {[['startTime', 'From'], ['endTime', 'To']].map(([field, lbl]) => (
-                          <div key={field}>
-                            <label style={{ fontSize: '0.75rem', color: '#9C9690', display: 'block', marginBottom: '6px' }}>{lbl}</label>
-                            <input
-                              type="time"
-                              value={formData.preferredWorkingHours[field]}
-                              onChange={(e) => setFormData((prev) => ({ ...prev, preferredWorkingHours: { ...prev.preferredWorkingHours, [field]: e.target.value } }))}
-                              style={{ ...inputBase, padding: '0.7rem 0.875rem' }}
-                            />
-                          </div>
+                        {EXPERTISE_AREAS.map(area => (
+                          <div key={area} className={`expertise-chip ${formData.expertiseAreas.includes(area) ? 'active' : ''}`} onClick={() => toggleExpertise(area)}>{area}</div>
                         ))}
                       </div>
                     </div>
-                  </>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <Field label="Experience (Years)" type="number" name="yearsOfExperience" value={formData.yearsOfExperience} onChange={handleChange} required />
+                      <Field label="Certifications" optional type="text" name="certifications" value={formData.certifications} onChange={handleChange} />
+                    </div>
+                  </div>
+                )}
+
+                {step === 4 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <Field label="Mobile Number" type="tel" name="phoneNumber" placeholder="+46 08 123 45 67" value={formData.phoneNumber} onChange={handleChange} required />
+                    <Field label="Alt. Contact Name" optional type="text" name="contactPersonName" value={formData.contactPersonName} onChange={handleChange} />
+                  </div>
+                )}
+
+                {step === 5 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <Field label="Max Candidate Slots" type="number" name="maxCandidates" value={formData.maxCandidates} onChange={handleChange} min="5" max="50" required />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <Field label="Start Time" type="time" value={formData.preferredWorkingHours.startTime} onChange={e => setFormData(p => ({...p, preferredWorkingHours:{...p.preferredWorkingHours, startTime:e.target.value}}))} />
+                      <Field label="End Time" type="time" value={formData.preferredWorkingHours.endTime} onChange={e => setFormData(p => ({...p, preferredWorkingHours:{...p.preferredWorkingHours, endTime:e.target.value}}))} />
+                    </div>
+                  </div>
                 )}
 
                 {step === 6 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {[
-                      { key: 'agreeToTermsOfService', text: 'I agree to the Terms of Service and Privacy Policy' },
-                      { key: 'confirmedRegisteredSupplier', text: 'I confirm I am a registered supplier with the Swedish Employment Agency (Arbetsförmedlingen)' },
-                    ].map(({ key, text }) => (
-                      <label key={key} className="agree-row" style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '1rem', borderRadius: '10px', border: `1px solid ${formData[key] ? '#2C2925' : '#E8E4E0'}`, background: formData[key] ? '#F7F5F2' : '#FFFFFF' }}>
-                        <input
-                          type="checkbox"
-                          name={key}
-                          checked={formData[key]}
-                          onChange={handleChange}
-                          disabled={isLoading}
-                          style={{ marginTop: '2px', accentColor: '#2C2925', width: '15px', height: '15px', flexShrink: 0, cursor: 'pointer' }}
-                        />
-                        <span style={{ fontSize: '0.8125rem', color: '#5C5751', lineHeight: 1.5 }}>{text}</span>
+                      { key: 'agreeToTermsOfService', text: 'I agree to the terms of service' },
+                      { key: 'confirmedRegisteredSupplier', text: 'I am a registered supplier with Arbetsförmedlingen' }
+                    ].map(item => (
+                      <label key={item.key} style={{ display: 'flex', gap: '12px', padding: '1.25rem', borderRadius: '16px', background: formData[item.key] ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255,255,255,0.03)', border: `1px solid ${formData[item.key] ? '#6366F1' : 'rgba(255,255,255,0.08)'}`, cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <input type="checkbox" name={item.key} checked={formData[item.key]} onChange={handleChange} style={{ marginTop: '3px' }} />
+                        <span style={{ fontSize: '0.875rem', color: '#FFFFFF', lineHeight: 1.5 }}>{item.text}</span>
                       </label>
                     ))}
                   </div>
                 )}
 
-                {/* Nav buttons */}
-                <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '1rem' }}>
                   {step > 1 && (
-                    <button type="button" className="secondary-btn" onClick={handleCoachBack} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#F0EDE9', color: '#5C5751', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      ← Back
-                    </button>
+                    <button className="secondary-btn" onClick={handleCoachBack} style={{ padding: '1rem 1.5rem' }}>Back</button>
                   )}
                   {step < 6 ? (
-                    <button type="button" className="primary-btn" onClick={handleCoachNext} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Continue →
-                    </button>
+                    <button className="primary-btn" onClick={handleCoachNext} style={{ flex: 1, padding: '1rem' }}>Next Step →</button>
                   ) : (
-                    <button type="button" className="primary-btn" onClick={handleCoachSubmit} disabled={isLoading} style={{ flex: 1, padding: '0.8125rem', background: '#2C2925', color: '#F7F5F2', border: 'none', borderRadius: '10px', fontSize: '0.9rem', fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>
-                      {isLoading ? 'Creating account…' : 'Create account'}
-                    </button>
+                    <button className="primary-btn" onClick={handleCoachSubmit} style={{ flex: 1, padding: '1rem' }}>{isLoading ? 'Creating Account...' : 'Complete Registration'}</button>
                   )}
                 </div>
               </div>
@@ -429,10 +401,10 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', color: '#8C8680', fontSize: '0.875rem', marginTop: '1.5rem' }}>
+        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '2rem', fontFamily: "'DM Sans', sans-serif" }}>
           Already have an account?{' '}
-          <Link href="/login" style={{ color: '#5C5751', fontWeight: 500 }}>
-            Sign in →
+          <Link href="/login" style={{ color: '#818CF8', fontWeight: 700, textDecoration: 'none' }}>
+            Sign in here →
           </Link>
         </p>
       </div>

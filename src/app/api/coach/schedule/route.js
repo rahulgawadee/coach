@@ -5,37 +5,30 @@ import User from '@/models/User';
 import CoachProfile from '@/models/CoachProfile';
 import CandidateCoachAssignment from '@/models/CandidateCoachAssignment';
 import CandidateWorkspace from '@/models/CandidateWorkspace';
+import CandidateProfile from '@/models/CandidateProfile';
 import CoachAvailability from '@/models/CoachAvailability';
 
 export async function GET(request) {
   try {
     await dbConnect();
-
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1] || request.cookies.get('token')?.value;
-
     if (!token) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    let coachUserId;
-    try {
-      const decoded = verifyToken(token);
-      coachUserId = decoded.userId;
-    } catch (err) {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
-    }
+    const decoded = verifyToken(token);
+    if (!decoded.valid) return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
 
+    const coachUserId = decoded.userId;
     const coachUser = await User.findById(coachUserId);
-    if (!coachUser || coachUser.role !== 'Coach') {
-      return NextResponse.json({ success: false, error: 'Only coaches can view schedule' }, { status: 403 });
+    if (!coachUser || (coachUser.role !== 'Coach' && coachUser.role !== 'coach')) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
     const coachProfile = await CoachProfile.findOne({ userId: coachUserId });
-    if (!coachProfile) {
-      return NextResponse.json({ success: false, error: 'Coach profile not found' }, { status: 404 });
-    }
+    if (!coachProfile) return NextResponse.json({ success: false, error: 'Coach profile not found' }, { status: 404 });
 
-    // Find accepted candidate assignments
-    const assignments = await CandidateCoachAssignment.find({ coachId: coachProfile._id, status: 'accepted' }).populate('candidateId', 'firstName lastName email');
+    const assignments = await CandidateCoachAssignment.find({ coachId: coachProfile._id, status: 'accepted' })
+      .populate('candidateId', 'name email');
 
     const confirmedSessions = [];
     const pendingRequests = [];
@@ -43,13 +36,19 @@ export async function GET(request) {
     for (const assignment of assignments) {
       const candidateUserId = assignment.candidateId._id.toString();
       const workspace = await CandidateWorkspace.findOne({ userId: candidateUserId });
+      const profile = await CandidateProfile.findOne({ userId: candidateUserId });
+      
       if (!workspace) continue;
+
+      const fName = profile?.firstName || assignment.candidateId.name?.split(' ')[0] || 'Candidate';
+      const lName = profile?.lastName || assignment.candidateId.name?.split(' ').slice(1).join(' ') || '';
+      const fullName = `${fName} ${lName}`.trim();
 
       for (const ev of workspace.events || []) {
         const enriched = {
           ...ev._doc || ev,
           candidateId: candidateUserId,
-          candidateName: `${assignment.candidateId.firstName} ${assignment.candidateId.lastName}`,
+          candidateName: fullName,
         };
 
         if (ev.status === 'confirmed') confirmedSessions.push(enriched);
@@ -71,51 +70,61 @@ export async function POST(request) {
     await dbConnect();
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.split(' ')[1] || request.cookies.get('token')?.value;
-
     if (!token) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
-    let coachUserId;
-    try {
-      const decoded = verifyToken(token);
-      coachUserId = decoded.userId;
-    } catch (err) {
-      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
-    }
+    const decoded = verifyToken(token);
+    if (!decoded.valid) return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
 
+    const coachUserId = decoded.userId;
+    const coachUser = await User.findById(coachUserId);
+    
     const body = await request.json();
-    const { candidateUserId, date, startTime, endTime, sessionType, meetingLink, notes } = body;
-    if (!candidateUserId || !date || !startTime) {
+    const { candidateUserIds, date, startTime, endTime, sessionType, meetingLink, notes } = body;
+    
+    // Support both single ID (backward compatibility) and multiple IDs
+    const targetIds = Array.isArray(candidateUserIds) ? candidateUserIds : (body.candidateUserId ? [body.candidateUserId] : []);
+
+    if (targetIds.length === 0 || !date || !startTime) {
       return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    const workspace = await CandidateWorkspace.findOne({ userId: candidateUserId });
-    if (!workspace) return NextResponse.json({ success: false, error: 'Candidate workspace not found' }, { status: 404 });
+    const sessionsCreated = [];
 
-    const event = {
-      id: `evt_${Math.random().toString(36).slice(2, 9)}`,
-      title: `${sessionType} with ${workspace.coach?.name || 'Coach'}`,
-      date,
-      time: startTime,
-      type: 'session',
-      coachName: workspace.coach?.name || '',
-      topic: sessionType,
-      message: notes || '',
-      status: 'confirmed',
-    };
+    for (const cId of targetIds) {
+      const workspace = await CandidateWorkspace.findOne({ userId: cId });
+      if (!workspace) continue;
 
-    workspace.events.push(event);
-    workspace.notifications.push({
-      id: `notif_${Math.random().toString(36).slice(2, 9)}`,
-      title: 'New Session Scheduled',
-      message: `A session was scheduled for ${date} ${startTime}`,
-      type: 'calendar',
-      href: '/candidate/calendar',
-      read: false,
+      const event = {
+        id: `evt_${Math.random().toString(36).slice(2, 9)}`,
+        title: `${sessionType} with ${coachUser.name || 'Coach'}`,
+        date,
+        time: startTime,
+        type: 'session',
+        coachName: coachUser.name || '',
+        topic: sessionType,
+        message: notes || '',
+        status: 'confirmed',
+      };
+
+      workspace.events.push(event);
+      workspace.notifications.push({
+        id: `notif_${Math.random().toString(36).slice(2, 9)}`,
+        title: 'New Session Scheduled',
+        message: `A session was scheduled for ${date} at ${startTime} with your coach.`,
+        type: 'calendar',
+        href: '/candidate/calendar',
+        read: false,
+      });
+
+      await workspace.save();
+      sessionsCreated.push(event);
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      message: `Sessions created for ${sessionsCreated.length} candidates`,
+      sessions: sessionsCreated 
     });
-
-    await workspace.save();
-
-    return NextResponse.json({ success: true, session: event });
   } catch (error) {
     console.error('Create session error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });

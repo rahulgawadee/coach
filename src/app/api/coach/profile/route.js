@@ -15,7 +15,9 @@ export async function GET(request) {
     await dbConnect();
 
     const user = await User.findById(decoded.userId);
-    if (!user || user.role !== 'Coach') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    if (!user || (user.role?.toLowerCase() !== 'coach')) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
 
     const profile = await CoachProfile.findOne({ userId: decoded.userId }).lean();
 
@@ -27,7 +29,7 @@ export async function GET(request) {
 
       // Professional Information
       bio: profile?.bio || '',
-      expertiseAreas: profile?.expertiseAreas || [],
+      expertise: profile?.expertise || profile?.expertiseAreas || [],
       yearsExperience: profile?.yearsExperience || 0,
       certifications: profile?.certifications || [],
       languages: profile?.languages || [],
@@ -56,7 +58,7 @@ export async function GET(request) {
       totalCandidatesCoached: profile?.totalCandidatesCoached || 0,
     };
 
-    return NextResponse.json({ success: true, data: profileData });
+    return NextResponse.json({ success: true, profile: profileData });
   } catch (error) {
     console.error('Get coach profile error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
@@ -76,7 +78,9 @@ export async function PATCH(request) {
     await dbConnect();
 
     const user = await User.findById(decoded.userId);
-    if (!user || user.role !== 'Coach') return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    if (!user || (user.role?.toLowerCase() !== 'coach')) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+    }
 
     // Update User fields
     if (body.phone) user.phone = body.phone;

@@ -11,9 +11,10 @@ export default function TopNavHost({ role = 'candidate' }) {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const shouldShowNavbar = PUBLIC_NAV_PATHS.includes(pathname) || !user;
+  const isAuthPage = PUBLIC_NAV_PATHS.includes(pathname);
+  const shouldShowNavbar = isAuthPage || !user;
 
   if (!shouldShowNavbar) return null;
 
-  return <Navbar role={role} />;
+  return <Navbar role={role} minimal={isAuthPage} />;
 }

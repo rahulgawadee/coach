@@ -5,13 +5,17 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import CandidateSidebar from '@/components/layout/CandidateSidebar';
 
-const EXCLUDED_ROUTES = new Set([
+const ONBOARDING_ROUTES = new Set([
   '/candidate/step1',
   '/candidate/step2',
   '/candidate/step3',
   '/candidate/selection-pending',
   '/candidate/not-eligible',
   '/candidate/waiting-for-coach',
+]);
+
+const EXCLUDED_ROUTES = new Set([
+  // Routes where we absolutely don't want the sidebar/header (e.g. login/signup)
 ]);
 
 function initialsFromName(name = '') {
@@ -40,8 +44,8 @@ export default function CandidateShell({ children }) {
 
   const useShell = useMemo(() => {
     // Only determine shell visibility on the client side
-    if (!isMounted) return false;
-    if (!pathname?.startsWith('/candidate/') || EXCLUDED_ROUTES.has(pathname)) return false;
+    if (!pathname?.startsWith('/candidate/')) return false;
+    if (EXCLUDED_ROUTES.has(pathname)) return false;
     
     try {
       const stored = localStorage.getItem('user');
@@ -134,7 +138,7 @@ export default function CandidateShell({ children }) {
 
   // If not mounted yet, render a plain container to avoid mismatch
   if (!isMounted) {
-    return <div className="min-h-screen bg-gray-50">{children}</div>;
+    return <div className="min-h-screen bg-gray-50" />;
   }
 
   if (!useShell) {
@@ -251,7 +255,23 @@ export default function CandidateShell({ children }) {
           </div>
         </header>
 
-        <main className="p-4 sm:p-6">{children}</main>
+        <main className="p-4 sm:p-6 relative">
+          {ONBOARDING_ROUTES.has(pathname) && (
+            <div className="opacity-20 pointer-events-none select-none space-y-8 pb-12 animate-pulse">
+              <div className="h-48 bg-gray-200 rounded-lg w-full" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="h-64 bg-gray-200 rounded-lg md:col-span-2" />
+                <div className="h-64 bg-gray-200 rounded-lg" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-48 bg-gray-200 rounded-lg" />
+                <div className="h-48 bg-gray-200 rounded-lg" />
+              </div>
+              <div className="h-32 bg-gray-200 rounded-lg w-full" />
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

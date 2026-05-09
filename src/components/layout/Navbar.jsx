@@ -2,10 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-const Navbar = ({ role = 'candidate' }) => {
+const Navbar = ({ role = 'candidate', minimal = false }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  const pathname = usePathname();
+  // If explicitly minimal, hide links. Also check pathname as fallback.
+  const isAuthPage = minimal || ['/login', '/signup', '/coach/login'].includes(pathname);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 36);
@@ -97,45 +102,51 @@ const Navbar = ({ role = 'candidate' }) => {
           </a>
 
           {/* Desktop links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 30, flex: 1, justifyContent: 'center' }}
-            className="nav-desktop">
-            {links.map(link => (
-              <a key={link.label} href={link.href} className="nav-link-item">{link.label}</a>
-            ))}
-          </div>
+          {!isAuthPage && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 30, flex: 1, justifyContent: 'center' }}
+              className="nav-desktop">
+              {links.map(link => (
+                <a key={link.label} href={link.href} className="nav-link-item">{link.label}</a>
+              ))}
+            </div>
+          )}
 
           {/* Desktop CTAs */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }} className="nav-desktop">
-            <Link href={signInHref} className="nav-btn-ghost" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-              Sign in
-            </Link>
-            <Link href={getStartedHref} className="nav-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-              Get started →
-            </Link>
-          </div>
+          {!isAuthPage && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }} className="nav-desktop">
+              <Link href={signInHref} className="nav-btn-ghost" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                Sign in
+              </Link>
+              <Link href={getStartedHref} className="nav-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                Get started →
+              </Link>
+            </div>
+          )}
 
-          {/* Mobile burger */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            style={{
-              display: 'none', padding: 8, background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(148,163,184,.8)', borderRadius: 8,
-              transition: 'color .2s',
-            }}
-            className="nav-mobile-btn"
-            aria-label="Toggle menu"
-          >
-            <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              {mobileOpen
-                ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
-                : <><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></>
-              }
-            </svg>
-          </button>
+          {/* Mobile burger - only if not minimal/auth page */}
+          {!isAuthPage && (
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              style={{
+                display: 'none', padding: 8, background: 'none', border: 'none', cursor: 'pointer',
+                color: 'rgba(148,163,184,.8)', borderRadius: 8,
+                transition: 'color .2s',
+              }}
+              className="nav-mobile-btn"
+              aria-label="Toggle menu"
+            >
+              <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                {mobileOpen
+                  ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                  : <><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></>
+                }
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Mobile drawer */}
-        {mobileOpen && (
+        {!isAuthPage && mobileOpen && (
           <div style={{
             borderTop: '1px solid rgba(255,255,255,.06)',
             padding: '12px 0 20px',

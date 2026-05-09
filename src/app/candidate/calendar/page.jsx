@@ -1,45 +1,62 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import Modal from '@/components/ui/Modal';
 
 export default function CandidateCalendarPage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [view, setView] = useState('week');
-  const [weekStart, setWeekStart] = useState(null);
+  const [view, setView] = useState('week'); // 'week' or 'month'
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [coachAvailability, setCoachAvailability] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [req, setReq] = useState({ preferredDate: '', preferredTime: '', topic: '', message: '' });
+  const [coachName, setCoachName] = useState('');
+
+  // Generate week dates based on currentDate
+  const weekDates = useMemo(() => {
+    const start = new Date(currentDate);
+    const day = start.getDay();
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(start.setDate(diff));
+    
+    return Array.from({ length: 5 }).map((_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d;
+    });
+  }, [currentDate]);
+
+  const fetchCalendar = async () => {
+    if (!user?.email) return;
+    try {
+      const res = await fetch(`/api/candidate/calendar?email=${encodeURIComponent(user.email)}`);
+      const data = await res.json();
+      if (data.success) {
+        setEvents(data.data.events || []);
+        setCoachAvailability(data.data.coachAvailability || []);
+        setCoachName(data.data.coachName || 'Your Coach');
+      }
+    } catch (err) {
+      console.error('Calendar fetch error', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !loading) {
       router.push('/login');
       return;
     }
-
-    const fetchCalendar = async () => {
-      setLoading(true);
-      try {
-        const email = user?.email;
-        const res = await fetch(`/api/candidate/calendar?email=${encodeURIComponent(email)}&view=week`);
-        const data = await res.json();
-        if (data.success) {
-          setEvents(data.data.events || []);
-          setCoachAvailability(data.data.coachAvailability || []);
-        }
-      } catch (err) {
-        console.error('Calendar fetch error', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCalendar();
-    const interval = setInterval(fetchCalendar, 30000);
+    const interval = setInterval(fetchCalendar, 60000); // Refresh every minute
     return () => clearInterval(interval);
   }, [isAuthenticated, user, router]);
 
@@ -55,18 +72,7 @@ export default function CandidateCalendarPage() {
       const data = await res.json();
       if (data.success) {
         setShowRequestModal(false);
-        // optimistic update
-        setEvents((s) => [
-          ...s,
-          {
-            id: `evt_${Math.random().toString(36).slice(2, 8)}`,
-            title: `Session Request`,
-            date: req.preferredDate,
-            time: req.preferredTime,
-            topic: req.topic,
-            status: 'requested',
-          },
-        ]);
+        fetchCalendar(); // Reload all data
         alert('Request sent to coach');
       } else {
         alert(data.error || 'Failed to send request');
@@ -77,90 +83,236 @@ export default function CandidateCalendarPage() {
     }
   };
 
-  const renderWeekGrid = () => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-    const times = [];
-    for (let h = 8; h <= 18; h++) times.push(`${String(h).padStart(2, '0')}:00`);
+  const times = useMemo(() => {
+    const t = [];
+    for (let h = 8; h <= 18; h++) t.push(`${String(h).padStart(2, '0')}:00`);
+    return t;
+  }, []);
 
-    return (
-      <div className="grid grid-cols-6 gap-2">
-        <div className="col-span-1"></div>
-        {days.map((d) => (
-          <div key={d} className="font-semibold text-center">{d}</div>
-        ))}
-
-        {times.map((t) => (
-          <React.Fragment key={t}>
-            <div className="text-sm text-gray-600">{t}</div>
-            {days.map((d) => {
-              const cellEvents = events.filter((ev) => ev.time === t && new Date(ev.date).toLocaleDateString('en-US', { weekday: 'short' }).startsWith(d));
-              const blocked = coachAvailability.includes(t);
-              return (
-                <div key={`${d}-${t}`} className={`p-2 min-h-12 border rounded ${blocked ? 'bg-gray-100 text-gray-400' : ''}`}>
-                  {cellEvents.map((ev) => (
-                    <div key={ev.id} className={`rounded px-2 py-1 text-xs mb-1 ${ev.status === 'confirmed' ? 'bg-green-100 text-green-800' : ev.status === 'requested' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700'}`}>
-                      <div className="font-semibold">{ev.title || `Coaching with ${ev.coachName || ''}`}</div>
-                      <div className="text-[11px]">{ev.time} • {ev.topic}</div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </React.Fragment>
-        ))}
-      </div>
-    );
+  const getEventsForCell = (date, time) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    return events.filter(ev => ev.date === dateStr && ev.time === time);
   };
 
-  if (loading) return <div className="p-8">Loading calendar...</div>;
+  const isTimeBlocked = (date, time) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    // Check if coach has explicitly blocked this time in CoachAvailability
+    return coachAvailability.some(a => a.date === dateStr && a.startTime <= time && a.endTime > time && a.blocked);
+  };
+
+  const navigateWeek = (direction) => {
+    const next = new Date(currentDate);
+    next.setDate(currentDate.getDate() + (direction * 7));
+    setCurrentDate(next);
+  };
+
+  if (loading && !events.length) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading schedule...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-2">
-          <button onClick={() => setView('week')} className={`px-3 py-2 rounded ${view === 'week' ? 'bg-blue-600 text-white' : 'bg-white'}`}>Week</button>
-          <button onClick={() => setView('month')} className={`px-3 py-2 rounded ${view === 'month' ? 'bg-blue-600 text-white' : 'bg-white'}`}>Month</button>
-          <button onClick={() => window.location.reload()} className="px-3 py-2 rounded bg-white">Today</button>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6 pb-10">
+      {/* Header Area */}
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
-          <button onClick={() => setShowRequestModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded">+ Request Session</button>
+          <h1 className="text-2xl font-bold text-gray-900">Program Calendar</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your sessions with <span className="font-bold text-blue-600">{coachName}</span></p>
+        </div>
+        
+        <div className="flex items-center gap-3 bg-gray-50 p-1 rounded-xl border border-gray-200">
+          <button 
+            onClick={() => navigateWeek(-1)}
+            className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all"
+          >
+            ←
+          </button>
+          <div className="px-4 font-bold text-gray-700 min-w-[200px] text-center">
+            {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDates[4].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+          <button 
+            onClick={() => navigateWeek(1)}
+            className="p-2 hover:bg-white hover:shadow-sm rounded-lg transition-all"
+          >
+            →
+          </button>
+        </div>
+
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setCurrentDate(new Date())}>Today</Button>
+          <Button variant="primary" onClick={() => setShowRequestModal(true)}>+ New Session</Button>
         </div>
       </div>
 
-      <div className="bg-white rounded p-4 shadow">{view === 'week' ? renderWeekGrid() : <div>Month view coming soon</div>}</div>
+      {/* Calendar Grid */}
+      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Days Header */}
+            <div className="grid grid-cols-6 border-b border-gray-100 bg-gray-50/50">
+              <div className="p-4 border-r border-gray-100" />
+              {weekDates.map((date) => (
+                <div key={date.toString()} className={`p-4 text-center border-r border-gray-100 last:border-r-0 ${date.toDateString() === new Date().toDateString() ? 'bg-blue-50/50' : ''}`}>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{date.toLocaleDateString('en-US', { weekday: 'short' })}</p>
+                  <p className={`text-xl font-black mt-1 ${date.toDateString() === new Date().toDateString() ? 'text-blue-600' : 'text-gray-900'}`}>
+                    {date.getDate()}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-      {showRequestModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Request a Session</h3>
-            <form onSubmit={handleRequestSubmit} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium">Date</label>
-                <input required type="date" value={req.preferredDate} onChange={(e) => setReq({ ...req, preferredDate: e.target.value })} className="w-full border px-3 py-2 rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Time</label>
-                <select required value={req.preferredTime} onChange={(e) => setReq({ ...req, preferredTime: e.target.value })} className="w-full border px-3 py-2 rounded">
-                  <option value="">Select</option>
-                  {(coachAvailability || []).map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Topic</label>
-                <input required value={req.topic} onChange={(e) => setReq({ ...req, topic: e.target.value })} className="w-full border px-3 py-2 rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium">Message</label>
-                <textarea value={req.message} onChange={(e) => setReq({ ...req, message: e.target.value })} className="w-full border px-3 py-2 rounded" />
-              </div>
-              <div className="flex gap-3">
-                <button className="flex-1 bg-blue-600 text-white py-2 rounded" type="submit">Send Request</button>
-                <button type="button" onClick={() => setShowRequestModal(false)} className="flex-1 bg-gray-200 py-2 rounded">Cancel</button>
-              </div>
-            </form>
+            {/* Time Grid */}
+            <div className="divide-y divide-gray-50">
+              {times.map((time) => (
+                <div key={time} className="grid grid-cols-6 group">
+                  <div className="p-4 border-r border-gray-100 text-right">
+                    <span className="text-xs font-bold text-gray-400 group-hover:text-blue-600 transition-colors">{time}</span>
+                  </div>
+                  
+                  {weekDates.map((date) => {
+                    const cellEvents = getEventsForCell(date, time);
+                    const blocked = isTimeBlocked(date, time);
+                    const isToday = date.toDateString() === new Date().toDateString();
+
+                    return (
+                      <div 
+                        key={`${date}-${time}`} 
+                        className={`p-1.5 border-r border-gray-100 last:border-r-0 min-h-[80px] relative transition-colors ${blocked ? 'bg-gray-50/50' : 'hover:bg-blue-50/30'} ${isToday ? 'bg-blue-50/10' : ''}`}
+                      >
+                        {blocked && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                            <div className="w-full h-px bg-gray-300 rotate-45" />
+                          </div>
+                        )}
+
+                        {cellEvents.map((ev) => (
+                          <div 
+                            key={ev.id} 
+                            className={`rounded-xl p-2.5 mb-1.5 shadow-sm border-l-4 animate-in zoom-in duration-200 cursor-pointer hover:shadow-md transition-all
+                              ${ev.status === 'confirmed' ? 'bg-green-50 border-green-500 text-green-900' : 
+                                ev.status === 'requested' ? 'bg-amber-50 border-amber-500 text-amber-900' : 
+                                'bg-gray-50 border-gray-400 text-gray-900'}`}
+                          >
+                            <div className="font-bold text-[11px] leading-tight mb-1 truncate">{ev.title}</div>
+                            <div className="flex items-center gap-1.5 opacity-70">
+                              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                              <span className="text-[10px] font-bold uppercase">{ev.status}</span>
+                            </div>
+                            {ev.topic && (
+                              <div className="text-[10px] mt-1.5 font-medium opacity-60 italic">"{ev.topic}"</div>
+                            )}
+                          </div>
+                        ))}
+
+                        {!blocked && cellEvents.length === 0 && (
+                          <button 
+                            onClick={() => {
+                              setReq(p => ({ ...p, preferredDate: date.toISOString().split('T')[0], preferredTime: time }));
+                              setShowRequestModal(true);
+                            }}
+                            className="absolute inset-0 w-full h-full opacity-0 hover:opacity-100 flex items-center justify-center"
+                          >
+                            <span className="text-2xl text-blue-300">+</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex gap-6 px-4">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+          <span className="h-3 w-3 rounded-full bg-green-500" /> Confirmed
+        </div>
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+          <span className="h-3 w-3 rounded-full bg-amber-500" /> Pending Approval
+        </div>
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+          <span className="h-3 w-3 rounded bg-gray-100 border border-gray-200" /> Coach Unavailable
+        </div>
+      </div>
+
+      <Modal
+        isOpen={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        title="Request Coaching Session"
+        actions={[
+          { label: 'Cancel', variant: 'outline', onClick: () => setShowRequestModal(false) },
+          { label: 'Send Request', variant: 'primary', onClick: handleRequestSubmit },
+        ]}
+      >
+        <div className="space-y-6 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Date</label>
+              <input 
+                type="date" 
+                value={req.preferredDate} 
+                onChange={(e) => setReq({ ...req, preferredDate: e.target.value })} 
+                className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-blue-500 focus:outline-none" 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Time</label>
+              <select 
+                value={req.preferredTime} 
+                onChange={(e) => setReq({ ...req, preferredTime: e.target.value })} 
+                className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-blue-500 focus:outline-none"
+                required
+              >
+                <option value="">Select Time</option>
+                {times.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Focus Topic</label>
+            <input 
+              placeholder="e.g. CV Review, Interview Prep"
+              value={req.topic} 
+              onChange={(e) => setReq({ ...req, topic: e.target.value })} 
+              className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-blue-500 focus:outline-none" 
+              required 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Note for Coach (Optional)</label>
+            <textarea 
+              placeholder="Tell your coach what you'd like to achieve in this session..."
+              value={req.message} 
+              onChange={(e) => setReq({ ...req, message: e.target.value })} 
+              className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:border-blue-500 focus:outline-none h-24 resize-none" 
+            />
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-xs text-blue-800 leading-relaxed">
+            <strong>Note:</strong> Your session is only confirmed once your coach accepts the request. You will see it turn green on the calendar when approved.
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

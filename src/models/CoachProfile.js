@@ -97,6 +97,14 @@ const coachProfileSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    averageRating: {
+      type: Number,
+      default: 4.9,
+    },
+    reviewCount: {
+      type: Number,
+      default: 12,
+    },
     // Status
     status: {
       type: String,

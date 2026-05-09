@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import { createId, getWorkspaceByEmail } from '@/lib/candidateWorkspace';
+import CandidateCoachAssignment from '@/models/CandidateCoachAssignment';
+import CoachProfile from '@/models/CoachProfile';
+import User from '@/models/User';
 
 export async function GET(request) {
   try {
@@ -9,12 +12,42 @@ export async function GET(request) {
     if (!email) return NextResponse.json({ success: false, error: 'Missing email' }, { status: 400 });
 
     await dbConnect();
-    const { workspace } = await getWorkspaceByEmail(email);
+    const { workspace, user } = await getWorkspaceByEmail(email);
+
+    // Fetch real coach data from assignments
+    const assignment = await CandidateCoachAssignment.findOne({ 
+      candidateId: user._id,
+      status: 'accepted'
+    }).populate('coachId');
+
+    let coachName = workspace.coach?.name || 'Your Coach';
+    let coachBio = workspace.coach?.bio || 'Professional Mentor';
+    let coachCompany = workspace.coach?.company || 'Coach Mentorship';
+
+    if (assignment && assignment.coachId) {
+      const coachProfile = assignment.coachId;
+      const coachUser = await User.findById(coachProfile.userId);
+      if (coachUser) {
+        coachName = coachUser.name;
+        coachBio = coachProfile.bio || coachBio;
+        coachCompany = coachProfile.organization || coachCompany;
+      }
+    }
 
     const announcements = (workspace.messages || []).filter((m) => m.conversation === 'announcements');
     const coachMessages = (workspace.messages || []).filter((m) => m.conversation === 'coach');
 
-    return NextResponse.json({ success: true, data: { announcements, coachMessages, coachName: workspace.coach?.name } });
+    return NextResponse.json({ 
+      success: true, 
+      data: { 
+        announcements, 
+        coachMessages, 
+        coachName,
+        coachBio,
+        coachCompany,
+        coachSpecialties: workspace.coach?.specialties || []
+      } 
+    });
   } catch (error) {
     console.error('Candidate messages GET error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });
@@ -46,7 +79,14 @@ export async function POST(request) {
     workspace.messages.push(msg);
 
     workspace.notifications = workspace.notifications || [];
-    workspace.notifications.push({ id: createId('notif'), title: 'Message Sent', message: text.slice(0, 200), type: 'message', href: '/candidate/messages', read: false });
+    workspace.notifications.push({ 
+      id: createId('notif'), 
+      title: 'Message Sent', 
+      message: text.slice(0, 200), 
+      type: 'message', 
+      href: '/candidate/messages', 
+      read: false 
+    });
 
     await workspace.save();
 

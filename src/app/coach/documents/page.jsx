@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import apiService from '@/services/api';
 
 export default function DocumentsPage() {
   const router = useRouter();
@@ -22,37 +23,20 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
-      router.push('/coach/login');
+      router.push('/login');
       return;
     }
 
     const fetchDocuments = async () => {
       try {
-        const response = await fetch('/api/coach/documents', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/coach/login');
-            return;
-          }
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setFolders(data.folders || { sharedWithAll: [], candidateDocuments: [], messageDocuments: [] });
-        } else {
-          setError(data.error || 'Failed to load documents');
-        }
+        const data = await apiService.coach.getDocuments();
+        setFolders(data.folders || { sharedWithAll: [], candidateDocuments: [], messageDocuments: [] });
       } catch (err) {
         console.error('Documents error:', err);
+        if (err.message === 'Unauthorized') {
+          router.push('/login');
+          return;
+        }
         setError('Failed to load documents');
       } finally {
         setLoading(false);

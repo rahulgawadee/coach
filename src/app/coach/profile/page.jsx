@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import apiService from '@/services/api';
 
 export default function CoachProfilePage() {
   const router = useRouter();
@@ -40,37 +41,20 @@ export default function CoachProfilePage() {
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
-      router.push('/coach/login');
+      router.push('/login');
       return;
     }
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch('/api/coach/profile', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/coach/login');
-            return;
-          }
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setProfile(data.profile);
-        } else {
-          setError(data.error || 'Failed to load profile');
-        }
+        const data = await apiService.coach.getProfile();
+        setProfile(data.profile);
       } catch (err) {
         console.error('Profile error:', err);
+        if (err.message === 'Unauthorized') {
+          router.push('/login');
+          return;
+        }
         setError('Failed to load profile');
       } finally {
         setLoading(false);
@@ -101,26 +85,8 @@ export default function CoachProfilePage() {
     setSuccess('');
 
     try {
-      const response = await fetch('/api/coach/profile', {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(profile),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save profile');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setSuccess('Profile updated successfully!');
-      } else {
-        setError(data.error || 'Failed to save profile');
-      }
+      await apiService.coach.updateProfile(profile);
+      setSuccess('Profile updated successfully!');
     } catch (err) {
       console.error('Save error:', err);
       setError('Failed to save profile');
@@ -283,7 +249,7 @@ export default function CoachProfilePage() {
                   <label key={expertise} className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={profile.expertise.includes(expertise)}
+                      checked={profile.expertise?.includes(expertise)}
                       onChange={() => handleExpertiseToggle(expertise)}
                       className="w-4 h-4 rounded"
                     />

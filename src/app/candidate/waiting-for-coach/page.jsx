@@ -125,7 +125,7 @@ export default function WaitingForCoachPage() {
             )}
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-700">
+              <div className="text-sm text-blue-700">
                 <strong>What happens next:</strong>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Coach reviews your profile</li>
@@ -133,7 +133,7 @@ export default function WaitingForCoachPage() {
                   <li>You'll be notified immediately</li>
                   <li>Upon acceptance, you can start your journey!</li>
                 </ul>
-              </p>
+              </div>
             </div>
 
             <div className="text-center text-sm text-gray-500 mb-6">
@@ -166,14 +166,14 @@ export default function WaitingForCoachPage() {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-700">
+              <div className="text-sm text-blue-700">
                 <strong>What to do next:</strong>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li>Review other coaches</li>
                   <li>Select a different coach</li>
                   <li>Try again with someone else</li>
                 </ul>
-              </p>
+              </div>
             </div>
 
             <Button

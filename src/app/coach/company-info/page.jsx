@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import apiService from '@/services/api';
 
 export default function CompanyInfoPage() {
   const router = useRouter();
@@ -15,37 +16,20 @@ export default function CompanyInfoPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
-      router.push('/coach/login');
+      router.push('/login');
       return;
     }
 
     const fetchCompanyInfo = async () => {
       try {
-        const response = await fetch('/api/coach/company-info', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/coach/login');
-            return;
-          }
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setCompanyInfo(data.company);
-        } else {
-          setError(data.error || 'Failed to load company info');
-        }
+        const data = await apiService.coach.getCompanyInfo();
+        setCompanyInfo(data.companyInfo);
       } catch (err) {
         console.error('Company info error:', err);
+        if (err.message === 'Unauthorized') {
+          router.push('/login');
+          return;
+        }
         setError('Failed to load company information');
       } finally {
         setLoading(false);

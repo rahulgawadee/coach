@@ -19,12 +19,21 @@ export const generateToken = (userId, email, role) => {
 
 export const verifyToken = (token) => {
   try {
-    console.log('JWT Debug - Verifying token (first 10 chars):', token?.substring(0, 10));
-    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!token) return { valid: false, error: 'No token provided' };
+    
+    // Support full Bearer headers being passed in
+    let cleanToken = token;
+    if (token.startsWith('Bearer ')) {
+      cleanToken = token.slice(7);
+    }
+    
+    console.log('JWT Debug - Verifying token (first 10 chars):', cleanToken.substring(0, 10));
+    const decoded = jwt.verify(cleanToken, JWT_SECRET);
     return {
       valid: true,
       decoded,
       userId: decoded.id,
+      id: decoded.id, // For backward compatibility
       email: decoded.email,
       role: decoded.role,
     };

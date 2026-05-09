@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
+import apiService from '@/services/api';
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -15,37 +16,20 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
-      router.push('/coach/login');
+      router.push('/login');
       return;
     }
 
     const fetchNotifications = async () => {
       try {
-        const response = await fetch('/api/coach/notifications', {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            router.push('/coach/login');
-            return;
-          }
-          throw new Error(`Failed to fetch: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setNotifications(data.notifications || []);
-        } else {
-          setError(data.error || 'Failed to load notifications');
-        }
+        const data = await apiService.coach.getNotifications();
+        setNotifications(data.data || []);
       } catch (err) {
         console.error('Notifications error:', err);
+        if (err.message === 'Unauthorized') {
+          router.push('/login');
+          return;
+        }
         setError('Failed to load notifications');
       } finally {
         setLoading(false);
@@ -57,28 +41,12 @@ export default function NotificationsPage() {
 
   const handleMarkAsRead = async (notificationId) => {
     try {
-      const response = await fetch(`/api/coach/notifications/${notificationId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ read: true }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update notification');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setNotifications(
-          notifications.map((n) =>
-            n.id === notificationId ? { ...n, read: true } : n
-          )
-        );
-      }
+      await apiService.coach.markNotificationAsRead(notificationId);
+      setNotifications(
+        notifications.map((n) =>
+          n.id === notificationId ? { ...n, read: true } : n
+        )
+      );
     } catch (err) {
       console.error('Error updating notification:', err);
     }
@@ -86,23 +54,8 @@ export default function NotificationsPage() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const response = await fetch('/api/coach/notifications/mark-all-read', {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to mark all as read');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setNotifications(notifications.map((n) => ({ ...n, read: true })));
-      }
+      await apiService.coach.markAllNotificationsAsRead();
+      setNotifications(notifications.map((n) => ({ ...n, read: true })));
     } catch (err) {
       console.error('Error marking all as read:', err);
     }
@@ -110,23 +63,8 @@ export default function NotificationsPage() {
 
   const handleDelete = async (notificationId) => {
     try {
-      const response = await fetch(`/api/coach/notifications/${notificationId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete notification');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setNotifications(notifications.filter((n) => n.id !== notificationId));
-      }
+      await apiService.coach.deleteNotification(notificationId);
+      setNotifications(notifications.filter((n) => n.id !== notificationId));
     } catch (err) {
       console.error('Error deleting notification:', err);
     }
