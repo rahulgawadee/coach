@@ -1,338 +1,293 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import ProgressBar from '@/components/ui/ProgressBar';
-import { useAuth } from '@/context/AuthContext';
 
-function SkeletonCard() {
-  return (
-    <div className="animate-pulse rounded-lg border border-gray-200 bg-white p-5">
-      <div className="h-4 w-24 rounded bg-gray-200" />
-      <div className="mt-3 h-6 w-36 rounded bg-gray-200" />
-      <div className="mt-4 h-9 w-full rounded bg-gray-100" />
-    </div>
-  );
-}
-
-export default function CandidateDashboardHomePage() {
+export default function CandidateDashboardPage() {
   const { user } = useAuth();
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
-  const [dashboard, setDashboard] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [documents, setDocuments] = useState([]);
-  const [eligibility, setEligibility] = useState(null);
+  const [coach, setCoach] = useState(null);
+  const [nextSession, setNextSession] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [announcements, setAnnouncements] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const rawUser = localStorage.getItem('user');
-    if (!rawUser) return;
-
-    try {
-      const parsed = JSON.parse(rawUser);
-      if (parsed?.email) setEmail(parsed.email);
-    } catch {
-      setEmail('');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!email) return;
-
-    let active = true;
-    const load = async () => {
+    const loadDashboardData = async () => {
       try {
         setLoading(true);
-        const [dashboardRes, messagesRes, docsRes] = await Promise.all([
-          fetch(`/api/candidate/dashboard?email=${encodeURIComponent(email)}`),
-          fetch(`/api/candidate/messages?email=${encodeURIComponent(email)}`),
-          fetch(`/api/candidate/documents?email=${encodeURIComponent(email)}`),
-        ]);
+        const token = localStorage.getItem('token');
 
-        const dashboardData = await dashboardRes.json();
-        const messagesData = await messagesRes.json();
-        const docsData = await docsRes.json();
-
-        if (!active) return;
-
-        if (dashboardData?.success) {
-          setDashboard(dashboardData.data);
-        }
-
-        if (messagesData?.success) {
-          setMessages(messagesData.data?.coachMessages || []);
-        }
-
-        if (docsData?.success) {
-          setDocuments(docsData.data || []);
-        }
-
-        const eligibilityRes = await fetch('/api/candidate/eligibility-check', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
-          },
+        // Fetch coach info
+        const coachResponse = await fetch('/api/candidate/get-coach', {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        const eligibilityData = await eligibilityRes.json();
-        if (eligibilityRes.ok && eligibilityData?.data) {
-          setEligibility(eligibilityData.data);
-        } else {
-          setEligibility(null);
+
+        if (coachResponse.ok) {
+          const coachData = await coachResponse.json();
+          setCoach(coachData.data || coachData.coach);
         }
-      } catch {
-        // Keep stable UI with fallbacks.
+
+        // Fetch calendar (next session)
+        const calendarResponse = await fetch('/api/candidate/calendar', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (calendarResponse.ok) {
+          const calendarData = await calendarResponse.json();
+          const sessions = calendarData.data || calendarData.sessions || [];
+          if (sessions.length > 0) {
+            setNextSession(sessions[0]);
+          }
+        }
+
+        // Fetch notifications (unread messages count)
+        const notificationsResponse = await fetch('/api/candidate/notifications', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (notificationsResponse.ok) {
+          const notificationsData = await notificationsResponse.json();
+          const unread = notificationsData.data?.filter((n) => !n.read) || [];
+          setUnreadMessages(unread.length);
+        }
+
+        // Fetch announcements
+        const announcementsResponse = await fetch('/api/candidate/messages', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (announcementsResponse.ok) {
+          const messagesData = await announcementsResponse.json();
+          const msgs = messagesData.data?.filter((m) => m.isAnnouncement) || [];
+          setAnnouncements(msgs.slice(0, 3));
+        }
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+        setError('Failed to load dashboard data');
       } finally {
-        if (active) setLoading(false);
+        setLoading(false);
       }
     };
 
-    load();
-  }, [email]);
+    loadDashboardData();
+  }, []);
 
-  const upcomingSchedule = useMemo(() => {
-    const events = dashboard?.upcomingEvents || [];
-    return events.slice(0, 3);
-  }, [dashboard?.upcomingEvents]);
-
-  const recentMessages = useMemo(() => {
-    return [...messages]
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-      .slice(0, 2);
-  }, [messages]);
-
-  const pendingDocuments = useMemo(() => {
-    return documents
-      .filter((doc) => doc.folder === 'coach-shared' || doc.folder === 'message-docs')
-      .slice(0, 4);
-  }, [documents]);
+  const isWithinOneHour = (sessionDate) => {
+    if (!sessionDate) return false;
+    const session = new Date(sessionDate);
+    const now = new Date();
+    const diff = (session.getTime() - now.getTime()) / (1000 * 60); // minutes
+    return diff >= 0 && diff <= 60;
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <SkeletonCard />
-          <SkeletonCard />
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const coachName = dashboard?.coach?.name || 'Your Coach';
-  const coachRating = dashboard?.coach?.rating || 4.8;
-  const nextSession = (dashboard?.upcomingEvents || [])[0] || null;
-  const isNotEligible = user?.onboardingStep === -1 || eligibility?.eligibilityStatus === 'not-eligible';
-
   return (
-    <div className="grid gap-6 xl:grid-cols-12">
-      <div className="space-y-6 xl:col-span-9">
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Eligibility Status</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900">
-              {eligibility?.eligibilityStatus || (user?.onboardingStep === -1 ? 'Not eligible' : 'Not checked')}
-            </p>
-            {isNotEligible ? (
-              <Link href="/candidate/step1" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-                Check Eligibility Again
-              </Link>
-            ) : (
-              <p className="mt-4 text-sm text-gray-600">Eligibility check is complete.</p>
-            )}
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Swedish Agency</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900">Arbetsförmedlingen</p>
-            <a href="mailto:arbetsformedlingen@arbetsformedlingen.se" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-              Email Agency
-            </a>
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Current Step</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900">{user?.onboardingStep ?? 0}</p>
-            <p className="mt-4 text-sm text-gray-600">Your onboarding progress</p>
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Next Action</p>
-            <Link href={isNotEligible ? '/candidate/step1' : '/candidate/step3'} className="mt-2 inline-block text-lg font-semibold text-blue-600 hover:text-blue-700">
-              {isNotEligible ? 'Recheck Eligibility' : 'Continue Onboarding'}
-            </Link>
-          </Card>
-        </section>
-
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Your Coach</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900">{coachName}</p>
-            <p className="mt-1 text-sm text-amber-600">{'★'.repeat(Math.round(coachRating))} {coachRating}</p>
-            <Link href="/candidate/messages" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-              Message Coach
-            </Link>
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Next Session</p>
-            {nextSession ? (
-              <>
-                <p className="mt-2 text-sm font-semibold text-gray-900">{nextSession.title || 'Career Coaching Session'}</p>
-                <p className="mt-1 text-sm text-gray-600">{nextSession.date || nextSession.start || 'Date pending'} · {nextSession.time || 'Time pending'}</p>
-                {nextSession.virtualLink ? (
-                  <a href={nextSession.virtualLink} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-                    Join Session
-                  </a>
-                ) : (
-                  <Link href="/candidate/calendar" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-                    View Calendar
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                <p className="mt-2 text-sm text-gray-600">No sessions scheduled</p>
-                <Link href="/candidate/calendar" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-                  Request Session
-                </Link>
-              </>
-            )}
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Unread Messages</p>
-            <p className="mt-2 text-3xl font-bold text-gray-900">{dashboard?.unreadMessages || 0}</p>
-            <Link href="/candidate/messages" className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700">
-              Open Messages
-            </Link>
-          </Card>
-
-          <Card>
-            <p className="text-sm font-semibold text-gray-500">Progress</p>
-            <div className="mt-3">
-              <ProgressBar progress={dashboard?.completionPercent || 0} showLabel={false} />
-            </div>
-            <p className="mt-2 text-sm font-semibold text-gray-900">{dashboard?.completionPercent || 0}% complete</p>
-          </Card>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
-          <Card header="Upcoming Schedule">
-            {upcomingSchedule.length ? (
-              <div className="space-y-3">
-                {upcomingSchedule.map((event) => (
-                  <div key={event.id || `${event.title}-${event.start || event.date}`} className="rounded-lg border border-gray-200 p-3">
-                    <p className="text-sm font-semibold text-gray-900">{event.title || 'Session'}</p>
-                    <p className="mt-1 text-xs text-gray-600">{event.date || event.start || 'Date'} · {event.time || event.type || 'Session'}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-dashed border-gray-300 p-4 text-sm text-gray-600">
-                No sessions scheduled.
-                <div className="mt-3">
-                  <Link href="/candidate/calendar" className="font-semibold text-blue-600 hover:text-blue-700">
-                    Request New Session
-                  </Link>
-                </div>
-              </div>
-            )}
-          </Card>
-
-          <Card header="Recent Messages">
-            {recentMessages.length ? (
-              <div className="space-y-3">
-                {recentMessages.map((message, idx) => (
-                  <div key={`${message.createdAt || idx}`} className="rounded-lg border border-gray-200 p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Coach</p>
-                    <p className="mt-1 text-sm text-gray-900">{message.text || 'No content'}</p>
-                    <p className="mt-1 text-xs text-gray-500">{message.createdAt ? new Date(message.createdAt).toLocaleString() : 'Just now'}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">No recent messages.</p>
-            )}
-          </Card>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-2">
-          <Card header="Announcements">
-            {(dashboard?.announcements || []).length ? (
-              <div className="space-y-3">
-                {dashboard.announcements.map((item) => (
-                  <div key={item.id || item.title} className="rounded-lg border border-gray-200 p-3">
-                    <p className="text-sm font-semibold text-gray-900">{item.title || 'Announcement'}</p>
-                    <p className="mt-1 text-xs text-gray-500">{item.date ? new Date(item.date).toLocaleDateString() : 'Today'}</p>
-                    <p className="mt-2 text-sm text-gray-700">{item.message || item.excerpt || 'No details provided.'}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">No announcements available.</p>
-            )}
-          </Card>
-
-          <Card header="Documents Pending">
-            {pendingDocuments.length ? (
-              <div className="space-y-3">
-                {pendingDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between rounded-lg border border-gray-200 p-3">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{doc.fileName}</p>
-                      <p className="text-xs text-gray-500">Requested by coach</p>
-                    </div>
-                    <Link href="/candidate/documents" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
-                      Upload
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">No pending document requests.</p>
-            )}
-          </Card>
-        </section>
+    <div className="space-y-8 pb-12">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-8">
+        <h1 className="text-4xl font-bold mb-2">
+          Welcome back, {user?.name?.split(' ')[0] || 'Candidate'}! 👋
+        </h1>
+        <p className="text-blue-100 text-lg">
+          You're on track with your career coaching journey. Great progress!
+        </p>
       </div>
 
-      <aside className="hidden space-y-4 xl:col-span-3 xl:block">
-        <Card header="Quick Actions">
-          <div className="space-y-2">
-            <Link href="/candidate/messages" className="block rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
-              Message Coach
-            </Link>
-            <Link href="/candidate/calendar" className="block rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
-              Request Session
-            </Link>
-            <Link href="/candidate/documents" className="block rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50">
-              Upload Document
-            </Link>
-          </div>
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Coach Info & Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Coach Card */}
+        <Card className="md:col-span-2">
+          <h2 className="text-xl font-bold mb-4">👨‍🏫 Your Coach</h2>
+          {coach ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{coach.fullName || coach.name}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-lg">
+                    ⭐ {coach.rating || 4.8} ({coach.reviewCount || 0} reviews)
+                  </span>
+                </div>
+                <p className="text-gray-600 mt-1">{coach.companyName}</p>
+              </div>
+
+              {coach.bio && (
+                <p className="text-gray-600 text-sm italic">"{coach.bio}"</p>
+              )}
+
+              <div className="flex gap-3 pt-4 border-t">
+                <Link href="/candidate/messages" className="flex-1">
+                  <Button variant="outline" className="w-full">
+                    💬 Message Coach
+                  </Button>
+                </Link>
+                <Link href="/candidate/calendar" className="flex-1">
+                  <Button variant="outline" className="w-full">
+                    📅 Schedule Session
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-600">Coach information will appear after acceptance.</p>
+          )}
         </Card>
 
-        <Card header="Your Stats">
-          <div className="space-y-3 text-sm text-gray-700">
-            <p>Sessions attended: {(dashboard?.upcomingEvents || []).length}</p>
-            <p>Documents submitted: {documents.filter((doc) => doc.folder === 'my-uploads').length}</p>
-            <p>Tasks completed: {Math.max(1, Math.round((dashboard?.completionPercent || 0) / 25))}</p>
-          </div>
-          <div className="mt-4">
-            <Button size="sm" className="w-full" onClick={() => window.location.assign('/candidate/profile')}>
-              View Full Progress
-            </Button>
+        {/* Progress & Stats */}
+        <Card>
+          <h3 className="text-lg font-bold mb-4">📊 Your Progress</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-end justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Completion</span>
+                <span className="text-2xl font-bold text-blue-600">5%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-600 h-2 rounded-full" style={{ width: '5%' }}></div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Sessions completed:</span>
+                <span className="font-semibold">0 of 8</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Documents reviewed:</span>
+                <span className="font-semibold">0 of 3</span>
+              </div>
+            </div>
           </div>
         </Card>
-      </aside>
+      </div>
+
+      {/* Next Session & Messages */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Next Session */}
+        <Card>
+          <h2 className="text-xl font-bold mb-4">📅 Next Session</h2>
+          {nextSession ? (
+            <div className="space-y-4">
+              <div>
+                <p className="text-lg font-semibold text-gray-900">{nextSession.title || 'Welcome Session'}</p>
+                <p className="text-gray-600 mt-1">
+                  {nextSession.date || new Date(nextSession.start).toLocaleDateString()} at{' '}
+                  {nextSession.time || new Date(nextSession.start).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+
+              {isWithinOneHour(nextSession.start) && (
+                <Button variant="primary" className="w-full">
+                  🎥 Join Session
+                </Button>
+              )}
+
+              {!isWithinOneHour(nextSession.start) && (
+                <Button variant="outline" className="w-full">
+                  View Details
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-gray-600 mb-4">No sessions scheduled yet.</p>
+              <Link href="/candidate/calendar">
+                <Button variant="outline" className="w-full">
+                  📅 Request Session
+                </Button>
+              </Link>
+            </div>
+          )}
+        </Card>
+
+        {/* Messages */}
+        <Card>
+          <h2 className="text-xl font-bold mb-4">💬 Unread Messages</h2>
+          <div className="space-y-4">
+            <div>
+              <p className="text-4xl font-bold text-blue-600">{unreadMessages}</p>
+              <p className="text-gray-600 text-sm mt-1">unread message{unreadMessages !== 1 ? 's' : ''}</p>
+            </div>
+
+            <Link href="/candidate/messages">
+              <Button variant="outline" className="w-full">
+                Open Messages
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+
+      {/* Announcements */}
+      {announcements.length > 0 && (
+        <Card>
+          <h2 className="text-xl font-bold mb-4">📢 Announcements from {coach?.fullName || 'Your Coach'}</h2>
+          <div className="space-y-3">
+            {announcements.map((announcement, index) => (
+              <div key={index} className="pb-3 border-b last:border-b-0 last:pb-0">
+                <p className="font-medium text-gray-900">• {announcement.subject || 'Update'}</p>
+                <p className="text-sm text-gray-600 mt-1">{announcement.message || announcement.text}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Quick Actions */}
+      <Card>
+        <h2 className="text-xl font-bold mb-4">⚡ Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Link href="/candidate/messages">
+            <Button variant="outline" className="w-full text-center">
+              <span className="text-lg">💬</span>
+              <span className="block text-xs mt-1">Message</span>
+            </Button>
+          </Link>
+
+          <Link href="/candidate/calendar">
+            <Button variant="outline" className="w-full text-center">
+              <span className="text-lg">📅</span>
+              <span className="block text-xs mt-1">Session</span>
+            </Button>
+          </Link>
+
+          <Link href="/candidate/documents">
+            <Button variant="outline" className="w-full text-center">
+              <span className="text-lg">📄</span>
+              <span className="block text-xs mt-1">Documents</span>
+            </Button>
+          </Link>
+
+          <Link href="/candidate/profile">
+            <Button variant="outline" className="w-full text-center">
+              <span className="text-lg">👤</span>
+              <span className="block text-xs mt-1">Profile</span>
+            </Button>
+          </Link>
+        </div>
+      </Card>
     </div>
   );
 }

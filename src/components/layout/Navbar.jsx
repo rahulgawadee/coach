@@ -1,92 +1,159 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Navbar = ({ role = 'candidate' }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const homepageNavLinks = [
-    { label: 'Home', href: '/#top' },
-    { label: 'About', href: '/#about' },
-    { label: 'Mentees', href: '/#mentees' },
-    { label: 'Mentors', href: '/#mentors' },
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 36);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const links = [
+    { label: 'Home',         href: '/#top' },
+    { label: 'About',        href: '/#about' },
+    { label: 'Mentees',      href: '/#mentees' },
+    { label: 'Mentors',      href: '/#mentors' },
     { label: 'How it Works', href: '/#how-it-works' },
-    { label: 'FAQ', href: '/#faq' },
-    { label: 'Contact', href: '/#contact' },
+    { label: 'FAQ',          href: '/#faq' },
+    { label: 'Contact',      href: '/#contact' },
   ];
 
-  const navLinks = homepageNavLinks;
-
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="shrink-0">
-            <div className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Coach
-            </div>
-          </div>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap');
+        @keyframes shimmer-nav{0%{background-position:-200% center}100%{background-position:200% center}}
+        .nav-link-item{
+          font-family:'DM Sans',sans-serif;
+          font-size:14px;font-weight:500;
+          color:rgba(148,163,184,.8);
+          text-decoration:none;
+          transition:color .2s ease;
+          white-space:nowrap;
+        }
+        .nav-link-item:hover{color:#f1f5f9}
+        .nav-btn-ghost{
+          font-family:'Syne',sans-serif;
+          font-size:13px;font-weight:600;
+          padding:9px 20px;border-radius:11px;
+          background:rgba(255,255,255,.05);
+          border:1px solid rgba(255,255,255,.12);
+          color:#e2e8f0;cursor:pointer;
+          transition:all .25s ease;
+          backdrop-filter:blur(10px);
+        }
+        .nav-btn-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);transform:translateY(-1px)}
+        .nav-btn-primary{
+          font-family:'Syne',sans-serif;
+          font-size:13px;font-weight:700;
+          padding:9px 20px;border-radius:11px;
+          background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#6366f1 100%);
+          background-size:200% auto;
+          animation:shimmer-nav 3.5s linear infinite;
+          border:none;color:#fff;cursor:pointer;
+          transition:transform .25s ease,box-shadow .25s ease;
+          box-shadow:0 0 22px rgba(99,102,241,.35),0 4px 12px rgba(99,102,241,.22);
+          letter-spacing:.02em;
+        }
+        .nav-btn-primary:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 0 36px rgba(99,102,241,.55),0 6px 18px rgba(99,102,241,.38)}
+        .mob-link{
+          display:block;padding:12px 20px;
+          font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+          color:rgba(148,163,184,.85);text-decoration:none;
+          border-radius:10px;transition:all .2s ease;
+        }
+        .mob-link:hover{color:#f1f5f9;background:rgba(255,255,255,.05)}
+      `}</style>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
-              >
-                {link.label}
-              </a>
+      <nav style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+        padding: '0 32px',
+        background: scrolled
+          ? 'rgba(8,8,15,0.85)'
+          : 'rgba(8,8,15,0.4)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: `1px solid ${scrolled ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.04)'}`,
+        transition: 'all .35s ease',
+      }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', height: 62, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
+
+          {/* Logo */}
+          <a href="/" style={{ textDecoration: 'none', flexShrink: 0 }}>
+            <span style={{
+              fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 22,
+              background: 'linear-gradient(135deg,#38bdf8,#818cf8)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.02em',
+            }}>Coach.</span>
+          </a>
+
+          {/* Desktop links */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 30, flex: 1, justifyContent: 'center' }}
+            className="nav-desktop">
+            {links.map(link => (
+              <a key={link.label} href={link.href} className="nav-link-item">{link.label}</a>
             ))}
           </div>
 
-          {/* Right Side Icons */}
-          <div className="flex items-center gap-4">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-blue-600 transition-colors"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
-                />
-              </svg>
-            </button>
+          {/* Desktop CTAs */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }} className="nav-desktop">
+            <button className="nav-btn-ghost">Sign in</button>
+            <button className="nav-btn-primary">Get started →</button>
           </div>
+
+          {/* Mobile burger */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            style={{
+              display: 'none', padding: 8, background: 'none', border: 'none', cursor: 'pointer',
+              color: 'rgba(148,163,184,.8)', borderRadius: 8,
+              transition: 'color .2s',
+            }}
+            className="nav-mobile-btn"
+            aria-label="Toggle menu"
+          >
+            <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+              {mobileOpen
+                ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                : <><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></>
+              }
+            </svg>
+          </button>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-2">
-            {navLinks.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className="block px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded transition-colors"
-              >
-                {link.label}
-              </a>
+        {/* Mobile drawer */}
+        {mobileOpen && (
+          <div style={{
+            borderTop: '1px solid rgba(255,255,255,.06)',
+            padding: '12px 0 20px',
+            background: 'rgba(8,8,15,.95)',
+          }}>
+            {links.map(link => (
+              <a key={link.label} href={link.href} className="mob-link"
+                onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
+            <div style={{ display: 'flex', gap: 10, padding: '12px 20px 0' }}>
+              <button className="nav-btn-ghost" style={{ flex: 1 }}>Sign in</button>
+              <button className="nav-btn-primary" style={{ flex: 1 }}>Get started →</button>
+            </div>
           </div>
         )}
-      </div>
-    </nav>
+      </nav>
+
+      {/* Responsive overrides */}
+      <style>{`
+        @media (max-width: 860px) {
+          .nav-desktop { display: none !important; }
+          .nav-mobile-btn { display: block !important; }
+        }
+      `}</style>
+    </>
   );
 };
 
-Navbar.propTypes = {
-  role: require('prop-types').oneOf(['candidate', 'coach']),
-};
-
 export default Navbar;
-

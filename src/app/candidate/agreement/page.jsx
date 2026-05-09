@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Sidebar from '../../../../src/components/layout/Sidebar';
+import CandidateSidebar from '../../../../src/components/layout/CandidateSidebar';
 import Navbar from '../../../../src/components/layout/Navbar';
 import Modal from '../../../../src/components/ui/Modal';
 import Button from '../../../../src/components/ui/Button';
@@ -76,7 +76,7 @@ export default function AgreementPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="flex">
-        <Sidebar />
+        <CandidateSidebar />
         <main className="flex-1 p-6">
           <div className="flex items-center justify-between gap-4">
             <div>

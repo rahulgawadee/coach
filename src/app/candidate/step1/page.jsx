@@ -29,6 +29,7 @@ export default function Step1Page() {
   const [errors, setErrors] = useState({});
   const [started, setStarted] = useState(false);
   const [stepIndex, setStepIndex] = useState(1);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const yearOptions = Array.from({ length: 48 }, (_, i) => 2006 - i);
   const places = [
@@ -166,9 +167,17 @@ export default function Step1Page() {
   const handleShortSubmit = async (e) => {
     e?.preventDefault();
 
-    // minimal validation
-    if (!formData.phoneNumber || !formData.registeredWithSEA || !formData.eligibleForRustaOchMatcha || !formData.lookingForJobOrTraining || !formData.consentHelloLilly || !formData.consentPrivacy) {
-      setError('Please complete all required fields');
+    // minimal validation (more explicit checks to avoid false positives)
+    const missing = [];
+    if (!formData.phoneNumber || !String(formData.phoneNumber).trim()) missing.push('phone');
+    if (!formData.registeredWithSEA) missing.push('registeredWithSEA');
+    if (!formData.eligibleForRustaOchMatcha) missing.push('eligibleForRustaOchMatcha');
+    if (!formData.lookingForJobOrTraining) missing.push('lookingForJobOrTraining');
+    if (!formData.consentHelloLilly) missing.push('consentHelloLilly');
+    if (!formData.consentPrivacy) missing.push('consentPrivacy');
+
+    if (missing.length) {
+      setError('Please complete required fields: ' + missing.join(', '));
       return;
     }
 
@@ -176,9 +185,12 @@ export default function Step1Page() {
     setError('');
 
     try {
+      const nameParts = (user?.name || '').trim().split(/\s+/).filter(Boolean);
+      const fallbackFirstName = user?.firstName || nameParts[0] || 'Candidate';
+      const fallbackLastName = user?.lastName || nameParts.slice(1).join(' ') || 'User';
       const payload = {
-        firstName: user?.name?.split(' ')[0] || 'Candidate',
-        lastName: user?.name?.split(' ')[1] || '',
+        firstName: fallbackFirstName,
+        lastName: fallbackLastName,
         yearOfBirth: formData.yearOfBirth || 1990,
         phoneNumber: formData.phoneNumber,
         placeOfResidence: formData.placeOfResidence || 'Unknown',
@@ -261,12 +273,26 @@ export default function Step1Page() {
               </div>
               <div className="grid gap-3 md:grid-cols-3 w-full">
                 <a href={`mailto:${agencyContact.email}`} className="rounded-md border px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50">Email Agency</a>
+                <a href={`mailto:${agencyContact.email}`} className="rounded-md border px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50">Email Agency</a>
                 <a href={`tel:${agencyContact.phone.replace(/\s/g, '')}`} className="rounded-md border px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Call Agency</a>
                 <a href={agencyContact.website} target="_blank" rel="noreferrer" className="rounded-md border px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50">Visit Website</a>
               </div>
               <div className="flex justify-end pt-4">
-                <button onClick={() => { setStarted(true); setStepIndex(1); }} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 flex items-center gap-2">Proceed <span>→</span></button>
+                <button onClick={() => setShowConfirm(true)} className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 flex items-center gap-2">Proceed if you have confirmed with the agency<span>→</span></button>
               </div>
+
+              {showConfirm && (
+                <div className="absolute inset-0 z-60 flex items-center justify-center">
+                  <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                    <h3 className="mb-4 text-lg font-semibold">Are you sure?</h3>
+                    <p className="mb-6 text-sm text-gray-600">Have you confirmed your status with the agency? Proceeding will start the eligibility check.</p>
+                    <div className="flex justify-end gap-3">
+                      <button onClick={() => setShowConfirm(false)} className="rounded border px-4 py-2">No</button>
+                      <button onClick={() => { setShowConfirm(false); setStarted(true); setStepIndex(1); }} className="rounded bg-blue-600 px-4 py-2 text-white">Yes</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-10 space-y-6">

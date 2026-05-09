@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import Sidebar from '@/components/layout/Sidebar';
+import CandidateSidebar from '@/components/layout/CandidateSidebar';
 
 const EXCLUDED_ROUTES = new Set([
   '/candidate/step2',
@@ -30,7 +30,19 @@ export default function CandidateShell({ children }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  const useShell = useMemo(() => pathname?.startsWith('/candidate/') && !EXCLUDED_ROUTES.has(pathname), [pathname]);
+  const useShell = useMemo(() => {
+    if (!pathname?.startsWith('/candidate/') || EXCLUDED_ROUTES.has(pathname)) return false;
+    try {
+      const stored = localStorage.getItem('user');
+      if (!stored) return false;
+      const parsed = JSON.parse(stored);
+      const normalizedRole = String(parsed?.role || parsed?.userType || '').toLowerCase();
+      // Render candidate shell only for candidate users
+      return normalizedRole === 'candidate' || parsed?.isCandidate === true;
+    } catch {
+      return false;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (!useShell) return;
@@ -46,6 +58,23 @@ export default function CandidateShell({ children }) {
       setUser(null);
     }
   }, [useShell, router]);
+
+  useEffect(() => {
+    if (!pathname?.startsWith('/candidate/') || useShell) return;
+
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+
+    try {
+      const parsed = JSON.parse(storedUser);
+      const normalizedRole = String(parsed?.role || parsed?.userType || '').toLowerCase();
+      if (normalizedRole === 'candidate' || parsed?.isCandidate === true) {
+        router.replace('/candidate/step1');
+      }
+    } catch {
+      // Ignore parse errors and leave route handling unchanged.
+    }
+  }, [pathname, router, useShell]);
 
   useEffect(() => {
     if (!useShell || !user?.email) return;
@@ -94,8 +123,7 @@ export default function CandidateShell({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar
-        role="candidate"
+      <CandidateSidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((prev) => !prev)}
         onLogout={handleLogout}

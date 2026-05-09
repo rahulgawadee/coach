@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
-import Sidebar from '../../../../src/components/layout/Sidebar';
+import CandidateSidebar from '../../../../src/components/layout/CandidateSidebar';
 import Navbar from '../../../../src/components/layout/Navbar';
 import useLocalStorage from '../../../../src/hooks/useLocalStorage';
 
@@ -103,7 +103,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar role="candidate" />
       <div className="flex">
-        <Sidebar role="candidate" />
+        <CandidateSidebar />
         <main className="flex-1 p-6 md:p-8">
           <h1 className="text-3xl font-bold text-gray-900">Complete Profile</h1>
 

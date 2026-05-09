@@ -56,15 +56,21 @@ export const AuthProvider = ({ children }) => {
       persistSession(userData, data.token);
 
       if (userData.role?.toLowerCase() === 'candidate') {
-        const onboardingStep = Number(userData.onboardingStep) || 0;
-
-        if (onboardingStep >= 3) {
+        // Use status field for navigation (status: new, eligible, profile_complete, pending_acceptance, active, not_eligible)
+        const status = userData.status || 'new';
+        
+        if (status === 'active') {
           router.push('/candidate/dashboard');
-        } else if (onboardingStep >= 2) {
+        } else if (status === 'pending_acceptance') {
+          router.push('/candidate/waiting-for-coach');
+        } else if (status === 'profile_complete') {
+          router.push('/candidate/step3');
+        } else if (status === 'eligible') {
           router.push('/candidate/step2');
-        } else if (onboardingStep < 0) {
-          router.push('/candidate/dashboard');
+        } else if (status === 'not_eligible') {
+          router.push('/candidate/not-eligible');
         } else {
+          // default: 'new' or any other status
           router.push('/candidate/step1');
         }
       } else if (userData.role?.toLowerCase() === 'coach') {

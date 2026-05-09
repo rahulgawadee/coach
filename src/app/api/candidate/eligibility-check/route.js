@@ -91,10 +91,20 @@ export async function POST(request) {
       consentPrivacy,
     } = await request.json();
 
+    const normalizedFirstName = String(firstName || '').trim();
+    const normalizedLastName = String(lastName || '').trim() || 'User';
+    const normalizedPhoneNumber = String(phoneNumber || '').trim();
+    const normalizedPlaceOfResidence = String(placeOfResidence || '').trim();
+    const normalizedRegisteredWithSEA = String(registeredWithSEA || '').trim();
+    const normalizedEligibleForRustaOchMatcha = String(eligibleForRustaOchMatcha || '').trim();
+    const normalizedLookingForJobOrTraining = String(lookingForJobOrTraining || '').trim();
+    const normalizedWouldYouLikeUsToCall = String(wouldYouLikeUsToCall || '').trim();
+    const normalizedWhereDidYouHearAboutUs = String(whereDidYouHearAboutUs || '').trim();
+
     // Validation
-    if (!firstName || !lastName || !yearOfBirth || !phoneNumber || !placeOfResidence ||
-        !registeredWithSEA || !eligibleForRustaOchMatcha || !lookingForJobOrTraining ||
-        !wouldYouLikeUsToCall || !whereDidYouHearAboutUs) {
+    if (!normalizedFirstName || !yearOfBirth || !normalizedPhoneNumber || !normalizedPlaceOfResidence ||
+        !normalizedRegisteredWithSEA || !normalizedEligibleForRustaOchMatcha || !normalizedLookingForJobOrTraining ||
+        !normalizedWouldYouLikeUsToCall || !normalizedWhereDidYouHearAboutUs) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
@@ -110,9 +120,9 @@ export async function POST(request) {
 
     // Check eligibility with Swedish Employment Agency
     const seaCheckResult = await checkSwedishEmploymentAgencyEligibility({
-      registeredWithSEA,
-      eligibleForRustaOchMatcha,
-      lookingForJobOrTraining,
+      registeredWithSEA: normalizedRegisteredWithSEA,
+      eligibleForRustaOchMatcha: normalizedEligibleForRustaOchMatcha,
+      lookingForJobOrTraining: normalizedLookingForJobOrTraining,
     });
 
     // Determine final eligibility status
@@ -126,16 +136,16 @@ export async function POST(request) {
       candidateEligibility = await CandidateEligibility.findByIdAndUpdate(
         candidateEligibility._id,
         {
-          firstName,
-          lastName,
+          firstName: normalizedFirstName,
+          lastName: normalizedLastName,
           yearOfBirth,
-          phoneNumber,
-          placeOfResidence,
-          registeredWithSEA,
-          eligibleForRustaOchMatcha,
-          lookingForJobOrTraining,
-          wouldYouLikeUsToCall,
-          whereDidYouHearAboutUs,
+          phoneNumber: normalizedPhoneNumber,
+          placeOfResidence: normalizedPlaceOfResidence,
+          registeredWithSEA: normalizedRegisteredWithSEA,
+          eligibleForRustaOchMatcha: normalizedEligibleForRustaOchMatcha,
+          lookingForJobOrTraining: normalizedLookingForJobOrTraining,
+          wouldYouLikeUsToCall: normalizedWouldYouLikeUsToCall,
+          whereDidYouHearAboutUs: normalizedWhereDidYouHearAboutUs,
           consentHelloLilly,
           consentPrivacy,
           eligibilityStatus,
@@ -151,16 +161,16 @@ export async function POST(request) {
       candidateEligibility = new CandidateEligibility({
         userId,
         email: user.email,
-        firstName,
-        lastName,
+        firstName: normalizedFirstName,
+        lastName: normalizedLastName,
         yearOfBirth,
-        phoneNumber,
-        placeOfResidence,
-        registeredWithSEA,
-        eligibleForRustaOchMatcha,
-        lookingForJobOrTraining,
-        wouldYouLikeUsToCall,
-        whereDidYouHearAboutUs,
+        phoneNumber: normalizedPhoneNumber,
+        placeOfResidence: normalizedPlaceOfResidence,
+        registeredWithSEA: normalizedRegisteredWithSEA,
+        eligibleForRustaOchMatcha: normalizedEligibleForRustaOchMatcha,
+        lookingForJobOrTraining: normalizedLookingForJobOrTraining,
+        wouldYouLikeUsToCall: normalizedWouldYouLikeUsToCall,
+        whereDidYouHearAboutUs: normalizedWhereDidYouHearAboutUs,
         consentHelloLilly,
         consentPrivacy,
         eligibilityStatus,
@@ -172,11 +182,13 @@ export async function POST(request) {
       await candidateEligibility.save();
     }
 
-    // Update user onboarding step
+    // Update user onboarding step and status
     if (eligibilityStatus === 'eligible') {
       user.onboardingStep = 2; // Move to step 2 (candidate details)
+      user.status = 'eligible';
     } else {
       user.onboardingStep = -1; // Mark as not eligible
+      user.status = 'not_eligible';
     }
     await user.save();
 

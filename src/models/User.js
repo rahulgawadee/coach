@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    status: {
+      type: String,
+      enum: ['new', 'eligible', 'profile_complete', 'pending_acceptance', 'active', 'not_eligible'],
+      default: 'new',
+    },
     profileCompleted: {
       type: Boolean,
       default: false,

@@ -129,6 +129,11 @@ export const candidate = {
       body: JSON.stringify(data),
     }),
 
+  getStep2Data: () =>
+    apiCall('/candidate/step2-data', {
+      method: 'GET',
+    }),
+
   submitDetailedForm: (data) =>
     apiCall('/candidate/complete-profile', {
       method: 'POST',

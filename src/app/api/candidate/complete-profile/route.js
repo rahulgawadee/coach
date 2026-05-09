@@ -65,6 +65,7 @@ export async function POST(request) {
 
     user.onboardingStep = 3;
     user.profileCompleted = true;
+    user.status = 'profile_complete';
     await user.save();
 
     return NextResponse.json({ success: true, data: profile }, { status: 200 });

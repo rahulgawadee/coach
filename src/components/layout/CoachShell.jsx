@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import Sidebar from '@/components/layout/Sidebar';
+import CoachSidebar from '@/components/layout/CoachSidebar';
 
 export default function CoachShell({ children }) {
   const pathname = usePathname();
@@ -27,7 +27,7 @@ export default function CoachShell({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar role="coach" isOpen={isOpen} onToggle={() => setIsOpen((prev) => !prev)} onLogout={handleLogout} />
+      <CoachSidebar isOpen={isOpen} onToggle={() => setIsOpen((prev) => !prev)} onLogout={handleLogout} />
       <main className={`min-h-screen transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-20'}`}>
         {children}
       </main>

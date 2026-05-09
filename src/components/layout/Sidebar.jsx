@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
   const pathname = usePathname();
   const [messageCount, setMessageCount] = useState(0);
+  const panelTitle = role === 'coach' ? 'Coach Panel' : 'Candidate Panel';
 
   const userEmail = useMemo(() => {
     if (typeof window === 'undefined') return '';
@@ -139,7 +140,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
       <div className="flex h-full flex-col">
         <div className="flex h-16 items-center justify-between border-b border-gray-800 px-4">
           <p className={`text-sm font-semibold text-white ${isOpen ? 'block' : 'hidden md:block'}`}>
-            Candidate Panel
+            {panelTitle}
           </p>
           <button
             type="button"

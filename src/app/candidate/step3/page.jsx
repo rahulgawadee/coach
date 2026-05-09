@@ -119,7 +119,7 @@ export default function Step3Page() {
       localStorage.setItem('candidateProfile', JSON.stringify(savedProfile));
 
       setSelectedCoach(confirmingCoach);
-      router.push('/candidate/selection-pending');
+      router.push('/candidate/waiting-for-coach');
     } catch (err) {
       setError(err.message || 'Unable to select coach');
     } finally {

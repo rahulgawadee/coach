@@ -56,6 +56,7 @@ export async function POST(request) {
     await coach.save();
 
     user.onboardingStep = 4;
+    user.status = 'pending_acceptance';
     await user.save();
 
     if (candidateProfile) {
