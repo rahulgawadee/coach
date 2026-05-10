@@ -57,6 +57,7 @@ export async function POST(request) {
           onboardingStep: user.onboardingStep,
           profileCompleted: user.profileCompleted,
           status: user.status,
+          avatarUrl: user.avatarUrl || '',
         },
         token,
       },

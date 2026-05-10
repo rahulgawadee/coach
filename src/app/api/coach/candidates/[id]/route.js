@@ -13,7 +13,8 @@ export async function GET(request, { params }) {
     const decoded = verifyToken(token);
     if (!decoded) return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
 
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     await dbConnect();
 
@@ -39,6 +40,7 @@ export async function GET(request, { params }) {
       phone: profile?.phone || candidateUser.phone,
       address: profile?.address || candidateUser.address,
       personnummer: profile?.personnummer || candidateUser.personnummer,
+      avatarUrl: profile?.avatarUrl || '',
       
       // Professional Profile
       profile: profile ? {
@@ -53,6 +55,7 @@ export async function GET(request, { params }) {
         languages: profile.languagesSpoken,
         location: profile.location,
         hasDriverLicense: profile.hasDriverLicense,
+        videoUrl: profile.videoUrl,
       } : null,
 
       startDate: workspace.createdAt,

@@ -14,6 +14,7 @@ export default function CandidateDetailPage() {
   const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [playingVideo, setPlayingVideo] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -68,10 +69,26 @@ export default function CandidateDetailPage() {
           <Link href="/coach/dashboard" className="text-sm font-bold text-blue-600 uppercase tracking-widest hover:underline mb-2 block">
             ← Dashboard
           </Link>
-          <h1 className="text-4xl font-black text-slate-900">{candidate.name}</h1>
-          <p className="text-slate-500 mt-1">{candidate.email} • {candidate.phone || 'No phone'}</p>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-slate-200 border-2 border-white shadow-md flex items-center justify-center shrink-0">
+              {candidate.avatarUrl ? (
+                <img src={candidate.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl text-slate-400">👤</span>
+              )}
+            </div>
+            <div>
+              <h1 className="text-4xl font-black text-slate-900">{candidate.name}</h1>
+              <p className="text-slate-500 mt-1">{candidate.email} • {candidate.phone || 'No phone'}</p>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap gap-3 w-full md:w-auto mt-4 md:mt-0">
+          {candidate.profile?.videoUrl && (
+            <Button variant="outline" onClick={() => setPlayingVideo(true)} className="flex-1 md:flex-none py-3 px-6 rounded-2xl font-black border-red-200 text-red-600 hover:bg-red-50 transition-colors">
+              ▶ Watch Intro
+            </Button>
+          )}
           <Button variant="primary" className="flex-1 md:flex-none py-3 px-8 rounded-2xl font-black shadow-lg shadow-blue-200">
             💬 Message
           </Button>
@@ -132,6 +149,17 @@ export default function CandidateDetailPage() {
                     "{candidate.profile.about || 'No summary provided.'}"
                   </p>
                 </div>
+
+                {candidate.profile.videoUrl && (
+                  <div className="pt-8 border-t border-slate-50">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Video Introduction
+                    </p>
+                    <div className="rounded-2xl overflow-hidden border border-slate-200 bg-black aspect-video relative shadow-lg">
+                      <video className="w-full h-full object-contain" controls src={candidate.profile.videoUrl} />
+                    </div>
+                  </div>
+                )}
 
                 <div className="pt-8 border-t border-slate-50">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Skills & Strengths</p>
@@ -232,6 +260,34 @@ export default function CandidateDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Video Overlay Modal */}
+      {playingVideo && candidate.profile?.videoUrl && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setPlayingVideo(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl bg-black/50 border border-white/10 rounded-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="absolute top-4 right-4 z-10 flex gap-2">
+              <button 
+                onClick={() => setPlayingVideo(false)} 
+                className="w-10 h-10 rounded-full bg-black/50 border border-white/20 text-white flex items-center justify-center hover:bg-white/10 backdrop-blur-md transition-all font-bold"
+              >
+                ✕
+              </button>
+            </div>
+            <video 
+              src={candidate.profile.videoUrl} 
+              controls 
+              autoPlay 
+              className="w-full h-auto aspect-video object-contain"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

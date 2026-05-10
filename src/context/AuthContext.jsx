@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Register new user
    */
-  const register = async (email, password, confirmPassword, role = 'Candidate', name = '') => {
+  const register = async (email, password, confirmPassword, role = 'Candidate', name = '', avatarBase64 = null) => {
     setLoading(true);
     setError(null);
     try {
@@ -135,6 +135,7 @@ export const AuthProvider = ({ children }) => {
           confirmPassword,
           role,
           name: name || email.split('@')[0],
+          avatarBase64,
         }),
       });
 

@@ -1,51 +1,56 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Modal from '@/components/ui/Modal';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { Star, MessageSquare, Calendar, ShieldCheck, Award, Languages, RotateCcw, X } from 'lucide-react';
+
+const BackgroundGrid = () => (
+  <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#6366f1" strokeWidth="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,116,144,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'40%', left:'50%', width:'30vw', height:'30vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)', filter:'blur(60px)', animation:'driftSlow 22s ease-in-out infinite alternate' }} />
+    <style>{`@keyframes driftSlow{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-42%,-58%) scale(1.15)}}`}</style>
+  </div>
+);
 
 export default function CandidateMyCoachPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [coach, setCoach] = useState(null);
-  const [candidateData, setCandidateData] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
-  const [changeOpen, setChangeOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  const [error, setError] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!user?.email) return;
 
     const loadData = async () => {
       setLoading(true);
-      setError('');
       try {
         const emailParam = `?email=${encodeURIComponent(user.email)}`;
+        const coachRes = await fetch(`/api/candidate/get-coach${emailParam}`);
+        const coachPayload = await coachRes.json();
         
-        // Fetch candidate profile to get assigned coach ID and status
-        const profileRes = await fetch(`/api/candidate/profile${emailParam}`);
-        const profilePayload = await profileRes.json();
-        
-        if (profilePayload?.success) {
-          setCandidateData(profilePayload.data);
-          
-          // If a coach is assigned, fetch their details
-          if (profilePayload.data?.assignedCoachId || profilePayload.data?.coachId) {
-            const coachId = profilePayload.data.assignedCoachId || profilePayload.data.coachId;
-            const coachRes = await fetch(`/api/coach/details?id=${coachId}`);
-            const coachPayload = await coachRes.json();
-            if (coachPayload?.success) {
-              setCoach(coachPayload.data);
-            }
-          }
+        if (coachPayload?.success && coachPayload?.hasCoach) {
+          setCoach(coachPayload.data);
+        } else {
+          setCoach(null);
         }
       } catch (err) {
         console.error('Error loading coach data:', err);
-        setError('Failed to load coach information');
       } finally {
         setLoading(false);
       }
@@ -60,7 +65,7 @@ export default function CandidateMyCoachPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          coachId: coach.id || coach._id, 
+          coachId: coach.coachId, 
           rating, 
           comment, 
           email: user.email 
@@ -85,7 +90,6 @@ export default function CandidateMyCoachPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.email, reason }),
       });
-      setChangeOpen(false);
       alert('Your request for a coach change has been submitted for review.');
     } catch (err) {
       alert('Failed to submit request');
@@ -94,104 +98,129 @@ export default function CandidateMyCoachPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-500 font-medium">Loading your coach profile...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div style={{ width:40, height:40, border:'1.5px solid rgba(99,102,241,0.15)', borderTop:'1.5px solid #6366f1', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
-  if (!coach && candidateData?.status === 'pending_acceptance') {
-    return (
-      <div className="max-w-2xl mx-auto text-center py-16 px-4">
-        <div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-          ⏳
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900">Selection Pending</h2>
-        <p className="mt-4 text-gray-600 text-lg leading-relaxed">
-          You have requested to work with a coach. We are currently waiting for them to review your profile and accept the request.
-        </p>
-        <div className="mt-8 p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-500">
-          We usually hear back within 24-48 hours. You'll receive an email once it's confirmed!
-        </div>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   if (!coach) {
     return (
-      <div className="max-w-2xl mx-auto text-center py-16 px-4">
-        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
-          🤝
+      <div className="relative max-w-4xl mx-auto text-center py-24 px-4 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+        <BackgroundGrid />
+        <div className="w-24 h-24 rounded-[2rem] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
+          <ShieldCheck size={40} className="text-indigo-400" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">No Coach Assigned</h2>
-        <p className="mt-4 text-gray-600 text-lg leading-relaxed">
-          You haven't selected a coach yet. Please head to your dashboard to see recommended matches.
+        <h2 className="text-4xl font-['DM_Serif_Display'] text-white mb-4">No Coach Assigned</h2>
+        <p className="text-slate-400 text-lg leading-relaxed max-w-xl mx-auto mb-10 font-light">
+          You haven't been matched with a coach yet, or your request is still pending acceptance. Please check your dashboard for updates.
         </p>
-        <Button className="mt-8 px-10" onClick={() => (window.location.href = '/candidate/dashboard')}>
-          Find a Coach
-        </Button>
+        <Link href="/candidate/dashboard" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 text-white font-bold text-sm shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:scale-105 transition-all">
+          Go to Dashboard
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="relative max-w-6xl mx-auto space-y-8 pb-16 animate-in fade-in slide-in-from-bottom-4 duration-500 font-['DM_Sans',sans-serif]">
+      <BackgroundGrid />
+      
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        .glass-panel {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(24px);
+          border-radius: 32px;
+        }
+        .btn-primary {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 14px 24px; border-radius: 16px; width: 100%;
+          font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+          color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+          transition: all 0.2s;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.35); }
+        .btn-outline {
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          padding: 14px 24px; border-radius: 16px; width: 100%;
+          font-size: 14px; font-weight: 700; cursor: pointer;
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
+          color: #e2e8f0; transition: all 0.2s;
+        }
+        .btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+      `}</style>
+
       {/* Header Profile Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-xl shadow-blue-900/5 p-8">
-        <div className="absolute top-0 right-0 p-6">
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-100 text-green-700">
-            ✅ Active Mentor
+      <div className="glass-panel p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-black/20">
+        <div className="absolute top-0 right-0 p-6 md:p-8">
+          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            Active Mentor
           </span>
         </div>
         
-        <div className="flex flex-col md:flex-row items-center gap-8">
-          <div className="relative">
-            <img 
-              src={coach.avatar || '/avatar-placeholder.png'} 
-              alt={coach.name} 
-              className="h-32 w-32 md:h-40 md:w-40 rounded-3xl object-cover shadow-2xl border-4 border-white" 
-            />
-            <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-xl shadow-lg">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.348-3.595A7.2 7.2 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+        <div className="flex flex-col md:flex-row items-center gap-10">
+          <div className="relative shrink-0">
+            {coach.coachAvatar ? (
+              <img 
+                src={coach.coachAvatar} 
+                alt={coach.coachName} 
+                className="h-36 w-36 md:h-44 md:w-44 rounded-[2rem] object-cover border-[3px] border-white/10 shadow-2xl" 
+              />
+            ) : (
+              <div className="h-36 w-36 md:h-44 md:w-44 rounded-[2rem] bg-indigo-500/10 border-[3px] border-white/5 flex items-center justify-center shadow-2xl">
+                <span className="text-5xl font-bold text-indigo-400">{coach.coachName?.charAt(0)}</span>
+              </div>
+            )}
+            <div className="absolute -bottom-3 -right-3 bg-gradient-to-br from-indigo-500 to-cyan-500 text-white p-3 rounded-2xl shadow-lg border border-white/10">
+              <ShieldCheck size={24} />
             </div>
           </div>
           
           <div className="flex-1 text-center md:text-left space-y-4">
             <div>
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{coach.name}</h1>
-              <p className="text-blue-600 font-bold text-lg mt-1">{coach.title || 'Senior Career Coach'}</p>
-              <div className="flex items-center justify-center md:justify-start gap-4 mt-3">
-                <div className="flex items-center gap-1 text-yellow-500 font-bold">
-                  <span>★</span>
-                  <span className="text-gray-900">{coach.rating || 4.9}</span>
-                  <span className="text-gray-400 font-medium">({coach.reviewCount || 15})</span>
+              <h1 className="serif text-4xl md:text-5xl text-white tracking-tight mb-2">{coach.coachName}</h1>
+              <p className="text-indigo-300 font-bold text-lg md:text-xl tracking-wide">{coach.coachCompany || 'Senior Career Coach'}</p>
+              
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-5">
+                <div className="flex items-center gap-1.5 bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
+                  <Star size={16} className="text-amber-400 fill-amber-400" />
+                  <span className="text-amber-100 font-bold">{coach.coachRating || 4.9}</span>
+                  <span className="text-amber-500/70 text-xs font-bold uppercase tracking-widest">({coach.coachReviews || 15})</span>
                 </div>
-                <div className="h-4 w-px bg-gray-200" />
-                <div className="text-gray-500 text-sm font-medium">
-                  {coach.yearsExperience || 8}+ Years Experience
+                <div className="h-1.5 w-1.5 rounded-full bg-white/20" />
+                <div className="text-slate-400 text-sm font-bold uppercase tracking-widest">
+                  Sweden
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              {(coach.expertiseAreas || coach.expertise || []).map((tag) => (
-                <span key={tag} className="rounded-xl bg-blue-50 px-4 py-1.5 text-xs font-bold text-blue-700 border border-blue-100 uppercase tracking-wide">
+            <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-2">
+              {(coach.coachExpertise || ['CV Review', 'Interviews', 'Networking']).map((tag) => (
+                <span key={tag} className="rounded-xl bg-white/5 px-4 py-2 text-[10px] font-bold text-slate-300 border border-white/10 uppercase tracking-widest hover:bg-white/10 transition-colors">
                   {tag}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 w-full md:w-auto">
-            <Button variant="primary" size="lg" className="w-full" onClick={() => (window.location.href = '/candidate/messages')}>
-              Send Message
-            </Button>
-            <Button variant="outline" size="lg" onClick={() => setReviewOpen(true)}>
+          <div className="flex flex-col gap-3 w-full md:w-64 shrink-0 mt-6 md:mt-0">
+            <Link href="/candidate/messages" className="btn-primary">
+              <MessageSquare size={18} /> Send Message
+            </Link>
+            <Link href="/candidate/calendar" className="btn-outline">
+              <Calendar size={18} /> Book Session
+            </Link>
+            <button className="text-[10px] text-slate-500 hover:text-slate-300 font-bold uppercase tracking-widest mt-2 underline underline-offset-4" onClick={() => setReviewOpen(true)}>
               Share Feedback
-            </Button>
+            </button>
           </div>
         </div>
       </div>
@@ -199,34 +228,34 @@ export default function CandidateMyCoachPage() {
       <div className="grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2 space-y-8">
           {/* About Section */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-            <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-6 uppercase tracking-wider text-sm">
-              <span className="text-blue-600">●</span> Background & Approach
+          <div className="glass-panel p-8">
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Background & Approach
             </h4>
-            <p className="text-gray-700 leading-relaxed text-lg italic">
-              "{coach.bio || "I am dedicated to helping candidates find their true potential and landing the job they deserve. With years of experience in recruitment and career coaching, I focus on practical strategies that work in the Swedish market."}"
+            <p className="text-slate-300 leading-relaxed text-lg font-light italic">
+              "{coach.coachBio || "I am dedicated to helping candidates find their true potential and landing the job they deserve. With years of experience in recruitment and career coaching, I focus on practical strategies that work in the Swedish market."}"
             </p>
           </div>
 
           {/* Specializations Section */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-            <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-6 uppercase tracking-wider text-sm">
-              <span className="text-blue-600">●</span> Specializations
+          <div className="glass-panel p-8">
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Specializations
             </h4>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {[
                 { label: 'CV/Resume Optimization', score: 98 },
                 { label: 'Interview Techniques', score: 95 },
-                { label: 'Networking in Sweden', score: 92 },
+                { label: 'Networking Strategies', score: 92 },
                 { label: 'Skill Gap Analysis', score: 88 },
               ].map(item => (
-                <div key={item.label} className="p-4 rounded-2xl bg-gray-50 border border-gray-100">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-gray-700">{item.label}</span>
-                    <span className="text-xs text-blue-600 font-bold">{item.score}%</span>
+                <div key={item.label} className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm font-bold text-white">{item.label}</span>
+                    <span className="text-xs text-indigo-400 font-bold">{item.score}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${item.score}%` }} />
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full" style={{ width: `${item.score}%` }} />
                   </div>
                 </div>
               ))}
@@ -236,25 +265,34 @@ export default function CandidateMyCoachPage() {
 
         <div className="space-y-8">
           {/* Certifications & Languages */}
-          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm">
-            <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6">Details</h4>
+          <div className="glass-panel p-8">
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-8">Details</h4>
             
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">Languages</label>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4 flex items-center gap-2">
+                  <Languages size={14} className="text-indigo-400" /> Languages
+                </label>
                 <div className="flex flex-wrap gap-2">
-                  {(coach.languages || ['Swedish', 'English']).map((l) => (
-                    <span key={l} className="bg-gray-50 text-gray-700 px-3 py-1 rounded-lg text-sm font-medium border border-gray-100">{l}</span>
+                  {['Swedish', 'English'].map((l) => (
+                    <span key={l} className="bg-white/5 text-slate-300 px-4 py-2 rounded-xl text-xs font-bold tracking-wide border border-white/10">
+                      {l}
+                    </span>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">Certifications</label>
-                <div className="space-y-2">
-                  {(coach.certifications || ['ICF Certified Coach', 'Senior HR Specialist']).map((c) => (
-                    <div key={c} className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="text-blue-600 text-lg">🎖</span> {c}
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4 flex items-center gap-2">
+                  <Award size={14} className="text-indigo-400" /> Certifications
+                </label>
+                <div className="space-y-3">
+                  {['ICF Certified Coach', 'Senior HR Specialist'].map((c) => (
+                    <div key={c} className="flex items-center gap-3 text-sm text-slate-300 bg-white/5 p-3 rounded-xl border border-white/10">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                        <Award size={16} />
+                      </div>
+                      <span className="font-bold">{c}</span>
                     </div>
                   ))}
                 </div>
@@ -263,53 +301,67 @@ export default function CandidateMyCoachPage() {
           </div>
 
           {/* Change Request */}
-          <div className="bg-red-50 rounded-3xl p-6 border border-red-100">
-            <p className="text-xs text-red-600 font-medium leading-relaxed">
-              Not feeling the match? You can request a different coach if your needs have changed.
+          <div className="bg-rose-500/10 rounded-[2rem] p-8 border border-rose-500/20 text-center">
+            <div className="w-12 h-12 rounded-xl bg-rose-500/20 flex items-center justify-center mx-auto mb-4 text-rose-400">
+              <RotateCcw size={20} />
+            </div>
+            <p className="text-xs text-rose-300 font-medium leading-relaxed mb-6">
+              Not feeling the match? You can request a different coach if your career goals have shifted.
             </p>
             <button 
               onClick={requestChange}
-              className="mt-4 text-sm font-bold text-red-700 hover:text-red-800 underline transition-colors"
+              className="text-xs font-bold text-rose-400 hover:text-rose-300 uppercase tracking-widest underline underline-offset-4 transition-colors"
             >
-              Request a Change →
+              Request a Change
             </button>
           </div>
         </div>
       </div>
 
-      <Modal
-        isOpen={reviewOpen}
-        onClose={() => setReviewOpen(false)}
-        title={`Review ${coach.name}`}
-        actions={[
-          { label: 'Cancel', variant: 'outline', onClick: () => setReviewOpen(false) },
-          { label: 'Submit Review', variant: 'primary', onClick: submitReview },
-        ]}
-      >
-        <div className="space-y-6 py-2">
-          <div className="space-y-3">
-            <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Overall Rating</label>
-            <div className="flex gap-4 items-center">
-              <input 
-                type="range" min="1" max="5" value={rating} 
-                onChange={(e) => setRating(Number(e.target.value))} 
-                className="flex-1 accent-blue-600"
-              />
-              <span className="text-2xl font-bold text-blue-600">{rating} ★</span>
+      {/* Review Modal */}
+      {reviewOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-[#0f0e1c] border border-white/10 shadow-[0_24px_50px_rgba(0,0,0,0.6)] rounded-3xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-white">Review {coach.coachName}</h3>
+              <button onClick={() => setReviewOpen(false)} className="text-slate-400 hover:text-white p-2 bg-white/5 rounded-full">
+                <X size={16} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-8">
+              <div className="space-y-4">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Overall Rating</label>
+                <div className="flex gap-4 items-center bg-white/5 p-4 rounded-2xl border border-white/10">
+                  <input 
+                    type="range" min="1" max="5" value={rating} 
+                    onChange={(e) => setRating(Number(e.target.value))} 
+                    className="flex-1 accent-indigo-500"
+                  />
+                  <span className="text-2xl font-black text-amber-400 flex items-center gap-1">
+                    {rating} <Star size={20} fill="currentColor" />
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Your Experience</label>
+                <textarea 
+                  value={comment} 
+                  onChange={(e) => setComment(e.target.value)} 
+                  placeholder="What do you like about working with this coach?"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-white placeholder-slate-500 focus:border-indigo-500/50 focus:bg-white/10 transition-all h-32 outline-none resize-none text-sm font-medium" 
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-white/5 bg-white/[0.02] flex gap-3">
+              <button className="btn-outline flex-1" onClick={() => setReviewOpen(false)}>Cancel</button>
+              <button className="btn-primary flex-1" onClick={submitReview}>Submit Review</button>
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider">Your Experience</label>
-            <textarea 
-              value={comment} 
-              onChange={(e) => setComment(e.target.value)} 
-              placeholder="What do you like about working with this coach?"
-              className="w-full rounded-2xl border-2 border-gray-200 p-4 focus:border-blue-500 focus:outline-none transition-all h-32" 
-            />
-          </div>
         </div>
-      </Modal>
+      )}
     </div>
   );
 }

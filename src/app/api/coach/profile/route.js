@@ -49,7 +49,7 @@ export async function GET(request) {
       contactPhone: profile?.contactPhone || '',
 
       // Profile Media
-      profilePictureUrl: profile?.profilePictureUrl || '',
+      profilePictureUrl: user.avatarUrl || profile?.profilePictureUrl || '',
       videoIntroUrl: profile?.videoIntroUrl || '',
 
       // Statistics
@@ -84,6 +84,9 @@ export async function PATCH(request) {
 
     // Update User fields
     if (body.phone) user.phone = body.phone;
+    if (body.profilePictureUrl !== undefined) {
+      user.avatarUrl = body.profilePictureUrl;
+    }
     await user.save();
 
     // Update CoachProfile fields

@@ -3,10 +3,23 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Link from 'next/link';
 import apiService from '@/services/api';
+
+const BackgroundGrid = () => (
+  <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#38bdf8" strokeWidth="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+  </div>
+);
 
 export default function CandidatesPage() {
   const router = useRouter();
@@ -52,101 +65,149 @@ export default function CandidatesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-12 px-4 py-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <Link href="/coach/dashboard" className="text-sm font-bold text-blue-600 uppercase tracking-widest hover:underline mb-2 block">
+    <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500">
+      <BackgroundGrid />
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
+        .page-root { font-family: 'DM Sans', sans-serif; }
+        .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        .card {
+          background: rgba(255,255,255,0.028);
+          border: 1px solid rgba(255,255,255,0.07);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+        .card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 12px 40px rgba(0,0,0,0.35); transform: translateY(-2px); }
+        .pill {
+          display:inline-flex; align-items:center; gap:6px;
+          padding: 5px 12px; border-radius:999px;
+          font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
+        }
+        .btn-primary {
+          display:flex; align-items:center; justify-content:center; gap:8px;
+          width:100%; padding:10px 16px; border-radius:12px; font-weight:600;
+          font-size:13px; letter-spacing:0.01em; cursor:pointer; border:none;
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          color:#fff; box-shadow: 0 4px 20px rgba(2,132,199,0.25);
+          transition: box-shadow 0.25s, transform 0.2s;
+        }
+        .btn-primary:hover { box-shadow: 0 8px 30px rgba(2,132,199,0.38); transform:translateY(-1px); }
+        .btn-ghost {
+          display:flex; align-items:center; justify-content:center; gap:8px;
+          width:100%; padding:10px 16px; border-radius:12px; font-weight:600;
+          font-size:13px; cursor:pointer;
+          background:rgba(255,255,255,0.04);
+          border:1px solid rgba(255,255,255,0.1);
+          color:rgba(255,255,255,0.85);
+          transition: background 0.2s, border-color 0.2s;
+        }
+        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
+        .fade-up { animation: fadeUp 0.5s ease both; }
+        .delay-1 { animation-delay:0.07s; }
+        .delay-2 { animation-delay:0.14s; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+
+      <div className="page-root space-y-8">
+        {/* Header */}
+        <div className="fade-up pt-8 px-4 sm:px-0">
+          <Link href="/coach/dashboard" className="text-xs font-bold text-sky-400 uppercase tracking-widest hover:text-sky-300 transition-colors mb-4 inline-block">
             ← Dashboard
           </Link>
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight">Mentee Directory</h1>
-          <p className="text-slate-500 mt-1">You have {candidates.length} candidates in your network.</p>
-        </div>
-        <div className="flex gap-3 w-full md:w-auto">
-           <div className="relative flex-1 md:w-80">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+            <div>
+              <h1 className="serif text-4xl text-white font-medium tracking-tight mb-2">Mentee Directory</h1>
+              <p className="text-slate-400 font-light">You have <span className="text-white font-medium">{candidates.length}</span> candidates in your network.</p>
+            </div>
+            
+            <div className="w-full md:w-80 relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
               <input 
                 type="text" 
-                placeholder="Search by name..." 
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white border border-slate-100 shadow-sm focus:border-blue-500 outline-none transition-all font-bold"
+                placeholder="Search by name or email..." 
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all font-medium"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
-           </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Filters & Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex bg-slate-100 p-1 rounded-xl">
-          {['all', 'accepted', 'completed', 'paused'].map(status => (
-            <button 
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              className={`px-6 py-2 text-xs font-black rounded-lg uppercase tracking-widest transition-all ${statusFilter === status ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              {status}
-            </button>
-          ))}
+        {/* Filters */}
+        <div className="fade-up delay-1 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-0">
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+            {['all', 'accepted', 'completed', 'paused'].map(status => (
+              <button 
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-5 py-2 text-[10px] font-bold rounded-lg uppercase tracking-widest transition-all ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
+              >
+                {status}
+              </button>
+            ))}
+          </div>
+          <button className="btn-ghost" style={{ width: 'auto', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Export (CSV)</button>
         </div>
-        <Button variant="outline" className="rounded-xl font-black text-xs py-3">Export Directory (CSV)</Button>
-      </div>
 
-      {/* Error Message */}
-      {error && (
-        <Card className="p-6 border-red-100 bg-red-50 text-red-600 font-bold text-center">
-          {error}
-        </Card>
-      )}
-
-      {/* Grid Layout */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCandidates.length > 0 ? filteredCandidates.map((candidate) => (
-          <Card key={candidate.id} className="p-6 border-none shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-all group">
-            <div className="flex items-start justify-between mb-6">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-black">
-                {candidate.name.charAt(0)}
-              </div>
-              <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-                candidate.status === 'accepted' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
-              }`}>
-                {candidate.status}
-              </span>
-            </div>
-            
-            <div className="space-y-4 mb-8">
-              <div>
-                <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">{candidate.name}</h3>
-                <p className="text-sm text-slate-400 font-bold">{candidate.email}</p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${candidate.progress}%` }} />
-                </div>
-                <span className="text-[10px] font-black text-slate-700">{candidate.progress}%</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Link href={`/coach/candidates/${candidate.candidateId}`} className="flex-1">
-                <Button variant="primary" className="w-full py-3 rounded-xl font-black text-xs shadow-lg shadow-blue-100">Profile</Button>
-              </Link>
-              <Button variant="outline" className="flex-1 py-3 rounded-xl font-black text-xs">Message</Button>
-            </div>
-          </Card>
-        )) : (
-          <div className="col-span-full py-20 text-center border-2 border-dashed border-slate-100 rounded-[3rem]">
-            <p className="text-slate-400 font-black text-lg uppercase tracking-widest">No candidates found</p>
+        {/* Error Message */}
+        {error && (
+          <div className="fade-up card p-6 border-red-500/20 bg-red-500/10 text-red-200 font-medium text-center">
+            {error}
           </div>
         )}
+
+        {/* Grid Layout */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 fade-up delay-2 px-4 sm:px-0">
+          {filteredCandidates.length > 0 ? filteredCandidates.map((candidate) => (
+            <div key={candidate.id} className="card p-6 group">
+              <div className="flex items-start justify-between mb-6">
+                <div className="w-14 h-14 bg-sky-900/50 text-sky-400 border border-sky-800 rounded-xl flex items-center justify-center text-xl font-bold">
+                  {candidate.name.charAt(0)}
+                </div>
+                <span className={`pill ${
+                  candidate.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                }`}>
+                  {candidate.status}
+                </span>
+              </div>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <h3 className="text-xl font-bold text-white group-hover:text-sky-400 transition-colors">{candidate.name}</h3>
+                  <p className="text-sm text-slate-400 font-medium">{candidate.email}</p>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-sky-500 rounded-full" style={{ width: `${candidate.progress}%` }} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400">{candidate.progress}%</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Link href={`/coach/candidates/${candidate.candidateId}`} className="flex-1">
+                  <button className="btn-primary w-full">Profile</button>
+                </Link>
+                <button className="btn-ghost flex-1">Message</button>
+              </div>
+            </div>
+          )) : (
+            <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
+              <p className="text-slate-500 font-medium text-sm">No candidates match your search.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

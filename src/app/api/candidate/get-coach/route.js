@@ -58,7 +58,7 @@ export async function GET(request) {
         coachEmail: coachUser?.email,
         coachPhone: coachFullProfile?.phoneNumber || coachUser?.phoneNumber,
         coachCompany: coachFullProfile?.companyName,
-        coachAvatar: coachFullProfile?.profilePictureUrl,
+        coachAvatar: coachUser?.avatarUrl || coachFullProfile?.profilePictureUrl,
         coachBio: coachFullProfile?.bio,
         coachExpertise: coachFullProfile?.expertiseAreas || [],
         coachRating: coachFullProfile?.averageRating || 4.9,

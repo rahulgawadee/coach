@@ -48,6 +48,7 @@ export async function GET(request) {
           onboardingStep: user.onboardingStep,
           profileCompleted: user.profileCompleted,
           status: user.status,
+          avatarUrl: user.avatarUrl || '',
         },
       },
       { status: 200 }
