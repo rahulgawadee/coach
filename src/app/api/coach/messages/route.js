@@ -31,7 +31,7 @@ export async function GET(request) {
     if (!coachProfile) return NextResponse.json({ success: false, error: 'Coach profile not found' }, { status: 404 });
 
     const assignments = await CandidateCoachAssignment.find({ coachId: coachProfile._id, status: 'accepted' })
-      .populate('candidateId', 'name email');
+      .populate('candidateId', 'name email avatarUrl');
 
     const conversations = [];
     for (const a of assignments) {
@@ -51,7 +51,7 @@ export async function GET(request) {
         candidateName: `${firstName} ${lastName}`.trim(), 
         lastMessage: lastMessage?.text || '', 
         unreadCount,
-        avatar: profile?.profileImage || null
+        avatarUrl: a.candidateId.avatarUrl || null
       });
     }
 

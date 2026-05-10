@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import apiService from '@/services/api';
+import { Sparkles } from 'lucide-react';
 
-// Subtle background lines
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
     <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
@@ -38,6 +38,8 @@ export default function CoachProfilePage() {
     preferredWorkingHours: '',
     maxCandidateCapacity: 15,
     currentAssignment: 0,
+    profilePictureUrl: '',
+    videoIntroUrl: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,6 +47,7 @@ export default function CoachProfilePage() {
   const [success, setSuccess] = useState('');
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [aiEnhancing, setAiEnhancing] = useState(false);
 
   const expertiseOptions = [
     'Career Coaching',
@@ -77,7 +80,6 @@ export default function CoachProfilePage() {
         setLoading(false);
       }
     };
-
     fetchProfile();
   }, [isAuthenticated, hasRole, authToken, router]);
 
@@ -100,7 +102,6 @@ export default function CoachProfilePage() {
     setSaving(true);
     setError('');
     setSuccess('');
-
     try {
       await apiService.coach.updateProfile(profile);
       setSuccess('Profile updated successfully!');
@@ -116,19 +117,14 @@ export default function CoachProfilePage() {
   const handleUploadPicture = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadingPicture(true);
     setError('');
-
     try {
       const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_avatars', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       const signData = await signRes.json();
-
-      if (!signData.success) {
-        throw new Error('Failed to authenticate upload');
-      }
+      if (!signData.success) throw new Error('Failed to authenticate upload');
 
       const formData = new FormData();
       formData.append('file', file);
@@ -141,14 +137,12 @@ export default function CoachProfilePage() {
         method: 'POST',
         body: formData
       });
-      
       const uploadData = await uploadRes.json();
-      
       if (uploadData.secure_url) {
         setProfile({ ...profile, profilePictureUrl: uploadData.secure_url });
         await apiService.coach.updateProfile({ profilePictureUrl: uploadData.secure_url });
         updateUser({ avatarUrl: uploadData.secure_url });
-        setSuccess('Picture uploaded successfully!');
+        setSuccess('Profile picture updated!');
         setTimeout(() => setSuccess(''), 3000);
       } else {
         throw new Error('Failed to upload picture');
@@ -164,19 +158,14 @@ export default function CoachProfilePage() {
   const handleUploadVideo = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadingVideo(true);
     setError('');
-
     try {
       const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_intros', {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       const signData = await signRes.json();
-
-      if (!signData.success) {
-        throw new Error('Failed to authenticate upload');
-      }
+      if (!signData.success) throw new Error('Failed to authenticate upload');
 
       const formData = new FormData();
       formData.append('file', file);
@@ -189,9 +178,7 @@ export default function CoachProfilePage() {
         method: 'POST',
         body: formData
       });
-      
       const uploadData = await uploadRes.json();
-      
       if (uploadData.secure_url) {
         setProfile({ ...profile, videoIntroUrl: uploadData.secure_url });
         await apiService.coach.updateProfile({ videoIntroUrl: uploadData.secure_url });
@@ -205,6 +192,36 @@ export default function CoachProfilePage() {
       setError('Failed to upload video');
     } finally {
       setUploadingVideo(false);
+    }
+  };
+
+  const handleAiEnhanceBio = async () => {
+    if (!profile.bio && !profile.expertise?.length) {
+      setError('Add a brief bio or expertise areas first so AI can enhance them.');
+      return;
+    }
+    setAiEnhancing(true);
+    try {
+      const res = await fetch('/api/ai/enhance-bio', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bio: profile.bio,
+          expertise: profile.expertise,
+          yearsOfExperience: profile.yearsOfExperience,
+          role: 'coach',
+        })
+      });
+      const data = await res.json();
+      if (data?.enhancedBio) {
+        setProfile(prev => ({ ...prev, bio: data.enhancedBio }));
+        setSuccess('AI has enhanced your bio!');
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (err) {
+      setError('AI enhancement failed. Try again.');
+    } finally {
+      setAiEnhancing(false);
     }
   };
 
@@ -258,6 +275,15 @@ export default function CoachProfilePage() {
           transition: background 0.2s, border-color 0.2s;
         }
         .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
+        .btn-ai {
+          display:inline-flex; align-items:center; gap:6px;
+          padding:10px 18px; border-radius:12px; font-weight:600; font-size:12px;
+          letter-spacing:0.04em; cursor:pointer; border:none;
+          background: linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(168,85,247,0.3) 100%);
+          color:#c084fc; border:1px solid rgba(168,85,247,0.3);
+          transition: all 0.2s;
+        }
+        .btn-ai:hover { background: linear-gradient(135deg, rgba(139,92,246,0.5) 0%, rgba(168,85,247,0.5) 100%); transform:translateY(-1px); }
         .fade-up { animation: fadeUp 0.5s ease both; }
         .delay-1 { animation-delay:0.07s; }
         .delay-2 { animation-delay:0.14s; }
@@ -266,14 +292,14 @@ export default function CoachProfilePage() {
       `}</style>
 
       <div className="profile-root space-y-8">
-        
-        {/* Header */}
+
+        {/* ── PAGE HEADER ── */}
         <div className="fade-up pt-8">
           <h1 className="serif text-4xl text-white font-medium tracking-tight">Coach Profile</h1>
-          <p className="text-slate-400 mt-2 font-light">Manage your mentorship details and availability.</p>
+          <p className="text-slate-400 mt-2 font-light">Manage your identity, expertise, and availability.</p>
         </div>
 
-        {/* Notifications */}
+        {/* ── ALERTS ── */}
         {error && (
           <div className="fade-up card p-4 border-red-500/20 bg-red-500/10 text-red-200 flex items-center gap-3">
             <span>⚠️</span> {error}
@@ -286,51 +312,100 @@ export default function CoachProfilePage() {
         )}
 
         <form onSubmit={handleSaveProfile} className="space-y-8">
-          
-          {/* Personal Information */}
-          <div className="fade-up delay-1 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Personal Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="section-label">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={profile.fullName}
-                  onChange={handleInputChange}
-                  className={InputClass}
-                />
+
+          {/* ── SECTION 1: PROFILE IDENTITY (TOP) ── */}
+          <div className="fade-up delay-1 card overflow-hidden">
+            {/* Hero accent */}
+            <div style={{ position:'relative', background:'linear-gradient(135deg,rgba(14,165,233,0.12) 0%,rgba(79,70,229,0.08) 100%)', padding:'36px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
+              <div style={{ position:'absolute', top:0, right:0, width:200, height:200, background:'radial-gradient(circle at top right, rgba(14,165,233,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+
+                {/* PROFILE PHOTO UPLOAD */}
+                <div className="flex-shrink-0 relative group">
+                  <label className="cursor-pointer block">
+                    <div style={{ width:110, height:110, borderRadius:20, overflow:'hidden', border:'2px solid rgba(14,165,233,0.3)', position:'relative', boxShadow:'0 8px 30px rgba(0,0,0,0.4)' }}>
+                      {profile.profilePictureUrl && !uploadingPicture ? (
+                        <img src={profile.profilePictureUrl} alt="Profile" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      ) : uploadingPicture ? (
+                        <div style={{ width:'100%', height:'100%', background:'rgba(14,165,233,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <div style={{ width:28, height:28, border:'2px solid rgba(14,165,233,0.3)', borderTop:'2px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+                        </div>
+                      ) : (
+                        <div style={{ width:'100%', height:'100%', background:'rgba(14,165,233,0.1)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4 }}>
+                          <span style={{ fontSize:28 }}>👤</span>
+                          <span style={{ fontSize:9, color:'rgba(14,165,233,0.8)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em' }}>Upload</span>
+                        </div>
+                      )}
+                      {/* Hover overlay */}
+                      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)', opacity:0, transition:'opacity 0.2s', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:18 }} className="group-hover:opacity-100">
+                        <span style={{ fontSize:20 }}>📸</span>
+                      </div>
+                    </div>
+                    <input type="file" onChange={handleUploadPicture} disabled={uploadingPicture} className="hidden" accept="image/*" />
+                  </label>
+                  <div style={{ position:'absolute', bottom:-6, right:-6, width:24, height:24, borderRadius:'50%', background:'rgba(14,165,233,0.9)', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #09090f', cursor:'pointer' }}>
+                    <span style={{ fontSize:10 }}>✎</span>
+                  </div>
+                </div>
+
+                {/* IDENTITY TEXT */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="serif text-3xl text-white font-medium">{profile.fullName || user?.name || 'Your Name'}</h2>
+                  <p className="text-slate-400 mt-1 font-light">{profile.email}</p>
+                  {profile.expertise?.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                      {profile.expertise.slice(0, 3).map(e => (
+                        <span key={e} className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{e}</span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-3 mt-4 justify-center sm:justify-start">
+                    <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center', gap:5 }}>
+                      <span>⭐</span> {profile.yearsOfExperience || 0} yrs experience
+                    </span>
+                    <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center', gap:5 }}>
+                      <span>👥</span> Capacity: {profile.maxCandidateCapacity || 15}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="section-label">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={profile.email}
-                  onChange={handleInputChange}
-                  className={InputClass}
-                  disabled
-                  title="Email cannot be changed"
-                  style={{ opacity: 0.7, cursor: 'not-allowed' }}
-                />
-              </div>
-              <div>
-                <label className="section-label">Phone</label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={profile.phone}
-                  onChange={handleInputChange}
-                  className={InputClass}
-                />
+            </div>
+
+            {/* Personal fields below the hero */}
+            <div style={{ padding:'28px 36px' }}>
+              <h3 className="serif text-xl text-white mb-5">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="section-label">Full Name</label>
+                  <input type="text" name="fullName" value={profile.fullName} onChange={handleInputChange} className={InputClass} placeholder="Your full name" />
+                </div>
+                <div>
+                  <label className="section-label">Email Address</label>
+                  <input type="email" name="email" value={profile.email} className={InputClass} disabled title="Email cannot be changed" style={{ opacity:0.7, cursor:'not-allowed' }} />
+                </div>
+                <div>
+                  <label className="section-label">Phone Number</label>
+                  <input type="tel" name="phone" value={profile.phone || ''} onChange={handleInputChange} className={InputClass} placeholder="+1 555 000 0000" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Professional Information */}
-          <div className="fade-up delay-2 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Professional Information</h2>
-            
+          {/* ── SECTION 2: PROFESSIONAL INFORMATION ── */}
+          <div className="fade-up delay-1 card p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="serif text-2xl text-white">Professional Information</h2>
+              <button
+                type="button"
+                onClick={handleAiEnhanceBio}
+                disabled={aiEnhancing}
+                className="btn-ai"
+              >
+                <Sparkles size={14} />
+                {aiEnhancing ? 'Enhancing...' : 'AI Enhance Bio'}
+              </button>
+            </div>
+
             <div className="mb-6">
               <label className="section-label">Bio / Professional Summary</label>
               <textarea
@@ -339,8 +414,9 @@ export default function CoachProfilePage() {
                 onChange={handleInputChange}
                 rows="4"
                 className={`${InputClass} resize-none`}
-                placeholder="Share your background, mentorship style, and what mentees can expect..."
+                placeholder="Share your background, mentorship style, and what candidates can expect working with you..."
               />
+              <p className="text-[10px] text-slate-500 mt-2">Tip: Use the AI Enhance button to automatically improve your bio using your expertise and experience.</p>
             </div>
 
             <div className="mb-6">
@@ -350,15 +426,10 @@ export default function CoachProfilePage() {
                   const isChecked = profile.expertise?.includes(expertise);
                   return (
                     <label key={expertise} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-sky-500/10 border-sky-500/30 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isChecked ? 'bg-sky-500 border-sky-500' : 'border-slate-500 bg-transparent'}`}>
+                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${isChecked ? 'bg-sky-500 border-sky-500' : 'border-slate-500 bg-transparent'}`}>
                         {isChecked && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                       </div>
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleExpertiseToggle(expertise)}
-                        className="hidden"
-                      />
+                      <input type="checkbox" checked={isChecked} onChange={() => handleExpertiseToggle(expertise)} className="hidden" />
                       <span className="font-medium text-sm">{expertise}</span>
                     </label>
                   );
@@ -369,149 +440,71 @@ export default function CoachProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="section-label">Years of Experience</label>
-                <input
-                  type="number"
-                  name="yearsOfExperience"
-                  value={profile.yearsOfExperience}
-                  onChange={handleInputChange}
-                  className={InputClass}
-                  min="0"
-                />
+                <input type="number" name="yearsOfExperience" value={profile.yearsOfExperience} onChange={handleInputChange} className={InputClass} min="0" />
               </div>
               <div>
                 <label className="section-label">Certifications (Optional)</label>
-                <input
-                  type="text"
-                  name="certifications"
-                  value={profile.certifications}
-                  onChange={handleInputChange}
-                  placeholder="e.g., ICF Coach, PCC"
-                  className={InputClass}
-                />
+                <input type="text" name="certifications" value={profile.certifications || ''} onChange={handleInputChange} placeholder="e.g., ICF Coach, PCC" className={InputClass} />
               </div>
             </div>
           </div>
 
-          {/* Availability */}
-          <div className="fade-up delay-3 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Availability</h2>
-
+          {/* ── SECTION 3: AVAILABILITY ── */}
+          <div className="fade-up delay-2 card p-8">
+            <h2 className="serif text-2xl text-white mb-6">Availability & Capacity</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="section-label">Working Hours</label>
-                <input
-                  type="text"
-                  name="preferredWorkingHours"
-                  value={profile.preferredWorkingHours}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 9 AM - 5 PM"
-                  className={InputClass}
-                />
+                <input type="text" name="preferredWorkingHours" value={profile.preferredWorkingHours || ''} onChange={handleInputChange} placeholder="e.g., 9 AM – 5 PM" className={InputClass} />
               </div>
               <div>
                 <label className="section-label">Max Candidate Capacity</label>
-                <input
-                  type="number"
-                  name="maxCandidateCapacity"
-                  value={profile.maxCandidateCapacity}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="50"
-                  className={InputClass}
-                />
+                <input type="number" name="maxCandidateCapacity" value={profile.maxCandidateCapacity} onChange={handleInputChange} min="1" max="50" className={InputClass} />
               </div>
               <div>
                 <label className="section-label">Current Mentees</label>
-                <div className={`${InputClass} flex items-center justify-between opacity-80 cursor-not-allowed`} style={{ pointerEvents: 'none' }}>
-                  <span className="text-white font-bold text-lg">{profile.currentAssignment}</span>
+                <div className={`${InputClass} flex items-center justify-between opacity-70 cursor-not-allowed`} style={{ pointerEvents:'none' }}>
+                  <span className="text-white font-bold text-lg">{profile.currentAssignment || 0}</span>
                   <span className="text-slate-500 font-medium">/ {profile.maxCandidateCapacity}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Media */}
+          {/* ── SECTION 4: MEDIA (VIDEO INTRO) ── */}
           <div className="fade-up delay-3 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Media Presence</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Profile Picture */}
-              <div>
-                <label className="section-label">Profile Picture</label>
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
-                  {profile.profilePictureUrl && !uploadingPicture ? (
-                    <>
-                      <img src={profile.profilePictureUrl} alt="Profile" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                        <span className="text-2xl mb-2">📸</span>
-                        <span className="text-xs font-bold text-white uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">Change Image</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-4xl mb-3">📸</span>
-                      <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                        {uploadingPicture ? 'Uploading...' : 'Upload Image'}
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    onChange={handleUploadPicture}
-                    disabled={uploadingPicture}
-                    className="hidden"
-                    accept="image/*"
-                  />
-                </label>
-              </div>
-
-              {/* Video Intro */}
-              <div>
-                <label className="section-label">Video Introduction</label>
-                <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
-                  {profile.videoIntroUrl && !uploadingVideo ? (
-                    <>
-                      <div className="absolute inset-0 bg-sky-900/30 flex items-center justify-center">
-                        <span className="text-4xl">🎥</span>
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center">
-                        <span className="text-xs font-bold text-white uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm mt-8">Change Video</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-4xl mb-3">🎥</span>
-                      <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                        {uploadingVideo ? 'Uploading...' : 'Upload Video'}
-                      </span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    onChange={handleUploadVideo}
-                    disabled={uploadingVideo}
-                    className="hidden"
-                    accept="video/*"
-                  />
-                </label>
-              </div>
-            </div>
+            <h2 className="serif text-2xl text-white mb-6">Video Introduction</h2>
+            <p className="text-slate-400 font-light text-sm mb-5">Upload a short intro video so candidates can get to know you before connecting.</p>
+            <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
+              {profile.videoIntroUrl && !uploadingVideo ? (
+                <>
+                  <div className="absolute inset-0 bg-sky-900/30 flex items-center justify-center">
+                    <span className="text-5xl">🎥</span>
+                  </div>
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                    <span className="text-2xl">🎥</span>
+                    <span className="text-xs font-bold text-white uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">Change Video</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="text-4xl mb-3">🎥</span>
+                  <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
+                    {uploadingVideo ? 'Uploading...' : 'Click to Upload Video'}
+                  </span>
+                  <span className="text-[10px] text-slate-500 mt-1">MP4, MOV up to 100MB</span>
+                </>
+              )}
+              <input type="file" onChange={handleUploadVideo} disabled={uploadingVideo} className="hidden" accept="video/*" />
+            </label>
           </div>
 
-          {/* Actions */}
+          {/* ── SAVE ACTIONS ── */}
           <div className="fade-up delay-3 flex flex-col sm:flex-row gap-4 pt-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn-primary flex-1"
-            >
+            <button type="submit" disabled={saving} className="btn-primary flex-1">
               {saving ? 'Saving Changes...' : 'Save Profile Changes'}
             </button>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="btn-ghost flex-1"
-            >
+            <button type="button" onClick={() => router.back()} className="btn-ghost flex-1">
               Cancel
             </button>
           </div>

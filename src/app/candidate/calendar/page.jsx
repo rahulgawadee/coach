@@ -176,13 +176,13 @@ export default function CandidateCalendarPage() {
         .btn-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #fff; }
         .btn-primary {
           display: flex; align-items: center; gap: 8px;
-          padding: 10px 20px; border-radius: 12px;
-          font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+          padding: 12px 24px; border-radius: 14px;
+          font-size: 13px; font-weight: 700; cursor: pointer; border: none;
           background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
           color: #fff; box-shadow: 0 4px 16px rgba(99,102,241,0.25);
-          transition: all 0.2s;
+          transition: all 0.25s;
         }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.35); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.38); }
         .nav-group {
           display: flex; align-items: center; gap: 8px;
           background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);

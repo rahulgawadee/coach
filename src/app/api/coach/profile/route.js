@@ -29,9 +29,9 @@ export async function GET(request) {
 
       // Professional Information
       bio: profile?.bio || '',
-      expertise: profile?.expertise || profile?.expertiseAreas || [],
+      expertise: profile?.expertiseAreas || [],
       yearsExperience: profile?.yearsExperience || 0,
-      certifications: profile?.certifications || [],
+      certifications: profile?.certifications || '',
       languages: profile?.languages || [],
 
       // Availability & Capacity
@@ -96,7 +96,7 @@ export async function PATCH(request) {
     }
 
     const editableFields = [
-      'bio', 'expertiseAreas', 'yearsExperience', 'certifications', 'languages',
+      'bio', 'yearsExperience', 'certifications', 'languages',
       'workingHours', 'breakTimes', 'maxCapacity', 'profilePictureUrl', 'videoIntroUrl',
       'averageRating', 'successRate', 'totalCandidatesCoached'
     ];
@@ -106,6 +106,11 @@ export async function PATCH(request) {
         profile[field] = body[field];
       }
     });
+
+    if (body.expertise !== undefined) {
+      profile.expertiseAreas = body.expertise;
+    }
+
 
     await profile.save();
 

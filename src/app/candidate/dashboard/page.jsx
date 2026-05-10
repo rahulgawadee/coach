@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { Building2 } from 'lucide-react';
 
 const Icons = {
   VideoCall: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
@@ -141,19 +142,18 @@ export default function CandidateDashboardPage() {
   return (
     <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500">
       <BackgroundGrid />
-
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
         .dash-root { font-family: 'DM Sans', sans-serif; }
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
         .card {
-          background: rgba(255,255,255,0.028);
-          border: 1px solid rgba(255,255,255,0.07);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(24px);
+          border-radius: 24px;
+          transition: all 0.3s ease;
         }
-        .card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+        .card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 12px 40px rgba(0,0,0,0.4); transform: translateY(-2px); }
         .pill {
           display:inline-flex; align-items:center; gap:6px;
           padding: 5px 12px; border-radius:999px;
@@ -162,64 +162,56 @@ export default function CandidateDashboardPage() {
         .stat-row {
           display:flex; justify-content:space-between; align-items:center;
           padding:12px 16px; border-radius:12px;
-          background:rgba(255,255,255,0.03);
-          border:1px solid rgba(255,255,255,0.045);
-          transition: background 0.2s;
+          background:rgba(255,255,255,0.02);
+          border:1px solid rgba(255,255,255,0.05);
+          transition: all 0.2s;
         }
-        .stat-row:hover { background: rgba(255,255,255,0.055); }
+        .stat-row:hover { background: rgba(255,255,255,0.04); border-color: rgba(99,102,241,0.1); }
         .msg-row {
           padding:14px 16px; border-radius:14px;
-          background:rgba(255,255,255,0.025);
-          border:1px solid transparent;
-          transition: background 0.2s, border-color 0.2s;
+          background:rgba(255,255,255,0.02);
+          border: 1px solid transparent;
+          transition: all 0.2s;
           cursor:pointer;
         }
         .msg-row:hover { background:rgba(99,102,241,0.07); border-color:rgba(99,102,241,0.15); }
         .shortcut-card {
           display:flex; flex-direction:column; align-items:center; justify-content:center;
           padding:28px 20px; border-radius:18px; text-align:center; cursor:pointer;
-          background:rgba(255,255,255,0.025);
-          border:1px solid rgba(255,255,255,0.06);
-          transition: background 0.25s, border-color 0.25s, transform 0.2s;
+          background:rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.06);
+          transition: all 0.25s;
         }
-        .shortcut-card:hover { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.12); transform:translateY(-2px); }
+        .shortcut-card:hover { background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.25); transform:translateY(-4px); }
         .btn-primary {
           display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:13px 20px; border-radius:12px; font-weight:600;
+          width:100%; padding:14px 20px; border-radius:14px; font-weight:700;
           font-size:13px; letter-spacing:0.01em; cursor:pointer; border:none;
           background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
           color:#fff; box-shadow: 0 4px 20px rgba(99,102,241,0.25);
-          transition: box-shadow 0.25s, transform 0.2s;
+          transition: all 0.25s;
         }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(99,102,241,0.38); transform:translateY(-1px); }
+        .btn-primary:hover { box-shadow: 0 8px 30px rgba(99,102,241,0.38); transform:translateY(-2px); }
         .btn-ghost {
           display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:13px 20px; border-radius:12px; font-weight:600;
+          width:100%; padding:14px 20px; border-radius:14px; font-weight:700;
           font-size:13px; cursor:pointer;
-          background:rgba(255,255,255,0.04);
-          border:1px solid rgba(255,255,255,0.1);
-          color:rgba(255,255,255,0.85);
-          transition: background 0.2s, border-color 0.2s;
+          background:rgba(255,255,255,0.03);
+          border:1px solid rgba(255,255,255,0.08);
+          color:rgba(255,255,255,0.8);
+          transition: all 0.2s;
         }
-        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
+        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); color:#fff; }
         .icon-badge {
-          width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+          width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
           flex-shrink:0;
         }
         .section-label {
-          font-size:10px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase;
-          color:rgba(255,255,255,0.3);
+          font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
+          color:rgba(255,255,255,0.25);
         }
         .divider { border:none; height:1px; background:rgba(255,255,255,0.06); margin:0; }
-        /* Stagger fade-in */
-        .fade-up { animation: fadeUp 0.5s ease both; }
-        .delay-1 { animation-delay:0.07s; }
-        .delay-2 { animation-delay:0.14s; }
-        .delay-3 { animation-delay:0.21s; }
-        .delay-4 { animation-delay:0.28s; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        /* Arc progress glow */
-        .arc-glow { filter: drop-shadow(0 0 8px rgba(99,102,241,0.5)); }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
       `}</style>
 
       <div className="dash-root space-y-7">
@@ -477,19 +469,20 @@ export default function CandidateDashboardPage() {
         </div>
 
         {/* ── QUICK ACCESS ────────────────────────────────────────────────────── */}
-        <div className="fade-up delay-4" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:16 }}>
+        <div className="fade-up delay-4" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:16 }}>
           {[
             { label:'Messages', icon:Icons.Messages, href:'/candidate/messages', accent:'rgba(14,116,144,0.12)', accentBorder:'rgba(14,116,144,0.2)', iconColor:'#67e8f9' },
             { label:'Calendar', icon:Icons.Calendar, href:'/candidate/calendar', accent:'rgba(16,185,129,0.1)', accentBorder:'rgba(16,185,129,0.18)', iconColor:'#34d399' },
+            { label:'Jobs', icon:<Building2 size={20} />, href:'/candidate/jobs', accent:'rgba(99,102,241,0.12)', accentBorder:'rgba(99,102,241,0.2)', iconColor:'#a5b4fc' },
             { label:'Documents', icon:Icons.Documents, href:'/candidate/documents', accent:'rgba(245,158,11,0.1)', accentBorder:'rgba(245,158,11,0.18)', iconColor:'#fbbf24' },
             { label:'Agreement', icon:Icons.Agreement, href:'/candidate/agreement', accent:'rgba(239,68,68,0.08)', accentBorder:'rgba(239,68,68,0.15)', iconColor:'#f87171' },
           ].map(item => (
             <Link key={item.label} href={item.href}>
               <div className="shortcut-card">
-                <div style={{ width:44, height:44, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', background:item.accent, border:`1px solid ${item.accentBorder}`, color:item.iconColor, marginBottom:14, transition:'transform 0.2s' }}>
+                <div style={{ width:44, height:44, border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', background:item.accent, border:`1px solid ${item.accentBorder}`, color:item.iconColor, marginBottom:14, transition:'transform 0.2s' }}>
                   {item.icon}
                 </div>
-                <p style={{ fontSize:10, fontWeight:600, color:'rgba(255,255,255,0.45)', letterSpacing:'0.15em', textTransform:'uppercase', margin:0 }}>{item.label}</p>
+                <p style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)', letterSpacing:'0.15em', textTransform:'uppercase', margin:0 }}>{item.label}</p>
               </div>
             </Link>
           ))}

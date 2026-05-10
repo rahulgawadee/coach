@@ -50,7 +50,7 @@ export async function GET(request) {
       coachId: coachProfile._id,
       status: 'pending_acceptance',
     })
-      .populate('candidateId', 'name email')
+      .populate('candidateId', 'name email avatarUrl')
       .sort({ assignedAt: -1 });
 
     // Enrich with candidate profile data
@@ -69,6 +69,7 @@ export async function GET(request) {
           candidateId: assignment.candidateId._id,
           candidateName: `${fName} ${lName}`.trim(),
           candidateEmail: assignment.candidateId.email,
+          avatarUrl: assignment.candidateId.avatarUrl || candidateProfile?.avatarUrl || '',
           matchScore: assignment.matchScore || 0,
           rank: assignment.rank,
           reason: assignment.reason,

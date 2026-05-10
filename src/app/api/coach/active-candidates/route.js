@@ -31,22 +31,26 @@ export async function GET(request) {
       coachId: coachProfile._id,
       status: 'accepted',
     })
-      .populate('candidateId', 'firstName lastName name email')
+      .populate('candidateId', 'name email avatarUrl')
       .sort({ assignedAt: -1 });
 
-    const activeCandiates = await Promise.all(
+    const activeCandidates = await Promise.all(
       activeAssignments.map(async (assignment) => {
         const candidateProfile = await CandidateProfile.findOne({ userId: assignment.candidateId._id });
         const workspace = await CandidateWorkspace.findOne({ userId: assignment.candidateId._id });
 
-        const fName = candidateProfile?.firstName || assignment.candidateId.firstName || assignment.candidateId.name?.split(' ')[0] || 'Candidate';
-        const lName = candidateProfile?.lastName || assignment.candidateId.lastName || assignment.candidateId.name?.split(' ').slice(1).join(' ') || '';
+        const fName = candidateProfile?.firstName || assignment.candidateId.name?.split(' ')[0] || 'Candidate';
+        const lName = candidateProfile?.lastName || assignment.candidateId.name?.split(' ').slice(1).join(' ') || '';
 
+        // avatarUrl lives on the User document (centralized) or falling back to profile
+        const avatarUrl = assignment.candidateId.avatarUrl || candidateProfile?.avatarUrl || '';
+        
         return {
           candidateId: assignment.candidateId._id,
           assignmentId: assignment._id,
           candidateName: `${fName} ${lName}`.trim(),
           candidateEmail: assignment.candidateId.email,
+          avatarUrl: avatarUrl,
           startDate: assignment.assignedAt,
           progress: calculateProgress(workspace, candidateProfile),
           nextSession: assignment.nextSession || null,
@@ -54,6 +58,7 @@ export async function GET(request) {
             occupation: candidateProfile.currentOccupation,
             location: candidateProfile.location,
             experience: candidateProfile.yearsExperience,
+            skills: candidateProfile.skills || [],
           } : null,
         };
       })
@@ -61,9 +66,9 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      count: activeCandiates.length,
-      capacity: { current: activeCandiates.length, max: coachProfile.maxCandidates },
-      candidates: activeCandiates,
+      count: activeCandidates.length,
+      capacity: { current: activeCandidates.length, max: coachProfile.maxCandidates },
+      candidates: activeCandidates,
     });
   } catch (error) {
     console.error('Error fetching active candidates:', error);

@@ -1,10 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import apiService from '@/services/api';
+
+const AvatarCell = ({ name, avatarUrl, size = 56 }) => {
+  const [imgError, setImgError] = useState(false);
+  if (avatarUrl && !imgError) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        onError={() => setImgError(true)}
+        style={{ width: size, height: size, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.15)', border: '1px solid rgba(14,165,233,0.3)', color: '#38bdf8', fontWeight: 700, fontSize: size * 0.38 }}>
+      {name?.charAt(0)?.toUpperCase() || '?'}
+    </div>
+  );
+};
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
@@ -170,10 +189,8 @@ export default function CandidatesPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 fade-up delay-2 px-4 sm:px-0">
           {filteredCandidates.length > 0 ? filteredCandidates.map((candidate) => (
             <div key={candidate.id} className="card p-6 group">
-              <div className="flex items-start justify-between mb-6">
-                <div className="w-14 h-14 bg-sky-900/50 text-sky-400 border border-sky-800 rounded-xl flex items-center justify-center text-xl font-bold">
-                  {candidate.name.charAt(0)}
-                </div>
+              <div className="flex items-start justify-between mb-5">
+                <AvatarCell name={candidate.name} avatarUrl={candidate.avatarUrl} size={56} />
                 <span className={`pill ${
                   candidate.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'
                 }`}>
@@ -181,18 +198,24 @@ export default function CandidatesPage() {
                 </span>
               </div>
               
-              <div className="space-y-4 mb-8">
+              <div className="space-y-4 mb-6">
                 <div>
                   <h3 className="text-xl font-bold text-white group-hover:text-sky-400 transition-colors">{candidate.name}</h3>
-                  <p className="text-sm text-slate-400 font-medium">{candidate.email}</p>
+                  <p className="text-sm text-slate-400 font-medium mt-0.5">{candidate.email}</p>
+                  {candidate.occupation && (
+                    <p className="text-xs text-slate-500 mt-1">🏢 {candidate.occupation}</p>
+                  )}
                 </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-sky-500 rounded-full" style={{ width: `${candidate.progress}%` }} />
+                {candidate.skills?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {candidate.skills.slice(0, 4).map(skill => (
+                      <span key={skill} className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{skill}</span>
+                    ))}
+                    {candidate.skills.length > 4 && (
+                      <span className="px-2 py-0.5 text-[10px] font-bold text-slate-400 bg-white/5 rounded-md">+{candidate.skills.length - 4}</span>
+                    )}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">{candidate.progress}%</span>
-                </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

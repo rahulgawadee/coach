@@ -33,7 +33,7 @@ export async function GET(request) {
     if (status !== 'all') query.status = status;
 
     const assignments = await CandidateCoachAssignment.find(query)
-      .populate('candidateId', 'firstName lastName email phone name')
+      .populate('candidateId', 'email phone name avatarUrl')
       .lean();
 
     const candidates = await Promise.all(
@@ -52,9 +52,11 @@ export async function GET(request) {
           candidateId: a.candidateId._id,
           name: `${fName} ${lName}`.trim(),
           email: a.candidateId.email,
+          avatarUrl: a.candidateId.avatarUrl || profile?.avatarUrl || '',
           phone: a.candidateId.phone || profile?.phone || '',
+          occupation: profile?.currentOccupation || '',
+          skills: profile?.skills || [],
           startDate: a.startDate || a.assignedAt,
-          progress: calculateProgress(workspace, profile),
           lastSessionDate: lastSession?.date || null,
           nextSessionDate: nextSession?.date || null,
           status: a.status,

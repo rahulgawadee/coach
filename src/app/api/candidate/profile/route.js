@@ -118,10 +118,16 @@ export async function PUT(request) {
       { new: true, upsert: true, setDefaultsOnInsert: true, strict: false }
     );
 
-    // Also update User name if needed
-    if (body.firstName || body.lastName) {
-      const name = `${body.firstName || ''} ${body.lastName || ''}`.trim();
-      await User.findByIdAndUpdate(userId, { name });
+    // Also update User name and avatar if needed
+    if (body.firstName || body.lastName || body.avatarUrl) {
+      const updateObj = {};
+      if (body.firstName || body.lastName) {
+        updateObj.name = `${body.firstName || ''} ${body.lastName || ''}`.trim();
+      }
+      if (body.avatarUrl) {
+        updateObj.avatarUrl = body.avatarUrl;
+      }
+      await User.findByIdAndUpdate(userId, updateObj);
     }
 
     return NextResponse.json({ success: true, data: profile });

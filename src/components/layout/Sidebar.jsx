@@ -54,6 +54,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
     { label: 'Dashboard',    href: '/candidate/dashboard', icon: LayoutDashboard },
     { label: 'My Calendar',  href: '/candidate/calendar',  icon: CalendarDays },
     { label: 'Messages',     href: '/candidate/messages',  icon: MessageSquare, badge: messageCount },
+    { label: 'Jobs',         href: '/candidate/jobs',      icon: Building2 },
     { label: 'My Documents', href: '/candidate/documents', icon: FolderOpen },
     { label: 'My Coach',     href: '/candidate/my-coach',  icon: UserCircle },
     { label: 'Agreement',    href: '/candidate/agreement', icon: FileSignature },

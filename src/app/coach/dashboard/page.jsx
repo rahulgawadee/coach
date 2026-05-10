@@ -7,6 +7,26 @@ import apiService from '@/services/api';
 import SafeDate from '@/components/ui/SafeDate';
 import Modal from '@/components/ui/Modal';
 
+// Avatar helper: shows photo if available, fallback to initials
+const AvatarCell = ({ name, avatarUrl, size = 40 }) => {
+  const [imgError, setImgError] = useState(false);
+  if (avatarUrl && !imgError) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={name}
+        onError={() => setImgError(true)}
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.15)', border: '1px solid rgba(14,165,233,0.3)', color: '#38bdf8', fontWeight: 700, fontSize: size * 0.38 }}>
+      {name?.charAt(0)?.toUpperCase() || '?'}
+    </div>
+  );
+};
+
 // Subtle animated background lines — no orbs, no cartoonish particles
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
@@ -260,12 +280,11 @@ export default function CoachDashboardPage() {
           
           <div className="lg:col-span-2 space-y-7">
             {/* STATS */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { label: 'Active Mentees', value: activeCandidates.length, bg: 'rgba(14,165,233,0.1)', color: '#38bdf8' },
                 { label: 'Pending', value: pendingRequests.length, bg: 'rgba(245,158,11,0.1)', color: '#fbbf24' },
                 { label: 'Messages', value: 0, bg: 'rgba(168,85,247,0.1)', color: '#c084fc' },
-                { label: 'Success Rate', value: '94%', bg: 'rgba(16,185,129,0.1)', color: '#34d399' },
               ].map((stat, i) => (
                 <div key={i} className="card p-5 flex flex-col items-center justify-center text-center">
                   <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
@@ -274,7 +293,7 @@ export default function CoachDashboardPage() {
               ))}
             </div>
 
-            {/* CANDIDATES LIST */}
+            {/* CANDIDATES TABLE */}
             <div className="card" style={{ padding: '32px' }}>
               <div className="flex justify-between items-end mb-6">
                 <div>
@@ -284,38 +303,67 @@ export default function CoachDashboardPage() {
                 <Link href="/coach/candidates" className="text-xs font-bold text-sky-400 uppercase tracking-widest hover:text-sky-300 transition-colors">View All →</Link>
               </div>
 
-              <div className="space-y-3">
-                {activeCandidates.length > 0 ? (
-                  activeCandidates.map((c) => (
-                    <div key={c.candidateId} className="msg-row flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-sky-900/50 flex items-center justify-center border border-sky-800 text-sky-400 font-bold">
-                          {c.candidateName.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-slate-200">{c.candidateName}</p>
-                          <p className="text-xs text-slate-500 font-light mt-0.5">Started: {new Date(c.startDate).toLocaleDateString()}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right hidden md:block">
-                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Progress</p>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                              <div className="h-full bg-sky-500 rounded-full" style={{ width: `${c.progress}%` }} />
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Mentee</th>
+                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Occupation</th>
+                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Tech Skills</th>
+                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {activeCandidates.length > 0 ? (
+                      activeCandidates.map((c) => (
+                        <tr key={c.candidateId} className="hover:bg-white/5 transition-colors group">
+                          <td className="py-4">
+                            <div className="flex items-center gap-3">
+                              <AvatarCell name={c.candidateName} avatarUrl={c.avatarUrl} size={40} />
+                              <div>
+                                <p className="text-sm font-bold text-white">{c.candidateName}</p>
+                                <p className="text-xs text-slate-500 mt-0.5">{c.candidateEmail || 'No Email'}</p>
+                              </div>
                             </div>
-                            <span className="text-xs font-medium text-slate-300">{c.progress}%</span>
-                          </div>
-                        </div>
-                        <button className="btn-ghost" style={{ padding: '6px 12px', width: 'auto' }}>Open</button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 px-4 border border-dashed border-white/10 rounded-2xl">
-                    <p className="text-slate-400 font-light text-sm">No active mentees assigned yet.</p>
-                  </div>
-                )}
+                          </td>
+                          <td className="py-4 align-middle">
+                            <span className="text-sm text-slate-300">
+                              {c.profileData?.occupation || 'Not Specified'}
+                            </span>
+                          </td>
+                          <td className="py-4 align-middle">
+                            <div className="flex flex-wrap gap-2 max-w-[250px]">
+                              {(c.profileData?.skills || []).slice(0, 3).map(skill => (
+                                <span key={skill} className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">
+                                  {skill}
+                                </span>
+                              ))}
+                              {c.profileData?.skills?.length > 3 && (
+                                <span className="px-2 py-1 text-[10px] font-bold text-slate-400 bg-white/5 rounded-md">
+                                  +{c.profileData.skills.length - 3}
+                                </span>
+                              )}
+                              {(!c.profileData?.skills || c.profileData.skills.length === 0) && (
+                                <span className="text-xs text-slate-600 italic">No skills listed</span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-4 align-middle text-right">
+                            <Link href={`/coach/candidates/${c.candidateId}`}>
+                              <button className="btn-ghost inline-flex w-auto py-2 px-4 text-xs">View</button>
+                            </Link>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="py-12 text-center text-slate-500 italic text-sm">
+                          No active mentees assigned yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -365,10 +413,8 @@ export default function CoachDashboardPage() {
                       border: `1px solid ${isSelected ? 'rgba(14,165,233,0.3)' : 'transparent'}`,
                     }}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold border border-slate-700 text-sky-400">
-                        {request.candidateName.charAt(0)}
-                      </div>
+                  <div className="flex items-center gap-3">
+                      <AvatarCell name={request.candidateName} avatarUrl={request.avatarUrl} size={40} />
                       <div className="overflow-hidden flex-1">
                         <p className={`font-medium text-sm truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>
                           {request.candidateName}
@@ -388,15 +434,18 @@ export default function CoachDashboardPage() {
             {selectedRequest ? (
               <div className="space-y-8 animate-in slide-in-from-right-4 duration-300 pb-24">
                 <div className="flex items-start justify-between gap-6 pb-6 border-b border-white/10">
-                  <div className="space-y-2">
-                    <h2 className="text-3xl font-bold text-white serif">{selectedRequest.candidateName}</h2>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="pill" style={{ background: 'rgba(255,255,255,0.05)', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        {selectedRequest.profile?.occupation || 'Candidate'}
-                      </span>
-                      <span className="pill" style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
-                        Match Score: {selectedRequest.matchScore}%
-                      </span>
+                  <div className="flex items-center gap-5">
+                    <AvatarCell name={selectedRequest.candidateName} avatarUrl={selectedRequest.avatarUrl} size={64} />
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-bold text-white serif">{selectedRequest.candidateName}</h2>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="pill" style={{ background: 'rgba(255,255,255,0.05)', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)' }}>
+                          {selectedRequest.profile?.occupation || 'Candidate'}
+                        </span>
+                        <span className="pill" style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                          Match Score: {selectedRequest.matchScore}%
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
