@@ -48,6 +48,9 @@ export default function ProfilePage() {
     dataConsent: false,
   });
   const [status, setStatus] = useState(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const savedFormRef = useRef(null);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -95,6 +98,7 @@ export default function ProfilePage() {
             setForm(prev => {
               const next = { ...prev, ...payload.data, personnummer: payload.data.hasPersonnummer || '' };
               console.log('Frontend Profile Form Updated:', next);
+              savedFormRef.current = { ...next };
               return next;
             });
           }
@@ -375,14 +379,36 @@ export default function ProfilePage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const saveProfile = async () => {
-    setStatus(null);
+  // Compute which fields have changed from the last saved snapshot
+  const getDirtyFields = () => {
+    if (!savedFormRef.current) return [];
+    const labels = {
+      firstName: 'First Name', lastName: 'Last Name', phone: 'Phone Number',
+      address: 'Address', personnummer: 'Personnummer', bio: 'Professional Summary',
+      skills: 'Core Skills', industries: 'Industries', employmentStatus: 'Employment Status',
+      startDate: 'Start Date', finishDate: 'Finish Date',
+      marketingConsent: 'Marketing Consent', dataConsent: 'Data Consent',
+    };
+    return Object.entries(labels)
+      .filter(([key]) => JSON.stringify(form[key]) !== JSON.stringify(savedFormRef.current[key]))
+      .map(([, label]) => label);
+  };
 
+  const isDirty = savedFormRef.current
+    ? JSON.stringify(form) !== JSON.stringify(savedFormRef.current)
+    : true;
+
+  const openSaveModal = () => {
     if (!form.firstName || !form.lastName || !form.email || !form.phone) {
       setStatus({ type: 'error', message: 'Please complete all required personal fields.' });
       return;
     }
+    setShowSaveModal(true);
+  };
 
+  const saveProfile = async () => {
+    setIsSaving(true);
+    setStatus(null);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('/api/candidate/profile', {
@@ -397,16 +423,20 @@ export default function ProfilePage() {
       const payload = await response.json();
       if (!payload.success) {
         setStatus({ type: 'error', message: payload.error || 'Failed to save profile' });
+        setShowSaveModal(false);
         return;
       }
 
+      savedFormRef.current = { ...form };
       setUser({ ...user, ...form });
+      setShowSaveModal(false);
       setStatus({ type: 'success', message: 'Profile saved successfully!' });
-
-      // Auto-clear success message
       setTimeout(() => setStatus(null), 3000);
     } catch (err) {
       setStatus({ type: 'error', message: 'Network error occurred.' });
+      setShowSaveModal(false);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -604,7 +634,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative max-w-6xl mx-auto space-y-8 pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+    <div className="relative max-w-6xl mx-auto px-0 sm:px-0 space-y-5 sm:space-y-8 pb-16 sm:pb-20 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" strategy="afterInteractive" />
       <BackgroundGrid />
 
@@ -663,16 +693,21 @@ export default function ProfilePage() {
           display: block; font-size: 11px; font-weight: 700; color: #94a3b8;
           text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; padding-left: 4px;
         }
+        @media (max-width: 768px) {
+          .glass-panel { border-radius: 20px !important; }
+        }
         @media (max-width: 640px) {
           .serif { font-size: 2rem !important; }
-          .glass-panel { padding: 1.5rem !important; border-radius: 20px; }
-          .btn-primary, .btn-ai { width: 100%; }
+          .glass-panel { padding: 1.25rem !important; border-radius: 16px !important; }
+          .btn-primary, .btn-ai, .btn-outline { width: 100%; font-size: 13px; padding: 11px 16px; }
           .section-title { font-size: 10px; }
+          .input-dark { padding: 10px 14px; font-size: 13px; }
+          .form-label { font-size: 10px; }
         }
       `}</style>
 
       {status && (
-        <div className={`fixed top-12 left-1/2 -translate-x-1/2 z-[400] w-full max-w-md p-4 rounded-2xl border flex items-center gap-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-8 duration-300 ${status.type === 'error' ? 'bg-rose-500/20 border-rose-500/30 text-rose-200' :
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[400] w-[calc(100%-2rem)] sm:w-full max-w-md p-3 sm:p-4 rounded-2xl border flex items-center gap-3 sm:gap-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-8 duration-300 ${status.type === 'error' ? 'bg-rose-500/20 border-rose-500/30 text-rose-200' :
           status.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-200' :
             'bg-sky-500/20 border-sky-500/30 text-sky-200'
           }`}>
@@ -696,19 +731,21 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="glass-panel p-6 sm:p-10 md:p-12 flex flex-col lg:flex-row lg:items-center justify-between gap-10 shadow-2xl shadow-black/40 relative overflow-hidden">
+      <div className="glass-panel p-5 sm:p-8 md:p-10 shadow-2xl shadow-black/40 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
-          <div className="relative shrink-0 group">
-            <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+        {/* Avatar + Name row */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 relative z-10">
+          {/* Avatar block */}
+          <div className="relative shrink-0 group flex flex-col items-center">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
               ) : form.avatarUrl ? (
                 <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center">
-                  <UserCircle size={56} className="text-indigo-400/50" />
+                  <UserCircle size={44} className="text-indigo-400/50" />
                 </div>
               )}
               {isUploading && (
@@ -718,43 +755,44 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-full max-w-[140px]">
-              <label className="text-[10px] font-bold text-center px-4 py-2 rounded-xl border border-white/10 bg-[#1a1b2e]/90 backdrop-blur-md hover:bg-indigo-500/20 hover:border-indigo-500/30 cursor-pointer text-slate-200 transition-all shadow-xl">
+            <div className="mt-3 flex flex-col gap-1.5 w-full max-w-[130px]">
+              <label className="text-[10px] font-bold text-center px-3 py-2 rounded-xl border border-white/10 bg-[#1a1b2e]/90 backdrop-blur-md hover:bg-indigo-500/20 hover:border-indigo-500/30 cursor-pointer text-slate-200 transition-all shadow-xl">
                 Update Photo
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarSelect(e.target.files?.[0])} disabled={isUploading} />
               </label>
               {avatarFile && !isUploading && (
-                <button type="button" onClick={confirmAvatarUpload} className="text-[10px] font-bold text-center px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-all shadow-lg animate-in zoom-in-95">
+                <button type="button" onClick={confirmAvatarUpload} className="text-[10px] font-bold text-center px-3 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-all shadow-lg animate-in zoom-in-95">
                   Confirm Save
                 </button>
               )}
             </div>
           </div>
 
-          <div className="text-center md:text-left pt-4 md:pt-0">
-            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-6">
+          {/* Name / badges block */}
+          <div className="flex-1 text-center sm:text-left min-w-0">
+            <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mb-4">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
-                <ShieldCheck size={12} />
+                <ShieldCheck size={11} />
                 <span className="whitespace-nowrap">Verified Candidate</span>
               </div>
               {form.coachName && (
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
-                  <Briefcase size={12} />
+                  <Briefcase size={11} />
                   <span className="whitespace-nowrap">Coach: {form.coachName}</span>
                 </div>
               )}
             </div>
-            <h1 className="serif text-4xl sm:text-5xl text-white leading-tight mb-4 font-medium tracking-tight">Your Profile</h1>
-            <p className="text-slate-400 font-light text-sm sm:text-base max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
+            <h1 className="serif text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-2 sm:mb-3 font-medium tracking-tight">Your Profile</h1>
+            <p className="text-slate-400 font-light text-sm max-w-sm sm:max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
 
-            <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
+            <div className="mt-4 sm:mt-6 flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
               {form.videoUrl && !selectedVideo && (
                 <button
                   type="button"
                   onClick={() => setPlayingVideo(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 hover:text-indigo-300 transition-all shadow-xl group"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 hover:text-indigo-300 transition-all shadow-xl group"
                 >
-                  <Video size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                  <Video size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
                   View Intro Video
                 </button>
               )}
@@ -763,9 +801,9 @@ export default function ProfilePage() {
                   href={form.resumeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-cyan-500/20 hover:border-cyan-500/30 hover:text-cyan-300 transition-all shadow-xl group"
+                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-cyan-500/20 hover:border-cyan-500/30 hover:text-cyan-300 transition-all shadow-xl group"
                 >
-                  <FileText size={16} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <FileText size={14} className="text-cyan-400 group-hover:scale-110 transition-transform" />
                   View Resume
                 </a>
               )}
@@ -773,18 +811,19 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 relative z-10 w-full sm:w-auto">
-          <button className="btn-ai w-full sm:w-auto sm:min-w-[180px] h-14" onClick={() => setAiModalOpen(true)}>
-            <Sparkles size={18} /> <span className="whitespace-nowrap">Enhance with AI</span>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6 relative z-10">
+          <button className="btn-ai w-full sm:w-auto sm:min-w-[160px] h-12 sm:h-14" onClick={() => setAiModalOpen(true)}>
+            <Sparkles size={16} /> <span className="whitespace-nowrap">Enhance with AI</span>
           </button>
-          <button className="btn-primary w-full sm:w-auto sm:min-w-[180px] h-14" onClick={saveProfile}>
-            <Save size={18} /> <span className="whitespace-nowrap">Save All Changes</span>
+          <button className="btn-primary w-full sm:w-auto sm:min-w-[160px] h-12 sm:h-14" onClick={openSaveModal}>
+            <Save size={16} /> <span className="whitespace-nowrap">Save All Changes</span>
           </button>
         </div>
       </div>
 
-      <section className="glass-panel p-10 md:p-12 animate-in fade-up duration-700">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+      <section className="glass-panel p-5 sm:p-8 md:p-10 animate-in fade-up duration-700">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div>
             <h2 className="section-title mb-2"><Sparkles size={16} className="text-emerald-400" /> Professional Summary</h2>
             <p className="text-slate-400 text-base font-light">Craft a compelling story that highlights your unique value proposition.</p>
@@ -802,7 +841,7 @@ export default function ProfilePage() {
 
         <div className="relative group">
           <textarea
-            className="input-dark min-h-[220px] text-lg leading-relaxed p-8 focus:ring-4 focus:ring-indigo-500/10"
+            className="input-dark min-h-[160px] sm:min-h-[200px] text-sm sm:text-base md:text-lg leading-relaxed p-4 sm:p-6 md:p-8 focus:ring-4 focus:ring-indigo-500/10"
             placeholder="Introduce yourself to the world..."
             value={form.bio}
             onChange={(e) => updateField('bio', e.target.value)}
@@ -813,9 +852,9 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section className="glass-panel p-8">
-          <h2 className="section-title"><UserCircle size={16} className="text-indigo-400" /> Personal Information</h2>
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <section className="glass-panel p-5 sm:p-8">
+          <h2 className="section-title"><UserCircle size={14} className="text-indigo-400" /> Personal Information</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="form-label">First Name</label>
@@ -844,8 +883,8 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="glass-panel p-8">
-          <h2 className="section-title"><Briefcase size={16} className="text-indigo-400" /> Program Information</h2>
+        <section className="glass-panel p-5 sm:p-8">
+          <h2 className="section-title"><Briefcase size={14} className="text-indigo-400" /> Program Information</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <div>
               <label className="form-label">Start Date</label>
@@ -866,8 +905,8 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="glass-panel p-8">
-          <h2 className="section-title"><Briefcase size={16} className="text-indigo-400" /> Professional Details</h2>
+        <section className="glass-panel p-5 sm:p-8">
+          <h2 className="section-title"><Briefcase size={14} className="text-indigo-400" /> Professional Details</h2>
           <div className="space-y-6">
             <div>
               <label className="form-label">Industrial Fields</label>
@@ -922,8 +961,8 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="glass-panel p-8">
-          <h2 className="section-title"><Video size={16} className="text-indigo-400" /> Video Introduction</h2>
+        <section className="glass-panel p-5 sm:p-8">
+          <h2 className="section-title"><Video size={14} className="text-indigo-400" /> Video Introduction</h2>
           <div className="space-y-6">
             <p className="text-sm font-light text-slate-400 leading-relaxed">
               Upload or record a short 1-2 minute video introducing yourself to potential employers. This greatly increases your chances of standing out.
@@ -992,10 +1031,10 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        <section className="glass-panel p-8 lg:col-span-2">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <section className="glass-panel p-5 sm:p-8 lg:col-span-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-5 sm:mb-8">
             <div>
-              <h2 className="section-title mb-1"><FileText size={16} className="text-indigo-400" /> Resume & Professional Documents</h2>
+              <h2 className="section-title mb-1"><FileText size={14} className="text-indigo-400" /> Resume & Professional Documents</h2>
               <p className="text-slate-400 text-sm font-light">Upload your existing resume or let Elevate AI generate one for you.</p>
             </div>
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
@@ -1026,33 +1065,35 @@ export default function ProfilePage() {
           </div>
 
           {form.resumeUrl ? (
-            <div className="p-6 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <FileText size={24} />
+            <div className="p-4 sm:p-6 rounded-2xl border border-indigo-500/20 bg-indigo-500/5">
+              <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                    <FileText size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-white font-bold text-sm truncate">{form.resumeName || 'Professional Resume'}</h4>
+                    <p className="text-slate-400 text-xs">Last updated {new Date().toLocaleDateString()}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-white font-bold text-sm">{form.resumeName || 'Professional Resume'}</h4>
-                  <p className="text-slate-400 text-xs">Last updated {new Date().toLocaleDateString()}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPreviewResumeUrl(form.resumeUrl);
+                      setShowResumePreview(true);
+                    }}
+                    className="px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white/10 transition-colors"
+                  >
+                    View
+                  </button>
+                  <button
+                    onClick={() => updateField('resumeUrl', '')}
+                    className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPreviewResumeUrl(form.resumeUrl);
-                    setShowResumePreview(true);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs font-bold hover:bg-white/10 transition-colors"
-                >
-                  View Document
-                </button>
-                <button
-                  onClick={() => updateField('resumeUrl', '')}
-                  className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-colors"
-                >
-                  <X size={16} />
-                </button>
               </div>
             </div>
           ) : (
@@ -1066,8 +1107,8 @@ export default function ProfilePage() {
           )}
         </section>
 
-        <section className="glass-panel p-8 lg:col-span-2">
-          <h2 className="section-title"><ShieldCheck size={16} className="text-indigo-400" /> Legal & Privacy</h2>
+        <section className="glass-panel p-5 sm:p-8 lg:col-span-2">
+          <h2 className="section-title"><ShieldCheck size={14} className="text-indigo-400" /> Legal & Privacy</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <label className="flex items-start gap-4 p-5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
               <div className="relative flex items-center justify-center shrink-0 mt-0.5">
@@ -1309,6 +1350,96 @@ export default function ProfilePage() {
                 className="w-full h-full border-none bg-white"
                 title="Resume Preview"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Save Confirmation Modal ── */}
+      {showSaveModal && (
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0f0e1c] border border-indigo-500/20 shadow-[0_32px_64px_rgba(0,0,0,0.7)] rounded-3xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 relative">
+            {/* Glow */}
+            <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-64 h-32 bg-indigo-500/15 blur-[60px] pointer-events-none rounded-full" />
+
+            {/* Header */}
+            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01] relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <Save size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Save Profile Changes</h3>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Review before saving</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSaveModal(false)}
+                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* Changed fields list */}
+            <div className="p-6 relative z-10">
+              {(() => {
+                const dirty = getDirtyFields();
+                return dirty.length > 0 ? (
+                  <div className="mb-5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                      {dirty.length} field{dirty.length > 1 ? 's' : ''} changed
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {dirty.map(f => (
+                        <span key={f} className="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-bold">
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-5 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+                    <p className="text-slate-400 text-sm">Saving your current profile state.</p>
+                  </div>
+                );
+              })()}
+
+              <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15 flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-amber-400 text-[10px] font-black">!</span>
+                </div>
+                <p className="text-amber-200/70 text-xs font-light leading-relaxed">
+                  This will overwrite your saved profile data. Make sure all information is correct before proceeding.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="p-5 border-t border-white/5 bg-white/[0.01] flex gap-3 relative z-10">
+              <button
+                onClick={() => setShowSaveModal(false)}
+                disabled={isSaving}
+                className="btn-outline flex-1 !h-12 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveProfile}
+                disabled={isSaving}
+                className="btn-primary flex-1 !h-12 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save size={15} /> Confirm Save
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

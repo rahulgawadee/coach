@@ -5,6 +5,32 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import apiService from '@/services/api';
+import { 
+  Bell, 
+  MessageSquare, 
+  Calendar, 
+  Clock, 
+  ClipboardList, 
+  CheckCircle2, 
+  Trash2, 
+  CheckSquare,
+  AlertCircle,
+  MoreVertical
+} from 'lucide-react';
+
+const BackgroundGrid = () => (
+  <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+      </pattern>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
+  </div>
+);
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -73,25 +99,23 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'message':
-        return '💬';
+        return <MessageSquare className="text-sky-400" size={20} />;
       case 'session_request':
-        return '📅';
+        return <Calendar className="text-indigo-400" size={20} />;
       case 'deadline':
-        return '⏰';
+        return <Clock className="text-amber-400" size={20} />;
       case 'assignment':
-        return '📋';
+        return <ClipboardList className="text-emerald-400" size={20} />;
       default:
-        return '🔔';
+        return <Bell className="text-slate-400" size={20} />;
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading notifications...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
@@ -99,87 +123,166 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-            {unreadCount > 0 && (
-              <p className="text-gray-600 mt-1">
-                You have <span className="font-semibold">{unreadCount}</span> unread notification
-                {unreadCount !== 1 ? 's' : ''}
-              </p>
-            )}
+    <div className="relative max-w-5xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+      <BackgroundGrid />
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        .glass-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px);
+          border-radius: 28px;
+        }
+        .btn-premium {
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          color: white;
+          padding: 10px 20px;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 13px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(2,132,199,0.2);
+        }
+        .btn-premium:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(2,132,199,0.3);
+        }
+        .btn-premium:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .notification-item {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .notification-item:hover {
+          background: rgba(255,255,255,0.04);
+          transform: translateX(4px);
+        }
+        @media (max-width: 640px) {
+          .serif { font-size: 2.5rem !important; }
+          .glass-card { border-radius: 20px; padding: 1.5rem !important; }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div className="glass-card p-8 md:p-10 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-widest mb-4">
+            <Bell size={12} />
+            Alert Center
           </div>
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllAsRead}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-            >
-              Mark All as Read
-            </button>
+          <h1 className="serif text-4xl md:text-5xl text-white mb-2">Notifications</h1>
+          {unreadCount > 0 ? (
+            <p className="text-slate-400 font-light">
+              You have <span className="text-sky-400 font-bold">{unreadCount}</span> unread messages waiting for review.
+            </p>
+          ) : (
+            <p className="text-slate-500 font-light">You're all caught up for now.</p>
           )}
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-          </div>
+        
+        {unreadCount > 0 && (
+          <button
+            onClick={handleMarkAllAsRead}
+            className="btn-premium w-full sm:w-auto justify-center"
+          >
+            <CheckSquare size={18} />
+            Mark all read
+          </button>
         )}
+      </div>
 
-        {/* Notifications List */}
-        <div className="space-y-3">
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center gap-3 text-rose-400 text-sm">
+          <AlertCircle size={18} />
+          {error}
+        </div>
+      )}
+
+      {/* Notifications List */}
+      <div className="glass-card overflow-hidden">
+        <div className="divide-y divide-white/5">
           {notifications.length > 0 ? (
             notifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`rounded-lg p-4 border-l-4 transition cursor-pointer ${
-                  notification.read
-                    ? 'bg-white border-gray-300 hover:bg-gray-50'
-                    : 'bg-blue-50 border-blue-500 hover:bg-blue-100'
+                className={`notification-item p-6 md:p-8 flex items-start gap-4 md:gap-6 relative group ${
+                  !notification.read ? 'bg-sky-500/[0.03]' : ''
                 }`}
               >
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl shrink-0">
-                    {getNotificationIcon(notification.type)}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{notification.title}</h3>
-                        <p className="text-gray-700 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-500 mt-2">{notification.timestamp}</p>
-                      </div>
-                      <div className="flex gap-2">
+                {!notification.read && (
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
+                )}
+                
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0 border transition-all ${
+                  !notification.read 
+                    ? 'bg-sky-500/10 border-sky-500/20 shadow-inner' 
+                    : 'bg-white/5 border-white/10'
+                }`}>
+                  {getNotificationIcon(notification.type)}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h3 className={`text-base md:text-lg font-bold transition-colors ${
+                        !notification.read ? 'text-white' : 'text-slate-300'
+                      }`}>
+                        {notification.title}
+                      </h3>
+                      <p className="text-sm md:text-base text-slate-400 mt-1 leading-relaxed font-light">
+                        {notification.message}
+                      </p>
+                      <div className="flex items-center gap-4 mt-3">
+                        <span className="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                          <Clock size={12} />
+                          {notification.timestamp}
+                        </span>
                         {!notification.read && (
-                          <button
-                            onClick={() => handleMarkAsRead(notification.id)}
-                            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            Mark as Read
-                          </button>
+                          <span className="px-2 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20 text-[9px] font-bold text-sky-400 uppercase tracking-tighter">
+                            New
+                          </span>
                         )}
-                        <button
-                          onClick={() => handleDelete(notification.id)}
-                          className="text-sm text-red-600 hover:text-red-800 font-medium"
-                        >
-                          Delete
-                        </button>
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                      {!notification.read && (
+                        <button
+                          onClick={() => handleMarkAsRead(notification.id)}
+                          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 hover:border-sky-500/20 transition-all"
+                          title="Mark as read"
+                        >
+                          <CheckCircle2 size={18} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(notification.id)}
+                        className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/20 transition-all"
+                        title="Delete notification"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
-                  {!notification.read && (
-                    <div className="w-3 h-3 bg-blue-600 rounded-full shrink-0 mt-2"></div>
-                  )}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-gray-500">
-              <span className="text-4xl mb-4 block">🔔</span>
-              <p>No notifications yet</p>
+            <div className="py-24 text-center">
+              <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 text-slate-600">
+                <Bell size={32} />
+              </div>
+              <h3 className="serif text-2xl text-white mb-2">No notifications yet</h3>
+              <p className="text-slate-500 font-light max-w-xs mx-auto">
+                We'll let you know when something important happens in your program.
+              </p>
             </div>
           )}
         </div>

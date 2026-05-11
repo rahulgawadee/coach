@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import apiService from '@/services/api';
+import Modal from '@/components/ui/Modal';
+import SafeDate from '@/components/ui/SafeDate';
 import { 
   Users, 
   Clock, 
