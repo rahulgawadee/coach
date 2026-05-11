@@ -657,128 +657,32 @@ export default function ProfilePage() {
         
         .section-title {
           font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase;
-          letter-spacing: 0.2em; display: flex; align-items: center; gap: 8px; margin-bottom: 24px;
+          letter-spacing: 0.2em; display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
         }
         .form-label {
           display: block; font-size: 11px; font-weight: 700; color: #94a3b8;
-          text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; padding-left: 4px;
+          text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; padding-left: 4px;
         }
       `}</style>
 
-      {/* Header */}
-      <div className="glass-panel p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl shadow-black/20">
-        <div className="flex items-center gap-6">
-          {/* Avatar Area */}
-          <div className="relative shrink-0">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-[#0f0e1c] border border-white/10 flex items-center justify-center">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-              ) : form.avatarUrl ? (
-                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <UserCircle size={40} className="text-indigo-400 opacity-50" />
-              )}
-            </div>
-
-            <div className="mt-3 flex flex-col gap-2">
-              <label className="text-[10px] font-bold text-center px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 cursor-pointer text-slate-300 transition-colors">
-                Change Image
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarSelect(e.target.files?.[0])} disabled={isUploading} />
-              </label>
-              {avatarFile && (
-                <button type="button" onClick={confirmAvatarUpload} disabled={isUploading} className="text-[10px] font-bold text-center px-3 py-1.5 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors">
-                  {isUploading ? 'Uploading...' : 'Save Image'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
-                <UserCircle size={12} />
-                My Identity
-              </div>
-              {form.coachName && (
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
-                  <Briefcase size={12} />
-                  Coach: {form.coachName}
-                </div>
-              )}
-            </div>
-            <h1 className="serif text-3xl md:text-4xl text-white leading-tight mb-2">Complete Profile</h1>
-            <p className="text-slate-400 font-light text-sm mb-4">Manage your professional identity and program details.</p>
-
-            {form.videoUrl && !selectedVideo && (
-              <button
-                type="button"
-                onClick={() => setPlayingVideo(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 hover:text-indigo-300 transition-all shadow-lg"
-              >
-                <Video size={14} className="text-indigo-400" />
-                Play Intro Video
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 shrink-0">
-          <button className="btn-ai" onClick={() => setAiModalOpen(true)}>
-            <Sparkles size={18} /> Enhance with AI
-          </button>
-          <button className="btn-primary" onClick={saveProfile}>
-            <Save size={18} /> Save Changes
-          </button>
-        </div>
-      </div>
-
-      {/* Professional Summary / Bio Section */}
-      <section className="glass-panel p-8 md:p-10 animate-in fade-in slide-in-from-bottom-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-          <div>
-            <h2 className="section-title mb-1"><Sparkles size={16} className="text-emerald-400" /> My Professional Summary</h2>
-            <p className="text-slate-400 text-sm font-light">This bio is visible to coaches and potential employers.</p>
-          </div>
-          <button
-            type="button"
-            onClick={generateSummaryAI}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 transition-all"
-          >
-            <Sparkles size={14} />
-            Generate with AI
-          </button>
-        </div>
-
-        <textarea
-          className="input-dark min-h-[160px] text-base leading-relaxed p-6"
-          placeholder="Write a short introduction about your background, goals, and what you're looking for..."
-          value={form.bio}
-          onChange={(e) => updateField('bio', e.target.value)}
-        />
-        <p className="text-[10px] text-slate-500 mt-4 uppercase font-bold tracking-widest pl-1">
-          {form.bio?.length || 0} characters | Recommended: 200-500
-        </p>
-      </section>
-
-      {/* Status Alert - Fixed Top */}
       {status && (
         <div className={`fixed top-12 left-1/2 -translate-x-1/2 z-[400] w-full max-w-md p-4 rounded-2xl border flex items-center gap-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-8 duration-300 ${status.type === 'error' ? 'bg-rose-500/20 border-rose-500/30 text-rose-200' :
-            status.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-200' :
-              'bg-indigo-500/20 border-indigo-500/30 text-indigo-200'
+          status.type === 'success' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-200' :
+            'bg-sky-500/20 border-sky-500/30 text-sky-200'
           }`}>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${status.type === 'error' ? 'bg-rose-500/20' :
-              status.type === 'success' ? 'bg-emerald-500/20' :
-                'bg-indigo-500/20'
+            status.type === 'success' ? 'bg-emerald-500/20' :
+              'bg-sky-500/20'
             }`}>
             {status.type === 'error' ? <AlertCircle size={20} /> :
               status.type === 'success' ? <CheckCircle2 size={20} /> :
                 <Sparkles size={20} />}
           </div>
           <div className="flex-1">
-            <h4 className="text-xs font-bold uppercase tracking-wider mb-0.5">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider mb-0.5 opacity-70">
               {status.type === 'error' ? 'Action Failed' : status.type === 'success' ? 'Success' : 'Notice'}
             </h4>
-            <p className="text-sm opacity-90">{status.message}</p>
+            <p className="text-sm font-medium">{status.message}</p>
           </div>
           <button onClick={() => setStatus(null)} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
             <X size={16} className="opacity-50" />
@@ -786,8 +690,124 @@ export default function ProfilePage() {
         </div>
       )}
 
+      <div className="glass-panel p-10 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-10 shadow-2xl shadow-black/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+          <div className="relative shrink-0 group">
+            <div className="w-32 h-32 rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+              ) : form.avatarUrl ? (
+                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center">
+                  <UserCircle size={56} className="text-indigo-400/50" />
+                </div>
+              )}
+              {isUploading && (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-full max-w-[140px]">
+              <label className="text-[10px] font-bold text-center px-4 py-2 rounded-xl border border-white/10 bg-[#1a1b2e]/90 backdrop-blur-md hover:bg-indigo-500/20 hover:border-indigo-500/30 cursor-pointer text-slate-200 transition-all shadow-xl">
+                Update Photo
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleAvatarSelect(e.target.files?.[0])} disabled={isUploading} />
+              </label>
+              {avatarFile && !isUploading && (
+                <button type="button" onClick={confirmAvatarUpload} className="text-[10px] font-bold text-center px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500 transition-all shadow-lg animate-in zoom-in-95">
+                  Confirm Save
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="text-center md:text-left pt-4 md:pt-0">
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+                <ShieldCheck size={12} />
+                Verified Candidate
+              </div>
+              {form.coachName && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
+                  <Briefcase size={12} />
+                  Coach: {form.coachName}
+                </div>
+              )}
+            </div>
+            <h1 className="serif text-5xl text-white leading-tight mb-4 font-medium tracking-tight">Your Profile</h1>
+            <p className="text-slate-400 font-light text-base max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
+
+            <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
+              {form.videoUrl && !selectedVideo && (
+                <button
+                  type="button"
+                  onClick={() => setPlayingVideo(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 hover:text-indigo-300 transition-all shadow-xl group"
+                >
+                  <Video size={16} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+                  View Intro Video
+                </button>
+              )}
+              {form.resumeUrl && (
+                <a
+                  href={form.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-cyan-500/20 hover:border-cyan-500/30 hover:text-cyan-300 transition-all shadow-xl group"
+                >
+                  <FileText size={16} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+                  View Resume
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 relative z-10">
+          <button className="btn-ai w-full sm:w-auto min-w-[180px] h-14" onClick={() => setAiModalOpen(true)}>
+            <Sparkles size={18} /> Enhance with AI
+          </button>
+          <button className="btn-primary w-full sm:w-auto min-w-[180px] h-14" onClick={saveProfile}>
+            <Save size={18} /> Save All Changes
+          </button>
+        </div>
+      </div>
+
+      <section className="glass-panel p-10 md:p-12 animate-in fade-up duration-700">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+          <div>
+            <h2 className="section-title mb-2"><Sparkles size={16} className="text-emerald-400" /> Professional Summary</h2>
+            <p className="text-slate-400 text-base font-light">Craft a compelling story that highlights your unique value proposition.</p>
+          </div>
+          <button
+            type="button"
+            onClick={generateSummaryAI}
+            disabled={isAiGenerating}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:scale-[1.02] transition-all disabled:opacity-50"
+          >
+            {isAiGenerating ? <div className="w-4 h-4 border-2 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" /> : <Sparkles size={14} />}
+            {isAiGenerating ? 'AI is Writing...' : 'AI Bio Generator'}
+          </button>
+        </div>
+
+        <div className="relative group">
+          <textarea
+            className="input-dark min-h-[220px] text-lg leading-relaxed p-8 focus:ring-4 focus:ring-indigo-500/10"
+            placeholder="Introduce yourself to the world..."
+            value={form.bio}
+            onChange={(e) => updateField('bio', e.target.value)}
+          />
+          <div className="absolute bottom-6 right-8 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-[#0a0b16]/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/5">
+            {form.bio?.length || 0} / 1000 characters
+          </div>
+        </div>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Personal Info */}
         <section className="glass-panel p-8">
           <h2 className="section-title"><UserCircle size={16} className="text-indigo-400" /> Personal Information</h2>
           <div className="grid gap-5 md:grid-cols-2">
@@ -818,7 +838,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Program Info */}
         <section className="glass-panel p-8">
           <h2 className="section-title"><Briefcase size={16} className="text-indigo-400" /> Program Information</h2>
           <div className="grid gap-5 md:grid-cols-2">
@@ -841,7 +860,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Professional Details */}
         <section className="glass-panel p-8">
           <h2 className="section-title"><Briefcase size={16} className="text-indigo-400" /> Professional Details</h2>
           <div className="space-y-6">
@@ -898,7 +916,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Video Profile */}
         <section className="glass-panel p-8">
           <h2 className="section-title"><Video size={16} className="text-indigo-400" /> Video Introduction</h2>
           <div className="space-y-6">
@@ -969,7 +986,6 @@ export default function ProfilePage() {
           </div>
         </section>
 
-        {/* Resume Section */}
         <section className="glass-panel p-8 lg:col-span-2">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
@@ -1044,7 +1060,6 @@ export default function ProfilePage() {
           )}
         </section>
 
-        {/* Consents */}
         <section className="glass-panel p-8 lg:col-span-2">
           <h2 className="section-title"><ShieldCheck size={16} className="text-indigo-400" /> Legal & Privacy</h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -1083,7 +1098,6 @@ export default function ProfilePage() {
         </section>
       </div>
 
-      {/* AI Enhancement Modal */}
       {aiModalOpen && (
         <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-[#0f0e1c] border border-emerald-500/20 shadow-[0_24px_50px_rgba(0,0,0,0.6)] rounded-3xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 relative">
@@ -1122,7 +1136,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Webcam Recorder Modal */}
       {showRecorder && (
         <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
           <div className="bg-[#0d0c1e] border border-white/10 shadow-2xl rounded-3xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 relative">
@@ -1177,7 +1190,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Video Overlay Modal */}
       {playingVideo && form.videoUrl && (
         <div
           className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300"
@@ -1200,7 +1212,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* AI Loading Modal */}
       {isAiGenerating && (
         <div className="fixed inset-0 z-[300] bg-[#06060f]/60 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="glass-panel max-w-sm w-full p-10 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/10 border-indigo-500/20 animate-in zoom-in-95 duration-300">
@@ -1228,7 +1239,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Resume Name Prompt Modal */}
       {showResumeNamePrompt && (
         <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="glass-panel max-w-md w-full p-8 animate-in zoom-in-95 duration-200">
@@ -1256,10 +1266,8 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Resume Preview Modal */}
       {showResumePreview && previewResumeUrl && (
         <div className="fixed inset-0 z-[400] bg-black/80 backdrop-blur-lg flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
-          {console.log('Opening Resume Preview URL:', previewResumeUrl)}
           <div className="relative w-full max-w-5xl h-[90vh] bg-[#0f0e1c] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
               <div className="flex items-center gap-3">

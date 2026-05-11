@@ -350,7 +350,13 @@ export default function CandidateShell({ children }) {
                   onClick={() => { setProfileOpen(p => !p); setNotificationsOpen(false); }}
                   aria-label="Profile menu"
                 >
-                  <div className="shell-avatar-circle">{initials}</div>
+                  <div className="shell-avatar-circle">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      initials
+                    )}
+                  </div>
                   <span className="shell-avatar-name">{firstName}</span>
                   <ChevronDown
                     size={13} strokeWidth={2.5}

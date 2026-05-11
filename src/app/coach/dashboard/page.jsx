@@ -1,11 +1,22 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import apiService from '@/services/api';
-import SafeDate from '@/components/ui/SafeDate';
-import Modal from '@/components/ui/Modal';
+import { useAuth } from '@/context/AuthContext';
+import { 
+  Users, 
+  Clock, 
+  MessageSquare, 
+  Megaphone, 
+  Star, 
+  CheckCircle2, 
+  ChevronRight, 
+  FileText, 
+  Upload,
+  UserCheck,
+  TrendingUp,
+  Bell
+} from 'lucide-react';
 
 // Avatar helper: shows photo if available, fallback to initials
 const AvatarCell = ({ name, avatarUrl, size = 40 }) => {
@@ -27,25 +38,18 @@ const AvatarCell = ({ name, avatarUrl, size = 40 }) => {
   );
 };
 
-// Subtle animated background lines — no orbs, no cartoonish particles
+// Subtle animated background lines
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    {/* Deep base */}
     <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
-    {/* Faint geometric lines */}
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#6366f1" strokeWidth="0.5"/>
-        </pattern>
-      </defs>
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+      </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    {/* Soft gradient pools — large, low-opacity, sophisticated */}
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
-    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,116,144,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
-    {/* Animated slow drift accent */}
-    <div style={{ position:'absolute', top:'40%', left:'50%', width:'30vw', height:'30vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)', filter:'blur(60px)', animation:'driftSlow 22s ease-in-out infinite alternate' }} />
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
     <style>{`
       @keyframes driftSlow{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-42%,-58%) scale(1.15)}}
     `}</style>
@@ -158,109 +162,141 @@ export default function CoachDashboardPage() {
   }
 
   return (
-    <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500">
+    <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <BackgroundGrid />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
-        .dash-root { font-family: 'DM Sans', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
-        .card {
-          background: rgba(255,255,255,0.028);
-          border: 1px solid rgba(255,255,255,0.07);
+        .glass-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
           backdrop-filter: blur(20px);
-          border-radius: 20px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+          border-radius: 28px;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
-        .pill {
-          display:inline-flex; align-items:center; gap:6px;
-          padding: 5px 12px; border-radius:999px;
-          font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
+        .glass-card:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(14,165,233,0.2);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
-        .stat-row {
-          display:flex; justify-content:space-between; align-items:center;
-          padding:12px 16px; border-radius:12px;
-          background:rgba(255,255,255,0.03);
-          border:1px solid rgba(255,255,255,0.045);
-          transition: background 0.2s;
+        .coach-gradient {
+          background: linear-gradient(135deg, rgba(14,165,233,0.1) 0%, rgba(79,70,229,0.05) 100%);
+          border: 1px solid rgba(14,165,233,0.15);
         }
-        .stat-row:hover { background: rgba(255,255,255,0.055); }
-        .msg-row {
-          padding:14px 16px; border-radius:14px;
-          background:rgba(255,255,255,0.025);
-          border:1px solid transparent;
-          transition: background 0.2s, border-color 0.2s;
-          cursor:pointer;
-        }
-        .msg-row:hover { background:rgba(14,165,233,0.07); border-color:rgba(14,165,233,0.15); }
-        .btn-primary {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:13px 20px; border-radius:12px; font-weight:600;
-          font-size:13px; letter-spacing:0.01em; cursor:pointer; border:none;
+        .btn-premium {
           background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-          color:#fff; box-shadow: 0 4px 20px rgba(2,132,199,0.25);
-          transition: box-shadow 0.25s, transform 0.2s;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(2,132,199,0.3);
         }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(2,132,199,0.38); transform:translateY(-1px); }
-        .btn-ghost {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:13px 20px; border-radius:12px; font-weight:600;
-          font-size:13px; cursor:pointer;
-          background:rgba(255,255,255,0.04);
-          border:1px solid rgba(255,255,255,0.1);
-          color:rgba(255,255,255,0.85);
-          transition: background 0.2s, border-color 0.2s;
+        .btn-premium:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(2,132,199,0.4);
+          filter: brightness(1.1);
         }
-        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
-        .section-label {
-          font-size:10px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase;
-          color:rgba(255,255,255,0.3);
+        .btn-outline-premium {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center; gap: 8px;
+          transition: all 0.3s ease;
         }
-        .fade-up { animation: fadeUp 0.5s ease both; }
-        .delay-1 { animation-delay:0.07s; }
-        .delay-2 { animation-delay:0.14s; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .btn-outline-premium:hover {
+          background: rgba(255,255,255,0.07);
+          border-color: rgba(255,255,255,0.2);
+        }
+        .stat-badge {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 16px;
+          padding: 16px 20px;
+          transition: all 0.3s ease;
+        }
+        .stat-badge:hover {
+          background: rgba(14,165,233,0.08);
+          border-color: rgba(14,165,233,0.2);
+        }
       `}</style>
 
-      <div className="dash-root space-y-7">
-        {/* ── HERO HEADER ─────────────────────────────────────────────────────── */}
-        <div className="fade-up card relative overflow-hidden" style={{ padding:'52px 52px 44px', borderRadius:24 }}>
-          <div style={{ position:'absolute', top:0, right:0, width:320, height:320, background:'radial-gradient(circle at top right, rgba(14,165,233,0.09) 0%, transparent 65%)', pointerEvents:'none' }} />
-          <div style={{ position:'absolute', bottom:0, left:0, width:200, height:200, background:'radial-gradient(circle at bottom left, rgba(79,70,229,0.07) 0%, transparent 70%)', pointerEvents:'none' }} />
+      <div className="space-y-8">
+        {/* HERO SECTION */}
+        <div className="glass-card coach-gradient p-10 md:p-14 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
+            <svg viewBox="0 0 400 400" className="w-full h-full text-sky-500">
+              <defs>
+                <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <circle cx="300" cy="100" r="150" fill="url(#grad2)" />
+            </svg>
+          </div>
 
-          <div style={{ position:'relative', zIndex:1 }}>
-            <div className="pill" style={{ background:'rgba(14,165,233,0.1)', color:'#bae6fd', border:'1px solid rgba(14,165,233,0.2)', marginBottom:20 }}>
-              <span style={{ width:6, height:6, borderRadius:'50%', background:'#38bdf8', display:'inline-block', animation:'pulse 2s infinite' }}></span>
-              Coach Portal
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <Star size={12} className="animate-pulse" />
+              Mentor Workspace
             </div>
-            <h1 className="serif" style={{ fontSize:'clamp(2rem,4vw,3.2rem)', color:'#fff', lineHeight:1.1, marginBottom:12, fontWeight:400, letterSpacing:'-0.01em' }}>
-              Welcome back,{' '}
-              <span style={{ fontStyle:'italic', background:'linear-gradient(90deg,#7dd3fc,#38bdf8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+            <h1 className="serif text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+              Welcome back, <br />
+              <span className="italic bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
                 {user.name.split(' ')[0]}
               </span>
             </h1>
-            <p style={{ color:'rgba(255,255,255,0.4)', fontSize:15, lineHeight:1.7, maxWidth:520, margin:0, fontWeight:300 }}>
-              Your mentorship dashboard is ready. You are currently guiding{' '}
-              <span style={{ color:'rgba(255,255,255,0.75)', fontWeight:500 }}>{activeCandidates.length} mentees</span>.
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center gap-6 mt-8">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                  <Users size={28} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Active Mentees</p>
+                  <p className="text-2xl font-bold text-white">{activeCandidates.length} <span className="text-sm font-medium text-slate-400 ml-1">Students</span></p>
+                </div>
+              </div>
+              <div className="h-10 w-px bg-white/10 hidden md:block" />
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <TrendingUp size={28} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Performance</p>
+                  <p className="text-2xl font-bold text-white">4.9 <span className="text-sm font-medium text-slate-400 ml-1">Rating</span></p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ── PENDING REQUESTS BANNER ─────────────────────────────────────────── */}
+        {/* PENDING REQUESTS ACTION BANNER */}
         {pendingRequests.length > 0 && (
-          <div className="fade-up delay-1 card overflow-hidden relative" style={{ padding: '32px 40px', background: 'linear-gradient(to right, rgba(14,165,233,0.15), rgba(79,70,229,0.15))', borderColor: 'rgba(56,189,248,0.2)' }}>
+          <div className="glass-card p-8 bg-sky-500/10 border-sky-500/20 relative overflow-hidden group">
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="pill" style={{ background: 'rgba(239,68,68,0.15)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.3)' }}>Action Required</div>
-                <h2 className="text-2xl font-semibold text-white">
-                  {pendingRequests.length} New Candidate {pendingRequests.length === 1 ? 'Request' : 'Requests'}
-                </h2>
-                <p className="text-slate-300 text-sm">Potential matches are waiting for your response.</p>
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform">
+                  <UserCheck size={32} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Action Required</h2>
+                  <p className="text-sky-300/70 text-sm mt-1">You have <span className="text-white font-bold">{pendingRequests.length}</span> new candidate match requests waiting for your review.</p>
+                </div>
               </div>
               <button 
-                className="btn-primary" 
-                style={{ width: 'auto', padding: '14px 32px' }}
+                className="btn-premium px-8 py-4 text-base"
                 onClick={() => {
                   if (pendingRequests.length > 0 && !selectedRequest) {
                     setSelectedRequest(pendingRequests[0]);
@@ -268,97 +304,77 @@ export default function CoachDashboardPage() {
                   setShowRequestModal(true);
                 }}
               >
-                Review Requests →
+                Review Requests <ChevronRight size={20} />
               </button>
             </div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-sky-500/5 to-transparent pointer-events-none" />
           </div>
         )}
 
-        {/* ── MAIN CONTENT GRID ───────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-7 fade-up delay-2">
-          
-          <div className="lg:col-span-2 space-y-7">
-            {/* STATS */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { label: 'Active Mentees', value: activeCandidates.length, bg: 'rgba(14,165,233,0.1)', color: '#38bdf8' },
-                { label: 'Pending', value: pendingRequests.length, bg: 'rgba(245,158,11,0.1)', color: '#fbbf24' },
-                { label: 'Messages', value: 0, bg: 'rgba(168,85,247,0.1)', color: '#c084fc' },
-              ].map((stat, i) => (
-                <div key={i} className="card p-5 flex flex-col items-center justify-center text-center">
-                  <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>{stat.value}</div>
-                  <div className="section-label mt-1">{stat.label}</div>
+        {/* MAIN CONTENT GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* CANDIDATES TABLE */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="glass-card p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-6 rounded-full bg-sky-500" />
+                  <h3 className="text-lg font-bold text-white">Active Candidates</h3>
                 </div>
-              ))}
-            </div>
-
-            {/* CANDIDATES TABLE */}
-            <div className="card" style={{ padding: '32px' }}>
-              <div className="flex justify-between items-end mb-6">
-                <div>
-                  <h3 className="serif text-2xl text-white">Current Candidates</h3>
-                  <p className="text-sm text-slate-400 mt-1 font-light">Mentees you are actively guiding.</p>
-                </div>
-                <Link href="/coach/candidates" className="text-xs font-bold text-sky-400 uppercase tracking-widest hover:text-sky-300 transition-colors">View All →</Link>
+                <Link href="/coach/candidates" className="text-xs font-bold text-slate-500 hover:text-sky-400 transition-colors uppercase tracking-widest flex items-center gap-1">
+                  View All <ChevronRight size={14} />
+                </Link>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Mentee</th>
-                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Occupation</th>
-                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Tech Skills</th>
-                      <th className="pb-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
+                    <tr className="border-b border-white/5">
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Candidate</th>
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile</th>
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Skills</th>
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {activeCandidates.length > 0 ? (
                       activeCandidates.map((c) => (
-                        <tr key={c.candidateId} className="hover:bg-white/5 transition-colors group">
-                          <td className="py-4">
+                        <tr key={c.candidateId} className="group hover:bg-white/5 transition-colors">
+                          <td className="py-5">
                             <div className="flex items-center gap-3">
-                              <AvatarCell name={c.candidateName} avatarUrl={c.avatarUrl} size={40} />
+                              <AvatarCell name={c.candidateName} avatarUrl={c.avatarUrl} size={42} />
                               <div>
-                                <p className="text-sm font-bold text-white">{c.candidateName}</p>
-                                <p className="text-xs text-slate-500 mt-0.5">{c.candidateEmail || 'No Email'}</p>
+                                <p className="text-sm font-bold text-white group-hover:text-sky-400 transition-colors">{c.candidateName}</p>
+                                <p className="text-[10px] text-slate-500">{c.candidateEmail}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="py-4 align-middle">
-                            <span className="text-sm text-slate-300">
-                              {c.profileData?.occupation || 'Not Specified'}
-                            </span>
+                          <td className="py-5">
+                            <span className="text-xs text-slate-300 font-light">{c.profileData?.occupation || 'Student'}</span>
                           </td>
-                          <td className="py-4 align-middle">
-                            <div className="flex flex-wrap gap-2 max-w-[250px]">
-                              {(c.profileData?.skills || []).slice(0, 3).map(skill => (
-                                <span key={skill} className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">
+                          <td className="py-5">
+                            <div className="flex flex-wrap gap-1.5">
+                              {(c.profileData?.skills || []).slice(0, 2).map(skill => (
+                                <span key={skill} className="px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[9px] font-bold text-sky-300 uppercase">
                                   {skill}
                                 </span>
                               ))}
-                              {c.profileData?.skills?.length > 3 && (
-                                <span className="px-2 py-1 text-[10px] font-bold text-slate-400 bg-white/5 rounded-md">
-                                  +{c.profileData.skills.length - 3}
-                                </span>
-                              )}
-                              {(!c.profileData?.skills || c.profileData.skills.length === 0) && (
-                                <span className="text-xs text-slate-600 italic">No skills listed</span>
+                              {c.profileData?.skills?.length > 2 && (
+                                <span className="text-[9px] text-slate-500 font-bold">+{c.profileData.skills.length - 2}</span>
                               )}
                             </div>
                           </td>
-                          <td className="py-4 align-middle text-right">
+                          <td className="py-5 text-right">
                             <Link href={`/coach/candidates/${c.candidateId}`}>
-                              <button className="btn-ghost inline-flex w-auto py-2 px-4 text-xs">View</button>
+                              <button className="btn-outline-premium py-2 px-4 text-[11px] font-bold">Details</button>
                             </Link>
                           </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className="py-12 text-center text-slate-500 italic text-sm">
-                          No active mentees assigned yet.
+                        <td colSpan="4" className="py-12 text-center text-slate-500 italic text-sm font-light">
+                          Your candidate roster is currently empty.
                         </td>
                       </tr>
                     )}
@@ -368,163 +384,178 @@ export default function CoachDashboardPage() {
             </div>
           </div>
 
-          <div className="space-y-7">
+          {/* SIDEBAR WIDGETS */}
+          <div className="space-y-8">
             {/* QUICK TOOLS */}
-            <div className="card p-6">
-              <h3 className="section-label mb-4">Quick Tools</h3>
+            <div className="glass-card p-8">
+              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Mentor Tools</h3>
               <div className="space-y-3">
-                {[
-                  { label: 'Broadcast Message', icon: '📢', color: '#818cf8' },
-                  { label: 'Upload Templates', icon: '📁', color: '#fbbf24' },
-                  { label: 'Review Reports', icon: '📄', color: '#34d399' },
-                ].map((tool, i) => (
-                  <button key={i} className="msg-row flex items-center gap-4 w-full">
-                    <span className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10" style={{ color: tool.color }}>
-                      {tool.icon}
-                    </span>
-                    <span className="text-sm text-slate-300 font-medium">{tool.label}</span>
-                  </button>
-                ))}
+                <button className="stat-badge flex items-center gap-4 w-full group">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 group-hover:scale-110 transition-transform">
+                    <Megaphone size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-white">Broadcast</p>
+                    <p className="text-[10px] text-slate-500">Msg all mentees</p>
+                  </div>
+                </button>
+                <button className="stat-badge flex items-center gap-4 w-full group">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                    <Upload size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-white">Resources</p>
+                    <p className="text-[10px] text-slate-500">Shared templates</p>
+                  </div>
+                </button>
+                <button className="stat-badge flex items-center gap-4 w-full group">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                    <FileText size={18} />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-white">Reports</p>
+                    <p className="text-[10px] text-slate-500">Progress analytics</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* UPCOMING SESSIONS WIDGET */}
+            <div className="glass-card p-8 bg-indigo-500/5 border-indigo-500/20">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-sm font-bold text-white uppercase tracking-widest">Next Session</h3>
+                <Bell size={14} className="text-indigo-400" />
+              </div>
+              <div className="text-center py-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-slate-500">
+                  <Clock size={24} />
+                </div>
+                <p className="text-sm text-slate-400 mb-6 font-light">No sessions booked for the next 24 hours.</p>
+                <Link href="/coach/calendar" className="btn-premium w-full justify-center">
+                  Open Calendar
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── MODAL: PENDING REQUESTS ───────────────────────────────────────────── */}
+      {/* MODAL: PENDING REQUESTS */}
       <Modal
         isOpen={showRequestModal}
         onClose={() => setShowRequestModal(false)}
-        title={`Review Pending Requests (${pendingRequests.length})`}
+        title={`Review Match Requests (${pendingRequests.length})`}
         size="6xl"
       >
-        <div className="flex flex-col md:flex-row gap-0 h-[70vh] -mx-6 -mb-6 bg-[#0a0a14] rounded-b-2xl overflow-hidden border-t border-white/10">
-          <div className="w-full md:w-80 border-r border-white/10 bg-[#06060f] overflow-y-auto">
-            <div className="p-4 space-y-2">
-              {pendingRequests.map((request) => {
-                const isSelected = selectedRequest?.assignmentId === request.assignmentId;
-                return (
-                  <button
-                    key={request.assignmentId}
-                    onClick={() => setSelectedRequest(request)}
-                    className="w-full text-left p-3 rounded-xl transition-all"
-                    style={{
-                      background: isSelected ? 'rgba(14,165,233,0.15)' : 'transparent',
-                      border: `1px solid ${isSelected ? 'rgba(14,165,233,0.3)' : 'transparent'}`,
-                    }}
-                  >
+        <div className="flex flex-col md:flex-row h-[70vh] -mx-6 -mb-6 bg-[#0a0a14] rounded-b-2xl overflow-hidden border-t border-white/10">
+          <div className="w-full md:w-80 border-r border-white/10 bg-[#06060f] overflow-y-auto p-4 space-y-2">
+            {pendingRequests.map((request) => {
+              const isSelected = selectedRequest?.assignmentId === request.assignmentId;
+              return (
+                <button
+                  key={request.assignmentId}
+                  onClick={() => setSelectedRequest(request)}
+                  className={`w-full text-left p-3 rounded-xl transition-all border ${isSelected ? 'bg-sky-500/10 border-sky-500/30 shadow-lg' : 'border-transparent hover:bg-white/5'}`}
+                >
                   <div className="flex items-center gap-3">
-                      <AvatarCell name={request.candidateName} avatarUrl={request.avatarUrl} size={40} />
-                      <div className="overflow-hidden flex-1">
-                        <p className={`font-medium text-sm truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>
-                          {request.candidateName}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">
-                          Match: {request.matchScore}%
-                        </p>
+                    <AvatarCell name={request.candidateName} avatarUrl={request.avatarUrl} size={40} />
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-bold text-sm truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>{request.candidateName}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <TrendingUp size={10} className="text-sky-400" />
+                        <span className="text-[9px] font-bold text-sky-400 uppercase tracking-tighter">Match: {request.matchScore}%</span>
                       </div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8 relative">
+          <div className="flex-1 overflow-y-auto p-10 relative">
             {selectedRequest ? (
-              <div className="space-y-8 animate-in slide-in-from-right-4 duration-300 pb-24">
-                <div className="flex items-start justify-between gap-6 pb-6 border-b border-white/10">
-                  <div className="flex items-center gap-5">
-                    <AvatarCell name={selectedRequest.candidateName} avatarUrl={selectedRequest.avatarUrl} size={64} />
+              <div className="space-y-8 animate-in slide-in-from-right-4 duration-500 pb-24">
+                <div className="flex items-start justify-between pb-8 border-b border-white/10">
+                  <div className="flex items-center gap-6">
+                    <AvatarCell name={selectedRequest.candidateName} avatarUrl={selectedRequest.avatarUrl} size={72} />
                     <div className="space-y-2">
-                      <h2 className="text-3xl font-bold text-white serif">{selectedRequest.candidateName}</h2>
+                      <h2 className="serif text-4xl text-white">{selectedRequest.candidateName}</h2>
                       <div className="flex flex-wrap gap-2">
-                        <span className="pill" style={{ background: 'rgba(255,255,255,0.05)', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <span className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                           {selectedRequest.profile?.occupation || 'Candidate'}
                         </span>
-                        <span className="pill" style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)' }}>
-                          Match Score: {selectedRequest.matchScore}%
+                        <span className="px-3 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-[11px] font-bold text-sky-400 uppercase tracking-widest">
+                          Score: {selectedRequest.matchScore}%
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="section-label mb-1">Requested On</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Received On</p>
                     <p className="text-sm font-medium text-slate-300"><SafeDate date={selectedRequest.requestedAt} /></p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <p className="section-label mb-2">Education</p>
-                    <p className="text-sm font-medium text-slate-200">{selectedRequest.profile?.education || 'Not Specified'}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Education</p>
+                    <p className="text-sm font-medium text-white">{selectedRequest.profile?.education || 'N/A'}</p>
                   </div>
-                  <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                    <p className="section-label mb-2">Experience</p>
-                    <p className="text-sm font-medium text-slate-200">{selectedRequest.profile?.experience || 0} Years</p>
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Experience</p>
+                    <p className="text-sm font-medium text-white">{selectedRequest.profile?.experience || 0} Years</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/10">
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Desired field</p>
+                    <p className="text-sm font-medium text-white">{selectedRequest.profile?.industryPreferences?.[0] || 'Any'}</p>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="section-label mb-3">Professional Summary</h4>
-                  <p className="text-slate-400 text-sm leading-relaxed italic bg-white/5 p-4 rounded-xl border border-white/10">
-                    "{selectedRequest.profile?.about || 'No summary provided by candidate.'}"
-                  </p>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                    <FileText size={14} className="text-sky-400" /> Professional Summary
+                  </h4>
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-slate-400 text-sm leading-relaxed font-light italic">
+                    "{selectedRequest.profile?.about || 'No detailed summary provided.'}"
+                  </div>
                 </div>
 
-                <div>
-                  <h4 className="section-label mb-3">Top Skills</h4>
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                    <Users size={14} className="text-indigo-400" /> Core Competencies
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {(selectedRequest.profile?.skills || []).map(skill => (
-                      <span key={skill} className="px-3 py-1 bg-white/5 text-slate-300 text-xs font-medium rounded-lg border border-white/10">
+                      <span key={skill} className="px-3 py-1.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs font-medium">
                         {skill}
                       </span>
                     ))}
-                    {(!selectedRequest.profile?.skills || selectedRequest.profile.skills.length === 0) && (
-                      <span className="text-sm text-slate-500 italic">No skills listed.</span>
-                    )}
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-sky-900/20 border border-sky-800/50 flex items-start gap-4">
-                  <span className="text-xl mt-1">💡</span>
-                  <div>
-                    <h4 className="text-xs font-bold text-sky-400 uppercase tracking-widest mb-1.5">Match Insight</h4>
-                    <p className="text-sm text-sky-200/70 leading-relaxed font-light">
-                      This candidate is looking for roles in <span className="text-white font-medium">{selectedRequest.profile?.industryPreferences?.[0] || 'your field'}</span>. Your expertise in <span className="text-white font-medium">{coach?.expertiseAreas?.[0] || 'Mentorship'}</span> makes you a perfect fit.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Sticky Actions Container */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 bg-[#0a0a14]/90 backdrop-blur-md border-t border-white/10 flex gap-4">
+                {/* Sticky Modal Actions */}
+                <div className="absolute bottom-0 left-0 right-0 p-8 bg-[#0a0a14]/90 backdrop-blur-md border-t border-white/10 flex gap-4">
                   <button 
-                    className="btn-primary" 
+                    className="btn-premium flex-1 py-4 text-base"
                     onClick={() => handleAccept(selectedRequest.assignmentId)}
                     disabled={actionLoading}
-                    style={{ flex: 1, padding: '16px' }}
                   >
-                    {actionLoading ? 'Processing...' : '✓ Accept Candidate'}
+                    {actionLoading ? 'Processing...' : 'Accept Candidate Match'}
                   </button>
                   <button 
-                    className="btn-ghost" 
+                    className="btn-outline-premium flex-1 py-4 text-base text-rose-400 border-rose-500/20 hover:bg-rose-500/10"
                     onClick={() => handleDecline(selectedRequest.assignmentId)}
                     disabled={actionLoading}
-                    style={{ flex: 1, padding: '16px', color: '#f87171', borderColor: 'rgba(239,68,68,0.3)' }}
                   >
-                    Decline
+                    Decline Request
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-2xl border border-white/10">
-                  👋
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white serif">Select a Candidate</h3>
-                  <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto font-light">Click on a name from the list on the left to review their profile details.</p>
-                </div>
+              <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
+                <Users size={64} className="text-slate-700 mb-6" />
+                <h3 className="serif text-2xl text-white">Select a Profile</h3>
+                <p className="text-slate-500 text-sm mt-2 max-w-xs mx-auto">Choose a candidate from the roster to begin your professional evaluation.</p>
               </div>
             )}
           </div>

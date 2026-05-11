@@ -1,40 +1,35 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Building2 } from 'lucide-react';
+import { 
+  Video, 
+  Calendar, 
+  MessageSquare, 
+  FileText, 
+  Megaphone, 
+  Star, 
+  ArrowRight, 
+  ShieldCheck, 
+  Sparkles,
+  Clock,
+  CheckCircle2,
+  ChevronRight
+} from 'lucide-react';
 
-const Icons = {
-  VideoCall: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>,
-  Calendar: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
-  Messages: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.348-3.595A7.2 7.2 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
-  Documents: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>,
-  Announcement: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>,
-  Star: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>,
-  ArrowRight: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>,
-  Agreement: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6M7 4h10l3 3v13a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1h2z" /></svg>,
-};
-
-// Subtle animated background lines — no orbs, no cartoonish particles
+// Subtle animated background lines
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    {/* Deep base */}
     <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
-    {/* Faint geometric lines */}
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#6366f1" strokeWidth="0.5"/>
-        </pattern>
-      </defs>
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#6366f1" strokeWidth="0.5"/>
+      </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    {/* Soft gradient pools — large, low-opacity, sophisticated */}
     <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
     <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,116,144,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
-    {/* Animated slow drift accent */}
-    <div style={{ position:'absolute', top:'40%', left:'50%', width:'30vw', height:'30vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)', filter:'blur(60px)', animation:'driftSlow 22s ease-in-out infinite alternate' }} />
     <style>{`
       @keyframes driftSlow{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-42%,-58%) scale(1.15)}}
     `}</style>
@@ -92,7 +87,7 @@ export default function CandidateDashboardPage() {
           const cMessages = messagesData.data?.coachMessages || [];
           const unread = cMessages.filter(m => !m.seen && m.sender !== 'candidate');
           setUnreadMessages(unread.length);
-          const sortedMsgs = [...cMessages].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+          const sortedMsgs = [...cMessages].sort((a,b) => new Date(b.timestamp || b.createdAt) - new Date(a.timestamp || a.createdAt));
           setRecentMessages(sortedMsgs.slice(0, 3));
         }
       } catch (err) {
@@ -137,157 +132,175 @@ export default function CandidateDashboardPage() {
     );
   }
 
-  const circumference = 2 * Math.PI * 88;
-
   return (
-    <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500">
+    <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <BackgroundGrid />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
-        .dash-root { font-family: 'DM Sans', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
-        .card {
-          background: rgba(255,255,255,0.015);
+        .glass-card {
+          background: rgba(255,255,255,0.02);
           border: 1px solid rgba(255,255,255,0.06);
-          backdrop-filter: blur(24px);
-          border-radius: 24px;
+          backdrop-filter: blur(20px);
+          border-radius: 28px;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(99,102,241,0.2);
+          transform: translateY(-4px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .hero-gradient {
+          background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(14,116,144,0.05) 100%);
+          border: 1px solid rgba(99,102,241,0.15);
+        }
+        .stat-badge {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.06);
+          border-radius: 16px;
+          padding: 16px 20px;
           transition: all 0.3s ease;
         }
-        .card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 12px 40px rgba(0,0,0,0.4); transform: translateY(-2px); }
-        .pill {
-          display:inline-flex; align-items:center; gap:6px;
-          padding: 5px 12px; border-radius:999px;
-          font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
+        .stat-badge:hover {
+          background: rgba(99,102,241,0.08);
+          border-color: rgba(99,102,241,0.2);
         }
-        .stat-row {
-          display:flex; justify-content:space-between; align-items:center;
-          padding:12px 16px; border-radius:12px;
-          background:rgba(255,255,255,0.02);
-          border:1px solid rgba(255,255,255,0.05);
-          transition: all 0.2s;
-        }
-        .stat-row:hover { background: rgba(255,255,255,0.04); border-color: rgba(99,102,241,0.1); }
-        .msg-row {
-          padding:14px 16px; border-radius:14px;
-          background:rgba(255,255,255,0.02);
-          border: 1px solid transparent;
-          transition: all 0.2s;
-          cursor:pointer;
-        }
-        .msg-row:hover { background:rgba(99,102,241,0.07); border-color:rgba(99,102,241,0.15); }
-        .shortcut-card {
-          display:flex; flex-direction:column; align-items:center; justify-content:center;
-          padding:28px 20px; border-radius:18px; text-align:center; cursor:pointer;
-          background:rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.06);
-          transition: all 0.25s;
-        }
-        .shortcut-card:hover { background:rgba(255,255,255,0.05); border-color:rgba(99,102,241,0.25); transform:translateY(-4px); }
-        .btn-primary {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:14px 20px; border-radius:14px; font-weight:700;
-          font-size:13px; letter-spacing:0.01em; cursor:pointer; border:none;
+        .btn-premium {
           background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-          color:#fff; box-shadow: 0 4px 20px rgba(99,102,241,0.25);
-          transition: all 0.25s;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(79,70,229,0.3);
         }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(99,102,241,0.38); transform:translateY(-2px); }
-        .btn-ghost {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:14px 20px; border-radius:14px; font-weight:700;
-          font-size:13px; cursor:pointer;
-          background:rgba(255,255,255,0.03);
-          border:1px solid rgba(255,255,255,0.08);
-          color:rgba(255,255,255,0.8);
-          transition: all 0.2s;
+        .btn-premium:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(79,70,229,0.4);
+          filter: brightness(1.1);
         }
-        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); color:#fff; }
-        .icon-badge {
-          width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center;
-          flex-shrink:0;
+        .btn-outline-premium {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.3s ease;
         }
-        .section-label {
-          font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
-          color:rgba(255,255,255,0.25);
+        .btn-outline-premium:hover {
+          background: rgba(255,255,255,0.07);
+          border-color: rgba(255,255,255,0.2);
         }
-        .divider { border:none; height:1px; background:rgba(255,255,255,0.06); margin:0; }
-        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
       `}</style>
 
-      <div className="dash-root space-y-7">
+      <div className="space-y-8">
+        {/* HERO SECTION */}
+        <div className="glass-card hero-gradient p-10 md:p-14 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
+            <svg viewBox="0 0 400 400" className="w-full h-full text-indigo-500">
+              <defs>
+                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <circle cx="300" cy="100" r="150" fill="url(#grad1)" />
+            </svg>
+          </div>
 
-        {/* ── HERO HEADER ─────────────────────────────────────────────────────── */}
-        <div className="fade-up card relative overflow-hidden" style={{ padding:'52px 52px 44px', borderRadius:24 }}>
-          {/* Subtle corner accent */}
-          <div style={{ position:'absolute', top:0, right:0, width:320, height:320, background:'radial-gradient(circle at top right, rgba(99,102,241,0.09) 0%, transparent 65%)', pointerEvents:'none' }} />
-          <div style={{ position:'absolute', bottom:0, left:0, width:200, height:200, background:'radial-gradient(circle at bottom left, rgba(14,116,144,0.07) 0%, transparent 70%)', pointerEvents:'none' }} />
-
-          <div style={{ position:'relative', zIndex:1 }}>
-            <div className="pill" style={{ background:'rgba(99,102,241,0.1)', color:'#a5b4fc', border:'1px solid rgba(99,102,241,0.2)', marginBottom:20 }}>
-              <span style={{ width:6, height:6, borderRadius:'50%', background:'#818cf8', display:'inline-block', animation:'pulse 2s infinite' }}></span>
-              Candidate Portal
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">
+              <Sparkles size={12} className="animate-pulse" />
+              Your Roadmap
             </div>
-            <h1 className="serif" style={{ fontSize:'clamp(2rem,4vw,3.2rem)', color:'#fff', lineHeight:1.1, marginBottom:12, fontWeight:400, letterSpacing:'-0.01em' }}>
-              Welcome back,{' '}
-              <span style={{ fontStyle:'italic', background:'linear-gradient(90deg,#a5b4fc,#67e8f9)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+            <h1 className="serif text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+              Welcome back, <br />
+              <span className="italic bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                 {user?.name?.split(' ')[0] || 'Candidate'}
               </span>
             </h1>
-            <p style={{ color:'rgba(255,255,255,0.4)', fontSize:15, lineHeight:1.7, maxWidth:520, margin:0, fontWeight:300 }}>
-              Your career acceleration journey is underway.{' '}
-              <span style={{ color:'rgba(255,255,255,0.75)', fontWeight:500 }}>{stats.percentage}%</span>
-              {' '}of your initial roadmap is complete.
-            </p>
+            <div className="flex flex-col md:flex-row md:items-center gap-6 mt-8">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <ShieldCheck size={28} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Profile Score</p>
+                  <p className="text-2xl font-bold text-white">{stats.percentage}% <span className="text-sm font-medium text-slate-400 ml-1">Complete</span></p>
+                </div>
+              </div>
+              <div className="h-10 w-px bg-white/10 hidden md:block" />
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <Video size={28} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Sessions</p>
+                  <p className="text-2xl font-bold text-white">{stats.sessions} <span className="text-sm font-medium text-slate-400 ml-1">Completed</span></p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* ── MAIN GRID ────────────────────────────────────────────────────────── */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:28 }} className="lg:grid-cols-3-custom">
-          <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr)', gap:28, gridColumn:'span 2' }}>
-
-            {/* COACH CARD */}
-            <div className="fade-up delay-1 card" style={{ padding:36 }}>
-              <p className="section-label" style={{ marginBottom:24 }}>Your Mentor</p>
-
-              <div style={{ display:'flex', gap:28, alignItems:'flex-start', flexWrap:'wrap' }}>
-                {/* Avatar */}
-                <div style={{ position:'relative', flexShrink:0 }}>
-                  <div style={{ width:80, height:80, borderRadius:16, overflow:'hidden', background:'rgba(99,102,241,0.1)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    {coach?.coachAvatar
-                      ? <img src={coach.coachAvatar} alt="Coach" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                      : <svg style={{ width:32, height:32, color:'rgba(165,180,252,0.4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    }
-                  </div>
-                  <div style={{ position:'absolute', bottom:-4, right:-4, width:14, height:14, borderRadius:'50%', background:'#10b981', border:'2.5px solid #090912', boxShadow:'0 0 8px rgba(16,185,129,0.6)' }} />
+        {/* CONTENT GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* MENTOR & MESSAGES */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* MENTOR CARD */}
+            <div className="glass-card p-8">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-6 rounded-full bg-indigo-500" />
+                  <h3 className="text-lg font-bold text-white">Your Assigned Coach</h3>
                 </div>
+                <button className="text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1">
+                  View Profile <ChevronRight size={14} />
+                </button>
+              </div>
 
-                {/* Info */}
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-                    <div>
-                      <h2 className="serif" style={{ fontSize:26, color:'#fff', fontWeight:400, letterSpacing:'-0.01em', marginBottom:4, lineHeight:1.2 }}>
-                        {coach?.coachName || 'Assigning Coach…'}
-                      </h2>
-                      <p style={{ fontSize:11, color:'rgba(165,180,252,0.7)', fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>
-                        {coach?.coachCompany || 'Senior Career Mentor'}
-                      </p>
-                    </div>
-                    {coach && (
-                      <div style={{ display:'flex', alignItems:'center', gap:5, background:'rgba(245,158,11,0.08)', padding:'7px 12px', borderRadius:10, border:'1px solid rgba(245,158,11,0.15)' }}>
-                        <span style={{ color:'#f59e0b' }}>{Icons.Star}</span>
-                        <span style={{ color:'#fef3c7', fontWeight:700, fontSize:13 }}>{coach.coachRating || 4.9}</span>
-                        <span style={{ color:'rgba(245,158,11,0.5)', fontSize:11, fontWeight:500 }}>({coach.coachReviews || 0})</span>
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-indigo-500/10 border border-white/10 shadow-xl">
+                    {coach?.coachAvatar ? (
+                      <img src={coach.coachAvatar} alt="Coach" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-500">
+                        <MessageSquare size={32} />
                       </div>
                     )}
                   </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-emerald-500 border-4 border-[#06060f] flex items-center justify-center shadow-lg">
+                    <CheckCircle2 size={10} className="text-white" />
+                  </div>
+                </div>
 
-                  <p style={{ color:'rgba(255,255,255,0.35)', fontSize:13, lineHeight:1.7, marginTop:14, fontWeight:300, fontStyle:'italic' }}>
-                    "{coach?.coachBio || 'Your coach will help you navigate the job market and optimize your professional profile for success.'}"
+                <div className="flex-1 space-y-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="serif text-3xl text-white">{coach?.coachName || 'Assigning Your Coach...'}</h2>
+                    {coach && (
+                      <div className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold flex items-center gap-1">
+                        <Star size={10} fill="currentColor" /> {coach.coachRating || 4.9}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-indigo-400 text-xs font-bold uppercase tracking-widest">{coach?.coachCompany || 'Senior Career Strategist'}</p>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-xl font-light">
+                    "{coach?.coachBio || 'Your mentor is being selected to match your career goals and industry expertise.'}"
                   </p>
-
-                  <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginTop:16 }}>
-                    {(coach?.coachExpertise || ['CV Review', 'Interviews', 'Networking']).slice(0, 3).map(tag => (
-                      <span key={tag} style={{ padding:'5px 12px', borderRadius:8, background:'rgba(99,102,241,0.07)', color:'rgba(165,180,252,0.8)', fontSize:10, fontWeight:600, letterSpacing:'0.12em', textTransform:'uppercase', border:'1px solid rgba(99,102,241,0.12)' }}>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {(coach?.coachExpertise || ['CV Review', 'Mock Interview', 'Networking']).map(tag => (
+                      <span key={tag} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
                         {tag}
                       </span>
                     ))}
@@ -295,80 +308,68 @@ export default function CandidateDashboardPage() {
                 </div>
               </div>
 
-              <hr className="divider" style={{ margin:'28px 0' }} />
-
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                <Link href="/candidate/messages" className="btn-ghost">{Icons.Messages} Message</Link>
-                <Link href="/candidate/calendar" className="btn-primary">{Icons.Calendar} Book Session</Link>
+              <div className="grid grid-cols-2 gap-4 mt-10">
+                <Link href="/candidate/messages" className="btn-outline-premium justify-center">
+                  <MessageSquare size={18} /> Message Coach
+                </Link>
+                <Link href="/candidate/calendar" className="btn-premium justify-center">
+                  <Calendar size={18} /> Schedule Session
+                </Link>
               </div>
             </div>
 
-            {/* MESSAGES + ANNOUNCEMENTS ROW */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:28 }}>
-
-              {/* Recent Messages */}
-              <div className="fade-up delay-2 card" style={{ padding:28, display:'flex', flexDirection:'column' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                    <div className="icon-badge" style={{ background:'rgba(14,116,144,0.1)', border:'1px solid rgba(14,116,144,0.2)', color:'#67e8f9' }}>{Icons.Messages}</div>
-                    <h3 style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)', margin:0 }}>Messages</h3>
-                  </div>
-                  {recentMessages.length > 0 && (
-                    <Link href="/candidate/messages" style={{ fontSize:10, fontWeight:600, color:'rgba(103,232,249,0.6)', letterSpacing:'0.1em', textTransform:'uppercase', display:'flex', alignItems:'center', gap:4 }}>
-                      All {Icons.ArrowRight}
-                    </Link>
+            {/* MESSAGES & ANNOUNCEMENTS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* MESSAGES */}
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <MessageSquare size={16} className="text-indigo-400" /> Recent Chat
+                  </h3>
+                  {unreadMessages > 0 && (
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                      {unreadMessages} New
+                    </span>
                   )}
                 </div>
-
-                <div style={{ display:'flex', flexDirection:'column', gap:6, flex:1 }}>
+                <div className="space-y-3">
                   {recentMessages.length > 0 ? recentMessages.map((msg, i) => (
-                    <Link href="/candidate/messages" key={i}>
-                      <div className="msg-row">
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                          <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.7)', margin:0 }}>{msg.senderName || 'Coach'}</p>
-                          <span style={{ fontSize:9, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:'0.08em', textTransform:'uppercase' }}>
-                            {new Date(msg.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                          </span>
+                    <Link href="/candidate/messages" key={i} className="block group">
+                      <div className="p-3 rounded-xl bg-white/5 border border-transparent group-hover:bg-indigo-500/10 group-hover:border-indigo-500/20 transition-all">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="text-[11px] font-bold text-slate-300">{msg.senderName || 'Coach'}</p>
+                          <p className="text-[9px] text-slate-500"><Clock size={8} className="inline mr-1" /> {new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</p>
                         </div>
-                        <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:300 }}>{msg.text}</p>
+                        <p className="text-xs text-slate-400 truncate group-hover:text-slate-200">{msg.text}</p>
                       </div>
                     </Link>
                   )) : (
-                    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'24px 0' }}>
-                      <p style={{ fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:300 }}>No recent messages.</p>
+                    <div className="py-10 text-center">
+                      <p className="text-xs text-slate-500 italic">No recent messages</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Announcements */}
-              <div className="fade-up delay-3 card" style={{ padding:28, display:'flex', flexDirection:'column' }}>
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                    <div className="icon-badge" style={{ background:'rgba(99,102,241,0.1)', border:'1px solid rgba(99,102,241,0.2)', color:'#a5b4fc' }}>{Icons.Announcement}</div>
-                    <h3 style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)', margin:0 }}>Announcements</h3>
-                  </div>
-                  {announcements.length > 0 && (
-                    <Link href="/candidate/messages" style={{ fontSize:10, fontWeight:600, color:'rgba(165,180,252,0.5)', letterSpacing:'0.1em', textTransform:'uppercase', display:'flex', alignItems:'center', gap:4 }}>
-                      All {Icons.ArrowRight}
-                    </Link>
-                  )}
+              {/* ANNOUNCEMENTS */}
+              <div className="glass-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <Megaphone size={16} className="text-cyan-400" /> Program Updates
+                  </h3>
                 </div>
-
-                <div style={{ display:'flex', flexDirection:'column', gap:6, flex:1 }}>
+                <div className="space-y-3">
                   {announcements.length > 0 ? announcements.slice(0, 3).map((ann, i) => (
-                    <div key={i} className="msg-row">
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                        <p style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.7)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'65%' }}>{ann.subject || 'Update'}</p>
-                        <span style={{ fontSize:9, fontWeight:600, color:'rgba(255,255,255,0.25)', letterSpacing:'0.08em', textTransform:'uppercase', flexShrink:0 }}>
-                          {new Date(ann.createdAt).toLocaleDateString()}
-                        </span>
+                    <div key={i} className="p-3 rounded-xl bg-white/5 border border-transparent hover:bg-cyan-500/10 hover:border-cyan-500/20 transition-all cursor-default group">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-[11px] font-bold text-slate-300 truncate max-w-[70%]">{ann.subject || 'Program Update'}</p>
+                        <p className="text-[9px] text-slate-500">{new Date(ann.createdAt).toLocaleDateString()}</p>
                       </div>
-                      <p style={{ fontSize:12, color:'rgba(255,255,255,0.35)', margin:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontWeight:300 }}>{ann.text}</p>
+                      <p className="text-xs text-slate-400 truncate group-hover:text-slate-200">{ann.text}</p>
                     </div>
                   )) : (
-                    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'24px 0' }}>
-                      <p style={{ fontSize:12, color:'rgba(255,255,255,0.2)', fontWeight:300 }}>No announcements.</p>
+                    <div className="py-10 text-center">
+                      <p className="text-xs text-slate-500 italic">No recent updates</p>
                     </div>
                   )}
                 </div>
@@ -376,118 +377,71 @@ export default function CandidateDashboardPage() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div style={{ display:'flex', flexDirection:'column', gap:28 }}>
-
-            {/* Progress Card */}
-            <div className="fade-up delay-2 card" style={{ padding:32 }}>
-              <p className="section-label" style={{ textAlign:'center', marginBottom:28 }}>Program Progress</p>
-
-              {/* Arc ring */}
-              <div style={{ position:'relative', width:160, height:160, margin:'0 auto 28px' }}>
-                <svg width="160" height="160" viewBox="0 0 192 192" style={{ transform:'rotate(-90deg)' }}>
-                  {/* Track */}
-                  <circle cx="96" cy="96" r="80" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-                  {/* Progress arc */}
-                  <circle
-                    cx="96" cy="96" r="80" fill="none"
-                    stroke="url(#arcGrad)" strokeWidth="8"
-                    strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 80}
-                    strokeDashoffset={2 * Math.PI * 80 * (1 - stats.percentage / 100)}
-                    className="arc-glow"
-                    style={{ transition:'stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)' }}
-                  />
-                  <defs>
-                    <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#6366f1" />
-                      <stop offset="100%" stopColor="#67e8f9" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                  <span className="serif" style={{ fontSize:36, color:'#fff', lineHeight:1, fontWeight:400 }}>{stats.percentage}</span>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.3)', marginTop:4, fontWeight:500, letterSpacing:'0.12em', textTransform:'uppercase' }}>complete</span>
-                </div>
-              </div>
-
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                <div className="stat-row">
-                  <span style={{ fontSize:10, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', textTransform:'uppercase' }}>Sessions</span>
-                  <span style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)' }}>
-                    {stats.sessions} <span style={{ color:'rgba(255,255,255,0.2)', fontWeight:400 }}>/ {stats.totalSessions}</span>
-                  </span>
-                </div>
-                <div className="stat-row">
-                  <span style={{ fontSize:10, fontWeight:600, color:'rgba(255,255,255,0.3)', letterSpacing:'0.12em', textTransform:'uppercase' }}>Documents</span>
-                  <span style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.85)' }}>
-                    {stats.docs} <span style={{ color:'rgba(255,255,255,0.2)', fontWeight:400 }}>shared</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Next Session Card */}
-            <div className="fade-up delay-3 card" style={{ padding:28, position:'relative', overflow:'hidden', background:'rgba(79,70,229,0.1)', borderColor:'rgba(99,102,241,0.18)' }}>
-              {/* Subtle inner glow */}
-              <div style={{ position:'absolute', top:0, right:0, width:180, height:180, background:'radial-gradient(circle at top right, rgba(99,102,241,0.12) 0%, transparent 70%)', pointerEvents:'none' }} />
-
-              <p className="section-label" style={{ marginBottom:20, position:'relative', zIndex:1 }}>Upcoming Session</p>
-
+          {/* SIDEBAR WIDGETS */}
+          <div className="space-y-8">
+            {/* UPCOMING SESSION */}
+            <div className="glass-card p-8 bg-indigo-500/5 border-indigo-500/20">
+              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Next Meeting</h3>
               {nextSession ? (
-                <div style={{ position:'relative', zIndex:1 }}>
-                  <h3 className="serif" style={{ fontSize:20, color:'#fff', fontWeight:400, lineHeight:1.3, marginBottom:16 }}>
-                    {nextSession.title || 'Career Strategy'}
-                  </h3>
-                  <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:24 }}>
-                    <span style={{ padding:'5px 12px', borderRadius:8, background:'rgba(255,255,255,0.07)', color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:500, border:'1px solid rgba(255,255,255,0.1)' }}>
-                      {new Date(nextSession.date).toLocaleDateString()}
-                    </span>
-                    <span style={{ padding:'5px 12px', borderRadius:8, background:'rgba(255,255,255,0.07)', color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:500, border:'1px solid rgba(255,255,255,0.1)' }}>
-                      {nextSession.time}
-                    </span>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="serif text-2xl text-white mb-2">{nextSession.title || 'Mentorship Sync'}</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-medium text-slate-300">
+                        {new Date(nextSession.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                      </span>
+                      <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-medium text-slate-300">
+                        {nextSession.time}
+                      </span>
+                    </div>
                   </div>
                   {isWithinOneHour(nextSession.date, nextSession.time) ? (
-                    <button className="btn-primary" style={{ background:'linear-gradient(135deg,#4f46e5,#0891b2)' }}>
-                      {Icons.VideoCall} Join Call
+                    <button className="btn-premium w-full justify-center py-4 text-base">
+                      <Video size={20} /> Join Call Now
                     </button>
                   ) : (
-                    <Link href="/candidate/calendar" className="btn-ghost">{Icons.Calendar} View Details</Link>
+                    <Link href="/candidate/calendar" className="btn-outline-premium w-full justify-center py-4">
+                      View in Calendar
+                    </Link>
                   )}
                 </div>
               ) : (
-                <div style={{ textAlign:'center', paddingTop:8, position:'relative', zIndex:1 }}>
-                  <div style={{ width:48, height:48, borderRadius:14, background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.08)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
-                    <svg style={{ width:22, height:22, color:'rgba(165,180,252,0.5)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <div className="text-center py-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4 text-slate-500">
+                    <Calendar size={24} />
                   </div>
-                  <p style={{ fontSize:12, color:'rgba(255,255,255,0.3)', marginBottom:20, fontWeight:300 }}>Your schedule is clear.</p>
-                  <Link href="/candidate/calendar" className="btn-primary">{Icons.Calendar} Book a Session</Link>
+                  <p className="text-sm text-slate-400 mb-6 font-light">No sessions scheduled for today.</p>
+                  <Link href="/candidate/calendar" className="btn-premium w-full justify-center">
+                    Book a Session
+                  </Link>
                 </div>
               )}
             </div>
+
+            {/* QUICK ACTIONS */}
+            <div className="glass-card p-8">
+              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Quick Access</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Link href="/candidate/documents" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
+                  <FileText size={20} className="text-amber-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Documents</span>
+                </Link>
+                <Link href="/candidate/profile" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
+                  <ShieldCheck size={20} className="text-emerald-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile</span>
+                </Link>
+                <Link href="/candidate/messages" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
+                  <MessageSquare size={20} className="text-indigo-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chat</span>
+                </Link>
+                <Link href="/candidate/jobs" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
+                  <ArrowRight size={20} className="text-cyan-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Explore</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* ── QUICK ACCESS ────────────────────────────────────────────────────── */}
-        <div className="fade-up delay-4" style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:16 }}>
-          {[
-            { label:'Messages', icon:Icons.Messages, href:'/candidate/messages', accent:'rgba(14,116,144,0.12)', accentBorder:'rgba(14,116,144,0.2)', iconColor:'#67e8f9' },
-            { label:'Calendar', icon:Icons.Calendar, href:'/candidate/calendar', accent:'rgba(16,185,129,0.1)', accentBorder:'rgba(16,185,129,0.18)', iconColor:'#34d399' },
-            { label:'Jobs', icon:<Building2 size={20} />, href:'/candidate/jobs', accent:'rgba(99,102,241,0.12)', accentBorder:'rgba(99,102,241,0.2)', iconColor:'#a5b4fc' },
-            { label:'Documents', icon:Icons.Documents, href:'/candidate/documents', accent:'rgba(245,158,11,0.1)', accentBorder:'rgba(245,158,11,0.18)', iconColor:'#fbbf24' },
-            { label:'Agreement', icon:Icons.Agreement, href:'/candidate/agreement', accent:'rgba(239,68,68,0.08)', accentBorder:'rgba(239,68,68,0.15)', iconColor:'#f87171' },
-          ].map(item => (
-            <Link key={item.label} href={item.href}>
-              <div className="shortcut-card">
-                <div style={{ width:44, height:44, border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', background:item.accent, border:`1px solid ${item.accentBorder}`, color:item.iconColor, marginBottom:14, transition:'transform 0.2s' }}>
-                  {item.icon}
-                </div>
-                <p style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)', letterSpacing:'0.15em', textTransform:'uppercase', margin:0 }}>{item.label}</p>
-              </div>
-            </Link>
-          ))}
-        </div>
-
       </div>
     </div>
   );
