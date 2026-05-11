@@ -34,21 +34,9 @@ export default function CandidateCalendarPage() {
   const [req, setReq] = useState({ preferredDate: '', preferredTime: '', topic: '', message: '' });
   const [coachName, setCoachName] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [viewMode, setViewMode] = useState('month');
 
   useEffect(() => setMounted(true), []);
-
-  const weekDates = useMemo(() => {
-    const start = new Date(currentDate);
-    const day = start.getDay();
-    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(start.setDate(diff));
-    
-    return Array.from({ length: 5 }).map((_, i) => {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      return d;
-    });
-  }, [currentDate]);
 
   const fetchCalendar = async () => {
     if (!user?.email) return;
@@ -101,37 +89,87 @@ export default function CandidateCalendarPage() {
     }
   };
 
-  const times = useMemo(() => {
-    const t = [];
-    for (let h = 8; h <= 18; h++) t.push(`${String(h).padStart(2, '0')}:00`);
-    return t;
-  }, []);
+  const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
-  const getEventsForCell = (date, time) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${d}`;
-    const cellHour = time.split(':')[0];
-    return events.filter(ev => {
-      if (ev.date !== dateStr) return false;
-      if (ev.time === time) return true;
-      return ev.time && ev.time.split(':')[0] === cellHour;
-    });
-  };
+  const renderCalendar = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
+    const days = [];
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    // Empty cells for the first week
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-32 border border-white/5 bg-white/5 rounded-2xl" />);
+    }
 
-  const isTimeBlocked = (date, time) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${d}`;
-    return coachAvailability.some(a => a.date === dateStr && a.startTime <= time && a.endTime > time && a.blocked);
-  };
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const dayEvents = events.filter(e => e.date === dateStr);
+      const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+      const isBlocked = coachAvailability.some(a => a.date === dateStr && a.blocked);
 
-  const navigateWeek = (direction) => {
-    const next = new Date(currentDate);
-    next.setDate(currentDate.getDate() + (direction * 7));
-    setCurrentDate(next);
+      days.push(
+        <div key={day} className={`h-32 p-2 rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 border border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}>
+          <div className="flex justify-between items-start">
+            <span className={`text-sm font-bold ml-1 ${isToday ? 'text-indigo-400' : 'text-slate-400'}`}>{day}</span>
+            {isBlocked && <Lock size={12} className="text-slate-600 mt-1 mr-1" />}
+          </div>
+          <div className="mt-1 flex-1 space-y-1 overflow-y-auto pr-1">
+            {dayEvents.map((ev, idx) => (
+              <div 
+                key={idx} 
+                className={`px-1.5 py-1 border text-[10px] font-medium rounded-lg truncate w-full ${
+                  ev.status === 'confirmed' 
+                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-100' 
+                    : 'bg-amber-500/20 border-amber-500/30 text-amber-100'
+                }`}
+                title={`${ev.time} - ${ev.title}`}
+              >
+                {ev.time} {ev.title}
+              </div>
+            ))}
+          </div>
+          <button 
+            onClick={() => {
+              setReq({...req, preferredDate: dateStr});
+              setShowRequestModal(true);
+            }}
+            className="absolute bottom-2 right-2 w-6 h-6 bg-indigo-500 text-white rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-indigo-400 font-black shadow-lg"
+          >
+            +
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-medium text-white serif">{monthNames[month]} {year}</h2>
+            <div className="flex gap-1">
+              <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">←</button>
+              <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 text-xs font-bold bg-white/10 text-slate-300 rounded-lg hover:bg-white/20 transition-colors">Today</button>
+              <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors">→</button>
+            </div>
+          </div>
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+            <button onClick={() => setViewMode('month')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${viewMode === 'month' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-sm' : 'text-slate-400 border border-transparent'}`}>Calendar</button>
+            <button onClick={() => setViewMode('list')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${viewMode === 'list' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-sm' : 'text-slate-400 border border-transparent'}`}>List</button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-7 gap-3">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+            <div key={d} className="text-center py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{d}</div>
+          ))}
+          {days}
+        </div>
+      </div>
+    );
   };
 
   if (loading && !events.length) {
@@ -145,6 +183,9 @@ export default function CandidateCalendarPage() {
 
   if (!mounted) return null;
 
+  const times = [];
+  for (let h = 8; h <= 18; h++) times.push(`${String(h).padStart(2, '0')}:00`);
+
   return (
     <div className="relative max-w-7xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <BackgroundGrid />
@@ -157,13 +198,6 @@ export default function CandidateCalendarPage() {
           border: 1px solid rgba(255,255,255,0.06);
           backdrop-filter: blur(24px);
           border-radius: 24px;
-        }
-        .cal-header {
-          display: flex; flex-direction: column; gap: 24px;
-          padding: 32px 36px;
-        }
-        @media(min-width: 768px) {
-          .cal-header { flex-direction: row; align-items: center; justify-content: space-between; }
         }
         .btn-ghost {
           display: flex; align-items: center; gap: 8px;
@@ -183,49 +217,6 @@ export default function CandidateCalendarPage() {
           transition: all 0.25s;
         }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.38); }
-        .nav-group {
-          display: flex; align-items: center; gap: 8px;
-          background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);
-          padding: 4px; border-radius: 14px;
-        }
-        .nav-btn {
-          width: 32px; height: 32px; border-radius: 10px;
-          display: flex; align-items: center; justify-content: center;
-          color: rgba(255,255,255,0.6); cursor: pointer; background: transparent; border: none;
-          transition: all 0.2s;
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
-        .cal-grid {
-          display: grid; grid-template-columns: 70px repeat(5, 1fr);
-          border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .cal-cell {
-          border-right: 1px solid rgba(255,255,255,0.03);
-          border-bottom: 1px solid rgba(255,255,255,0.03);
-          min-height: 90px; padding: 6px; position: relative;
-          transition: background 0.2s;
-        }
-        .cal-cell:last-child { border-right: none; }
-        .cal-cell:hover .add-btn { opacity: 1; transform: scale(1); }
-        .add-btn {
-          position: absolute; inset: 0; margin: auto;
-          width: 32px; height: 32px; border-radius: 10px;
-          background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
-          color: #a5b4fc; display: flex; align-items: center; justify-content: center;
-          opacity: 0; transform: scale(0.9); transition: all 0.2s; cursor: pointer; z-index: 5;
-        }
-        .add-btn:hover { background: rgba(99,102,241,0.25); color: #fff; transform: scale(1.05); }
-        
-        .event-pill {
-          padding: 8px 10px; border-radius: 10px;
-          font-size: 11px; margin-bottom: 6px;
-          position: relative; overflow: hidden; z-index: 10; cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
-          border-left: 3px solid transparent;
-        }
-        .event-pill:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-        .ev-confirmed { background: rgba(16,185,129,0.1); border-left-color: #10b981; border: 1px solid rgba(16,185,129,0.15); border-left-width: 3px; color: #a7f3d0; }
-        .ev-requested { background: rgba(245,158,11,0.1); border-left-color: #f59e0b; border: 1px solid rgba(245,158,11,0.15); border-left-width: 3px; color: #fde68a; }
         
         .modal-overlay {
           position: fixed; inset: 0; z-index: 100;
@@ -251,11 +242,10 @@ export default function CandidateCalendarPage() {
         }
         .input-dark:focus { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.03); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         .input-dark::placeholder { color: rgba(255,255,255,0.2); }
-        .input-dark::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; cursor: pointer; }
       `}</style>
 
       {/* Header */}
-      <div className="glass-card cal-header mb-6">
+      <div className="glass-card p-8 mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest mb-4">
             <CalendarDays size={12} />
@@ -265,121 +255,65 @@ export default function CandidateCalendarPage() {
           <p className="text-slate-400 font-light">Manage your sessions with <span className="text-indigo-300 font-medium">{coachName}</span></p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="nav-group">
-            <button onClick={() => navigateWeek(-1)} className="nav-btn"><ChevronLeft size={18} /></button>
-            <div className="px-4 text-[13px] font-semibold text-slate-200 min-w-[160px] text-center tracking-wide">
-              {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDates[4].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </div>
-            <button onClick={() => navigateWeek(1)} className="nav-btn"><ChevronRight size={18} /></button>
-          </div>
-
-          <div className="flex gap-3 w-full sm:w-auto">
-            <button className="btn-ghost flex-1 sm:flex-none justify-center" onClick={() => setCurrentDate(new Date())}>Today</button>
-            <button className="btn-primary flex-1 sm:flex-none justify-center" onClick={() => setShowRequestModal(true)}>
-              <Plus size={16} /> New Session
-            </button>
-          </div>
+        <div className="flex gap-3 w-full md:w-auto">
+          <button className="btn-primary" onClick={() => setShowRequestModal(true)}>
+            <Plus size={16} /> New Session
+          </button>
         </div>
       </div>
 
-      {/* Calendar Grid */}
-      <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
-            {/* Days Header */}
-            <div className="cal-grid bg-white/[0.01]">
-              <div className="p-4" /> {/* Time column empty header */}
-              {weekDates.map((date) => {
-                const isToday = date.toDateString() === new Date().toDateString();
-                return (
-                  <div key={date.toString()} className={`p-4 text-center border-r border-white/5 last:border-r-0 ${isToday ? 'bg-indigo-500/10' : ''}`}>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">
-                      {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                    </p>
-                    <p className={`text-2xl font-black ${isToday ? 'text-indigo-400' : 'text-slate-200'}`}>
-                      {date.getDate()}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Time Grid */}
-            <div>
-              {times.map((time) => (
-                <div key={time} className="cal-grid group">
-                  <div className="p-4 border-r border-white/5 text-right relative">
-                    <span className="text-[10px] font-bold text-slate-600 tracking-wider group-hover:text-indigo-400 transition-colors block -mt-2">
-                      {time}
-                    </span>
-                  </div>
-                  
-                  {weekDates.map((date) => {
-                    const cellEvents = getEventsForCell(date, time);
-                    const blocked = isTimeBlocked(date, time);
-                    const isToday = date.toDateString() === new Date().toDateString();
-
-                    return (
-                      <div 
-                        key={`${date}-${time}`} 
-                        className={`cal-cell ${isToday ? 'bg-indigo-500/[0.02]' : ''}`}
-                      >
-                        {blocked ? (
-                          <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden rounded-sm">
-                            <div className="w-full h-full" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.2) 10px, rgba(255,255,255,0.2) 20px)' }} />
-                            <div className="absolute inset-0 flex items-center justify-center opacity-50"><Lock size={16} /></div>
-                          </div>
-                        ) : (
-                          cellEvents.length === 0 && (
-                            <button 
-                              className="add-btn"
-                              onClick={() => {
-                                setReq({ ...req, preferredDate: date.toISOString().split('T')[0], preferredTime: time });
-                                setShowRequestModal(true);
-                              }}
-                            >
-                              <Plus size={16} />
-                            </button>
-                          )
-                        )}
-
-                        {cellEvents.map((ev) => (
-                          <div key={ev.id} className={`event-pill ${ev.status === 'confirmed' ? 'ev-confirmed' : 'ev-requested'}`}>
-                            <div className="font-bold text-[11.5px] leading-tight mb-1 truncate text-white">{ev.time} - {ev.title}</div>
-                            <div className="flex items-center gap-1.5 opacity-80 mb-1.5">
-                              {ev.status === 'confirmed' ? <Check size={10} /> : <Clock size={10} />}
-                              <span className="text-[9px] font-bold uppercase tracking-wider">{ev.status}</span>
-                            </div>
-                            {ev.topic && (
-                              <div className="text-[10px] font-medium opacity-70 italic truncate flex items-center gap-1">
-                                <BookOpen size={10} className="shrink-0" /> {ev.topic}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
+      {/* Main Content */}
+      <div className="glass-card p-8">
+        {viewMode === 'month' ? renderCalendar() : (
+          <div className="space-y-6">
+             <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-medium text-white serif">Upcoming Sessions</h2>
+                <button onClick={() => setViewMode('month')} className="text-xs font-bold text-indigo-400 uppercase tracking-widest hover:text-indigo-300">Switch to Calendar</button>
+             </div>
+             <div className="space-y-4">
+               {events.filter(e => new Date(e.date) >= new Date().setHours(0,0,0,0)).sort((a,b) => new Date(a.date) - new Date(b.date)).length > 0 ? 
+                events.filter(e => new Date(e.date) >= new Date().setHours(0,0,0,0)).sort((a,b) => new Date(a.date) - new Date(b.date)).map((ev, idx) => (
+                 <div key={idx} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-white/20 transition-all">
+                   <div className="flex items-center gap-5">
+                     <div className="w-14 h-14 bg-indigo-900/40 rounded-xl flex flex-col items-center justify-center border border-indigo-800 text-indigo-400 shadow-inner">
+                        <span className="text-[10px] font-bold uppercase tracking-widest leading-none mb-1">{new Date(ev.date).toLocaleString('default', { month: 'short' })}</span>
+                        <span className="text-xl font-black leading-none">{new Date(ev.date).getDate()}</span>
+                     </div>
+                     <div>
+                       <p className="font-bold text-white">{ev.title}</p>
+                       <p className="text-xs text-slate-400 font-medium mt-1">{ev.time} • {ev.topic || 'General'}</p>
+                       <div className="flex items-center gap-1.5 mt-2">
+                         <span className={`w-2 h-2 rounded-full ${ev.status === 'confirmed' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                         <span className={`text-[10px] font-bold uppercase tracking-tighter ${ev.status === 'confirmed' ? 'text-emerald-400' : 'text-amber-400'}`}>{ev.status}</span>
+                       </div>
+                     </div>
+                   </div>
+                   {ev.status === 'confirmed' && (
+                     <div className="flex gap-2">
+                       <button className="btn-ghost" style={{ padding: '8px 16px', width: 'auto' }}>Join Meeting</button>
+                     </div>
+                   )}
+                 </div>
+               )) : (
+                 <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl">
+                   <p className="text-slate-500 font-medium">No upcoming sessions.</p>
+                 </div>
+               )}
+             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Legend */}
       <div className="mt-6 flex flex-wrap gap-6 px-4">
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Confirmed
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Confirmed
         </div>
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> Pending Approval
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Pending
         </div>
         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-          <span className="w-4 h-4 rounded-[4px] border border-white/10 flex items-center justify-center opacity-50">
-            <div className="w-full h-full rounded-[3px]" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.4) 3px, rgba(255,255,255,0.4) 6px)' }} />
-          </span> Blocked / Unavailable
+          <Lock size={12} /> Coach Unavailable
         </div>
       </div>
 
@@ -456,7 +390,7 @@ export default function CandidateCalendarPage() {
                 <div className="flex items-start gap-3 p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/20 mt-2">
                   <AlertCircle size={16} className="text-indigo-400 shrink-0 mt-0.5" />
                   <p className="text-[11.5px] text-indigo-200/80 leading-relaxed font-light">
-                    Your session is only confirmed once your coach accepts. You will see it turn green on the calendar when approved.
+                    Your session is only confirmed once your coach accepts.
                   </p>
                 </div>
               </div>

@@ -225,7 +225,7 @@ export default function CoachLanding() {
 
               {/* CTAs */}
               <div style={{ ...fade(380), display:"flex", gap:12, flexWrap:"wrap" }}>
-                <Link href="/signup">
+                <Link href="/login">
                   <button className="bp" style={{ fontSize:15, padding:"15px 36px" }}>Start for free →</button>
                 </Link>
                 <Link href="/login">
@@ -355,7 +355,7 @@ export default function CoachLanding() {
                 <div style={{ display:"flex", gap:10, justifyContent:"center", maxWidth:440, margin:"0 auto" }}>
                   <input type="email" placeholder="Enter your work email" value={email} onChange={e=>setEmail(e.target.value)}
                     style={{ flex:1, padding:"13px 17px", borderRadius:13, fontSize:14, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", color:"#f1f5f9", outline:"none", fontFamily:"'DM Sans',sans-serif" }} />
-                  <Link href={`/signup?email=${encodeURIComponent(email)}`}>
+                  <Link href="/login">
                     <button className="bp" style={{ flexShrink:0, padding:"13px 22px" }}>Get matched</button>
                   </Link>
                 </div>

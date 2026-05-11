@@ -29,7 +29,7 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
   ];
 
   const signInHref = role === 'coach' ? '/coach/login' : '/login';
-  const getStartedHref = role === 'coach' ? '/signup?role=coach' : '/signup';
+  const getStartedHref = role === 'coach' ? '/coach/login' : '/login';
 
   return (
     <>
