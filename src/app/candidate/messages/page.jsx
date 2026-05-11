@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { Send, Paperclip, CheckCheck, MoreVertical, MessageSquare, Circle } from 'lucide-react';
+import { Send, Paperclip, CheckCheck, MoreVertical, MessageSquare, Circle, Sparkles } from 'lucide-react';
 
 const BackgroundGrid = () => (
   <div className="absolute inset-0 pointer-events-none z-[-1] overflow-hidden">
@@ -35,13 +35,46 @@ export default function CandidateMessagesPage() {
 
   useEffect(() => setMounted(true), []);
 
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+
+  const generateAiSuggestions = (lastMsg) => {
+    if (!lastMsg || lastMsg.sender !== 'coach') {
+      setShowAiSuggestions(false);
+      return;
+    }
+    
+    // Mock AI logic for suggestions based on keywords
+    const text = lastMsg.text.toLowerCase();
+    let suggestions = ["Thanks!", "Understood.", "I'll check it."];
+
+    if (text.includes("available") || text.includes("call") || text.includes("meeting")) {
+      suggestions = ["I'm available tomorrow.", "Let's schedule a call.", "What time works?"];
+    } else if (text.includes("resume") || text.includes("profile") || text.includes("document")) {
+      suggestions = ["I'll update it now.", "I've uploaded the file.", "Does it look good?"];
+    } else if (text.includes("good luck") || text.includes("congrats")) {
+      suggestions = ["Thank you!", "Much appreciated.", "I'm excited!"];
+    }
+
+    setAiSuggestions(suggestions);
+    setShowAiSuggestions(true);
+  };
+
   const fetchMessages = async () => {
     if (!authUser?.email) return;
     try {
       const res = await fetch(`/api/candidate/messages?email=${authUser.email}`);
       const data = await res.json();
       if (data.success) {
-        setMessages(data.data.coachMessages || []);
+        const newMsgs = data.data.coachMessages || [];
+        setMessages(newMsgs);
+        
+        // Generate suggestions if last message is from coach
+        if (newMsgs.length > 0) {
+          const lastMsg = newMsgs[newMsgs.length - 1];
+          generateAiSuggestions(lastMsg);
+        }
+
         if (data.data.coachName) {
           setCoachData({
             name: data.data.coachName,
@@ -57,36 +90,13 @@ export default function CandidateMessagesPage() {
     }
   };
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (!authUser) {
-      router.push('/login');
-      return;
-    }
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 2000); 
-    return () => clearInterval(interval);
-  }, [authUser, authLoading]);
+  const handleSendMessage = async (textToSend) => {
+    if (!textToSend.trim() || sending) return;
 
-  useEffect(() => {
-    if (messages.length > lastMsgCount.current) {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
-      }
-      lastMsgCount.current = messages.length;
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!messageInput.trim() || sending) return;
-
-    const text = messageInput;
+    const text = textToSend;
     setMessageInput('');
     setSending(true);
+    setShowAiSuggestions(false);
     
     try {
       const res = await fetch('/api/candidate/messages', {
@@ -112,6 +122,38 @@ export default function CandidateMessagesPage() {
       setSending(false);
     }
   };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    handleSendMessage(messageInput);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    handleSendMessage(suggestion);
+  };
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!authUser) {
+      router.push('/login');
+      return;
+    }
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 2000); 
+    return () => clearInterval(interval);
+  }, [authUser, authLoading]);
+
+  useEffect(() => {
+    if (messages.length > lastMsgCount.current) {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+      lastMsgCount.current = messages.length;
+    }
+  }, [messages]);
 
   const groupedMessages = messages.reduce((groups, message) => {
     const date = new Date(message.createdAt || Date.now()).toDateString();
@@ -231,9 +273,27 @@ export default function CandidateMessagesPage() {
             )}
           </div>
 
-          {/* Input Area */}
+          {/* AI Suggestions & Input Area */}
           <div className="p-5 md:p-6 border-t border-white/5 backdrop-blur-xl">
-            <form onSubmit={handleSendMessage} className="flex gap-4 items-end max-w-4xl mx-auto w-full relative">
+            {showAiSuggestions && aiSuggestions.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6 max-w-4xl mx-auto animate-in slide-in-from-bottom-4 fade-in duration-500">
+                <div className="w-full flex items-center gap-2 mb-1 px-1">
+                  <Sparkles size={12} className="text-indigo-400" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AI Suggested Replies</span>
+                </div>
+                {aiSuggestions.map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium hover:bg-indigo-500/20 hover:border-indigo-500/30 transition-all active:scale-95 shadow-lg"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={handleFormSubmit} className="flex gap-4 items-end max-w-4xl mx-auto w-full relative">
               <button type="button" className="w-12 h-12 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 rounded-2xl flex items-center justify-center transition-all border border-white/5 shadow-inner">
                 <Paperclip size={20} strokeWidth={1.5} />
               </button>
@@ -245,7 +305,7 @@ export default function CandidateMessagesPage() {
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      handleSendMessage(e);
+                      handleSendMessage(messageInput);
                     }
                   }}
                   placeholder={`Message ${coachData.name}...`}

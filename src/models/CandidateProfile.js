@@ -38,6 +38,8 @@ const candidateProfileSchema = new mongoose.Schema(
     phone: { type: String, default: '' },
     address: { type: String, default: '' },
     videoUrl: { type: String, default: '' },
+    resumeUrl: { type: String, default: '' },
+    resumeName: { type: String, default: '' },
     employmentStatus: { type: String, default: 'Unemployed' },
     marketingConsent: { type: Boolean, default: false },
     dataConsent: { type: Boolean, default: false },

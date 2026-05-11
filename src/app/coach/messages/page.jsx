@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 
+import { Search, Phone, MoreVertical, Send, MessageSquare, Sparkles } from 'lucide-react';
+
 const AvatarCircle = ({ name, avatarUrl, size = 40, className = '' }) => {
   const [imgError, setImgError] = useState(false);
   if (avatarUrl && !imgError) {
@@ -41,6 +43,31 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef(null);
 
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+
+  const generateAiSuggestions = (lastMsg) => {
+    if (!lastMsg || lastMsg.sender !== 'candidate') {
+      setShowAiSuggestions(false);
+      return;
+    }
+    
+    // Coach-specific mock AI suggestions
+    const text = lastMsg.text.toLowerCase();
+    let suggestions = ["Great!", "Keep it up.", "Happy to help."];
+
+    if (text.includes("available") || text.includes("time") || text.includes("schedule")) {
+      suggestions = ["I'm free tomorrow afternoon.", "Does Wednesday work for you?", "Let's sync up on Friday."];
+    } else if (text.includes("thanks") || text.includes("thank you")) {
+      suggestions = ["You're very welcome!", "Anytime! Happy to help.", "Let me know if you need more."];
+    } else if (text.includes("resume") || text.includes("update") || text.includes("profile")) {
+      suggestions = ["I'll review it and get back.", "Great progress on the profile.", "Looks much better now."];
+    }
+
+    setAiSuggestions(suggestions);
+    setShowAiSuggestions(true);
+  };
+
   const fetchConversations = async () => {
     try {
       const res = await fetch('/api/coach/messages', {
@@ -69,7 +96,14 @@ export default function MessagesPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMessages(data.messages || []);
+        const newMsgs = data.messages || [];
+        setMessages(newMsgs);
+        
+        // Generate AI suggestions for the coach
+        if (newMsgs.length > 0) {
+          const lastMsg = newMsgs[newMsgs.length - 1];
+          generateAiSuggestions(lastMsg);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -103,12 +137,14 @@ export default function MessagesPage() {
     }
   }, [messages]);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!messageInput.trim() || !selectedConvId || sending) return;
-    const text = messageInput;
+  const handleSendMessage = async (textToSend) => {
+    const text = typeof textToSend === 'string' ? textToSend : messageInput;
+    if (!text.trim() || !selectedConvId || sending) return;
+    
     setMessageInput('');
     setSending(true);
+    setShowAiSuggestions(false);
+
     try {
       const res = await fetch('/api/coach/messages', {
         method: 'POST',
@@ -128,6 +164,15 @@ export default function MessagesPage() {
     } finally {
       setSending(false);
     }
+  };
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    handleSendMessage(messageInput);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    handleSendMessage(suggestion);
   };
 
   const filteredConversations = conversations.filter(c =>
@@ -165,10 +210,14 @@ export default function MessagesPage() {
           <div className="p-5 border-b border-white/10">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-lg font-bold text-white">Conversations</h1>
-              <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">📢</button>
+              <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
+                <Send size={14} />
+              </button>
             </div>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">🔍</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                <Search size={14} />
+              </span>
               <input
                 type="text"
                 placeholder="Search..."
@@ -236,8 +285,12 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">📞</button>
-                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">⋮</button>
+                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
+                    <Phone size={14} />
+                  </button>
+                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
+                    <MoreVertical size={14} />
+                  </button>
                 </div>
               </div>
 
@@ -253,18 +306,18 @@ export default function MessagesPage() {
                     {msgs.map((msg, i) => {
                       const isMe = msg.sender === 'coach';
                       return (
-                        <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-2.5`}>
+                        <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-2.5 animate-in slide-in-from-bottom-2`}>
                           {!isMe && <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={28} />}
                           <div className={`max-w-[65%] space-y-1`}>
-                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${isMe ? 'bg-sky-500 text-white rounded-br-sm' : 'bg-white/8 text-slate-200 border border-white/10 rounded-bl-sm'}`}
+                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${isMe ? 'bg-sky-500 text-white rounded-br-sm shadow-lg shadow-sky-500/20' : 'bg-white/8 text-slate-200 border border-white/10 rounded-bl-sm'}`}
                               style={isMe ? {} : { background: 'rgba(255,255,255,0.07)' }}>
                               {msg.text}
                             </div>
                             <div className={`flex items-center gap-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span className="text-[10px] text-slate-500">
+                              <span className="text-[10px] text-slate-500 uppercase tracking-tighter">
                                 {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              {isMe && <span className="text-[10px] text-sky-400">✓✓</span>}
+                              {isMe && <span className="text-[10px] text-sky-400 font-bold">✓✓</span>}
                             </div>
                           </div>
                         </div>
@@ -274,16 +327,34 @@ export default function MessagesPage() {
                 ))}
               </div>
 
-              {/* Input */}
+              {/* Input & Suggestions */}
               <div className="p-4 border-t border-white/10" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                <form onSubmit={handleSendMessage} className="flex items-end gap-3">
+                {showAiSuggestions && aiSuggestions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-bottom-4 fade-in duration-500 px-2">
+                    <div className="w-full flex items-center gap-2 mb-1 px-1">
+                      <Sparkles size={12} className="text-sky-400" />
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mentor Suggestions</span>
+                    </div>
+                    {aiSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs font-medium hover:bg-sky-500/20 hover:border-sky-500/30 transition-all active:scale-95 shadow-lg"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <form onSubmit={handleFormSubmit} className="flex items-end gap-3">
                   <div className="flex-1 relative">
                     <textarea
                       rows={1}
                       value={messageInput}
                       onChange={e => setMessageInput(e.target.value)}
                       onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(e); }
+                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(messageInput); }
                       }}
                       placeholder="Type a message..."
                       className="w-full p-4 pr-14 rounded-xl bg-white/5 border border-white/10 outline-none text-white placeholder-slate-500 text-sm focus:border-sky-500/50 transition-all resize-none max-h-32"
@@ -291,10 +362,10 @@ export default function MessagesPage() {
                     <button
                       type="submit"
                       disabled={!messageInput.trim() || sending}
-                      className="absolute right-2 bottom-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-40"
+                      className="absolute right-2 bottom-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-40 hover:scale-105 active:scale-95"
                       style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1)', boxShadow: '0 4px 16px rgba(2,132,199,0.3)' }}
                     >
-                      <span className="text-white text-sm font-bold">→</span>
+                      <Send size={16} className="text-white" />
                     </button>
                   </div>
                 </form>
@@ -302,10 +373,12 @@ export default function MessagesPage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-2xl">💬</div>
+              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
+                <MessageSquare size={32} />
+              </div>
               <div className="text-center">
                 <h2 className="text-white font-bold text-lg">Your Messages</h2>
-                <p className="text-slate-500 text-sm mt-1 max-w-xs">Select a candidate from the left panel to view messages.</p>
+                <p className="text-slate-500 text-sm mt-1 max-w-xs font-light">Select a candidate from the left panel to view messages.</p>
               </div>
             </div>
           )}

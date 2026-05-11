@@ -64,8 +64,15 @@ export async function GET(request) {
       dataConsent: profile?.dataConsent || false,
       startDate: profile?.programStartDate ? new Date(profile.programStartDate).toISOString().split('T')[0] : '',
       finishDate: profile?.programFinishDate ? new Date(profile.programFinishDate).toISOString().split('T')[0] : '',
-      industries: profile?.industryPreferences || []
+      industries: profile?.industryPreferences || [],
+      coachName: profile?.selectedCoachName || '',
+      bio: profile?.aboutYourself || '',
+      resumeUrl: profile?.resumeUrl || '',
+      resumeName: profile?.resumeName || ''
     };
+
+    console.log('GET /api/candidate/profile - retrieved profile:', profile);
+    console.log('GET /api/candidate/profile - sending data:', data);
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
@@ -103,6 +110,9 @@ export async function PUT(request) {
       dataConsent: body.dataConsent,
       industryPreferences: body.industries || [],
       skills: body.skills || [],
+      aboutYourself: body.bio || '',
+      resumeUrl: body.resumeUrl || '',
+      resumeName: body.resumeName || '',
       updatedAt: new Date()
     };
     

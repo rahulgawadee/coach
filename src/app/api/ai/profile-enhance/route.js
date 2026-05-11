@@ -48,7 +48,9 @@ Profile:\n${JSON.stringify(profile || {}, null, 2)}`;
 
     let parsed;
     try {
-      parsed = JSON.parse(content);
+      // Clean up markdown code blocks if present
+      const cleanContent = content.replace(/```json\n?|```/g, '').trim();
+      parsed = JSON.parse(cleanContent);
     } catch {
       parsed = {
         skills: ['Communication', 'Problem Solving', 'Teamwork'],
