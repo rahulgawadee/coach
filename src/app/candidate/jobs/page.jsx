@@ -1,8 +1,24 @@
 'use client';
 
-import React from 'react';
-import Link from 'next/link';
-import { Building2, Rocket, Briefcase, Zap, Globe, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  Building2, 
+  MapPin, 
+  Clock, 
+  DollarSign, 
+  Search, 
+  Filter, 
+  ChevronRight, 
+  CheckCircle2, 
+  X, 
+  Upload, 
+  Link as LinkIcon,
+  Briefcase,
+  Zap,
+  Globe,
+  Sparkles,
+  ArrowRight
+} from 'lucide-react';
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
@@ -20,83 +36,446 @@ const BackgroundGrid = () => (
   </div>
 );
 
+const DUMMY_JOBS = [
+  {
+    id: 1,
+    title: "Senior Full Stack Engineer",
+    company: "TechVance AI",
+    location: "Remote / San Francisco",
+    type: "Full-time",
+    salary: "$140k - $190k",
+    posted: "2 days ago",
+    tags: ["React", "Node.js", "Python"],
+    description: "Lead the development of our core AI-powered learning platform. You'll work with Next.js and distributed systems."
+  },
+  {
+    id: 2,
+    title: "Product Designer",
+    company: "CreativeFlow",
+    location: "Remote / London",
+    type: "Full-time",
+    salary: "$90k - $130k",
+    posted: "5 hours ago",
+    tags: ["Figma", "UI/UX", "System Design"],
+    description: "Craft beautiful, intuitive experiences for our global user base. Focus on glassmorphic aesthetics and motion design."
+  },
+  {
+    id: 3,
+    title: "Marketing Manager",
+    company: "GrowthLabs",
+    location: "New York, NY",
+    type: "Hybrid",
+    salary: "$110k - $150k",
+    posted: "1 day ago",
+    tags: ["SEO", "Content", "Ads"],
+    description: "Scale our user acquisition channels and build a world-class brand identity for a fast-growing startup."
+  },
+  {
+    id: 4,
+    title: "Data Scientist (AI)",
+    company: "NeuralNet Systems",
+    location: "Remote / Austin",
+    type: "Full-time",
+    salary: "$160k - $210k",
+    posted: "3 days ago",
+    tags: ["PyTorch", "MLOps", "NLP"],
+    description: "Implement cutting-edge LLM architectures and optimize our internal matching algorithms."
+  },
+  {
+    id: 5,
+    title: "Frontend Developer",
+    company: "PixelPerfect",
+    location: "Berlin, DE",
+    type: "Contract",
+    salary: "$80 - $120 / hr",
+    posted: "1 week ago",
+    tags: ["Tailwind", "TypeScript", "Three.js"],
+    description: "Build immersive 3D web experiences using modern frontend technologies and high-performance animations."
+  }
+];
+
 export default function CandidateJobsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [applying, setApplying] = useState(null); // 'quick' | 'custom'
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
+  const handleQuickApply = (jobId) => {
+    setIsSuccess(true);
+    setTimeout(() => {
+      setIsSuccess(false);
+      setApplying(null);
+      setSelectedJob(null);
+    }, 3000);
+  };
+
+  const handleCustomApply = (e) => {
+    e.preventDefault();
+    setIsSuccess(true);
+    setTimeout(() => {
+      setIsSuccess(false);
+      setApplying(null);
+      setSelectedJob(null);
+    }, 3000);
+  };
+
+  const filteredJobs = DUMMY_JOBS.filter(job => 
+    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    job.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  if (!mounted) return null;
+
   return (
-    <div className="relative min-h-[80vh] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-700">
+    <div className="relative min-h-screen font-['DM_Sans',sans-serif] text-slate-200 pb-20">
       <BackgroundGrid />
-      
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
-        .glass-panel {
-          background: rgba(255,255,255,0.015);
+        .glass-card {
+          background: rgba(255,255,255,0.02);
           border: 1px solid rgba(255,255,255,0.06);
           backdrop-filter: blur(24px);
-          border-radius: 32px;
+          border-radius: 24px;
+        }
+        .job-card {
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .job-card:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(99,102,241,0.3);
+          transform: translateY(-2px);
         }
         .btn-primary {
-          display: flex; align-items: center; justify-content: center; gap: 10px;
-          padding: 16px 32px; border-radius: 16px;
-          font-size: 14px; font-weight: 700; cursor: pointer; border: none;
           background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-          color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+          box-shadow: 0 4px 15px rgba(79,70,229,0.3);
           transition: all 0.2s;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,0.35); }
-        .feature-card {
-          padding: 24px; border-radius: 20px;
-          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
-          transition: all 0.3s;
+        .btn-primary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 25px rgba(79,70,229,0.4);
         }
-        .feature-card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.04); border-color: rgba(99,102,241,0.2); }
+        .modal-overlay {
+          background: rgba(8, 8, 15, 0.8);
+          backdrop-filter: blur(12px);
+          animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-content {
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        input, select, textarea {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 12px;
+          padding: 12px 16px;
+          color: white;
+          outline: none;
+          transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+          border-color: rgba(99,102,241,0.5);
+        }
       `}</style>
 
-      <div className="max-w-3xl w-full space-y-12">
-        {/* Hero Section */}
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-[0.2em] mb-4">
-            <Sparkles size={12} className="animate-pulse" />
-            Coming Soon
+      {/* Header Section */}
+      <div className="max-w-7xl mx-auto px-6 pt-12 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+              <Sparkles size={12} className="text-indigo-400" />
+              Opportunities
+            </div>
+            <h1 className="serif text-4xl md:text-5xl text-white tracking-tight">
+              Find Your Next <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Career Leap</span>
+            </h1>
+            <p className="text-slate-400 font-light max-w-xl">
+              Curated roles from world-class tech companies and startups. Applied directly via Coach AI.
+            </p>
           </div>
-          
-          <h1 className="serif text-5xl md:text-6xl text-white leading-tight">
-            The Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 italic">Job Matching</span>
-          </h1>
-          
-          <p className="text-slate-400 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
-            We're building an AI-powered job board that connects you with opportunities that perfectly match your skills, values, and career goals.
-          </p>
+          <div className="flex gap-4 w-full md:w-auto">
+            <div className="relative flex-1 md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search jobs, skills, companies..." 
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-slate-400">
+              <Filter size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Features Preview */}
-        <div className="grid md:grid-cols-3 gap-6 pt-8">
-          {[
-            { icon: Rocket, title: "AI Matching", desc: "Our algorithm finds jobs you'll actually love." },
-            { icon: Globe, title: "Global Reach", desc: "Remote and local roles from top tech companies." },
-            { icon: Zap, title: "Direct Connect", desc: "Skip the line and connect with hiring managers." }
-          ].map((item, i) => (
-            <div key={i} className="feature-card group">
-              <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-4 group-hover:bg-indigo-500/20 transition-all">
-                <item.icon size={22} className="text-indigo-400" />
+        {/* Jobs Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredJobs.map((job) => (
+            <div key={job.id} className="glass-card job-card p-6 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <Building2 size={24} />
+                  </div>
+                  <div className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+                    {job.type}
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-1">{job.title}</h3>
+                <p className="text-indigo-400 font-medium text-sm mb-4">{job.company}</p>
+                
+                <div className="flex flex-wrap gap-4 text-xs text-slate-400 mb-6">
+                  <span className="flex items-center gap-1.5"><MapPin size={14} className="text-slate-500" /> {job.location}</span>
+                  <span className="flex items-center gap-1.5"><DollarSign size={14} className="text-slate-500" /> {job.salary}</span>
+                  <span className="flex items-center gap-1.5"><Clock size={14} className="text-slate-500" /> {job.posted}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {job.tags.map(tag => (
+                    <span key={tag} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-semibold text-slate-300">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <h3 className="text-white font-bold text-sm mb-2">{item.title}</h3>
-              <p className="text-slate-500 text-xs leading-relaxed">{item.desc}</p>
+
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <button 
+                  onClick={() => setSelectedJob(job)}
+                  className="text-indigo-400 text-sm font-bold flex items-center gap-2 hover:gap-3 transition-all"
+                >
+                  View Details <ChevronRight size={16} />
+                </button>
+                <button 
+                  onClick={() => { setSelectedJob(job); setApplying('options'); }}
+                  className="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold text-white"
+                >
+                  Apply Now
+                </button>
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Action */}
-        <div className="pt-8">
-          <Link href="/candidate/dashboard" className="btn-primary inline-flex">
-            Back to Dashboard <Rocket size={18} />
-          </Link>
-        </div>
+        {filteredJobs.length === 0 && (
+          <div className="glass-card py-20 text-center space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-500">
+              <Search size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white">No jobs found</h3>
+            <p className="text-slate-500">Try adjusting your search terms or filters.</p>
+          </div>
+        )}
       </div>
 
-      {/* Background Decorative Element */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] pointer-events-none opacity-20">
-        <div className="absolute inset-0 rounded-full bg-indigo-500/5 blur-[120px]" />
-      </div>
+      {/* Application Success State */}
+      {isSuccess && (
+        <div className="fixed inset-0 z-[100] modal-overlay flex items-center justify-center">
+          <div className="glass-card p-12 text-center space-y-6 max-w-md modal-content">
+            <div className="w-20 h-20 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
+              <CheckCircle2 size={48} />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-white serif">Application Sent!</h2>
+              <p className="text-slate-400">We've submitted your details to {selectedJob?.company}. Good luck!</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Apply Options Modal */}
+      {applying === 'options' && (
+        <div className="fixed inset-0 z-[90] modal-overlay flex items-center justify-center p-6">
+          <div className="glass-card w-full max-w-lg overflow-hidden modal-content">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-bold text-white serif">Apply to {selectedJob?.company}</h3>
+                <p className="text-slate-400 text-sm">{selectedJob?.title}</p>
+              </div>
+              <button onClick={() => setApplying(null)} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={20} /></button>
+            </div>
+            <div className="p-8 space-y-4">
+              <button 
+                onClick={() => handleQuickApply(selectedJob.id)}
+                className="w-full p-6 text-left glass-card border-indigo-500/30 bg-indigo-500/5 hover:bg-indigo-500/10 transition-all group"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h4 className="text-white font-bold flex items-center gap-2">
+                      <Zap size={16} className="text-amber-400 fill-amber-400" />
+                      Quick Apply
+                    </h4>
+                    <p className="text-slate-400 text-xs">Apply instantly using your Coach profile and uploaded resume.</p>
+                  </div>
+                  <ArrowRight size={20} className="text-slate-500 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+
+              <button 
+                onClick={() => setApplying('custom')}
+                className="w-full p-6 text-left glass-card hover:bg-white/5 transition-all group"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="space-y-1">
+                    <h4 className="text-white font-bold flex items-center gap-2">
+                      <Sparkles size={16} className="text-indigo-400" />
+                      Custom Apply
+                    </h4>
+                    <p className="text-slate-400 text-xs">Customize your application for this specific role.</p>
+                  </div>
+                  <ArrowRight size={20} className="text-slate-500 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Apply Form Modal */}
+      {applying === 'custom' && (
+        <div className="fixed inset-0 z-[90] modal-overlay flex items-center justify-center p-6 overflow-y-auto">
+          <div className="glass-card w-full max-w-2xl my-auto modal-content">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center sticky top-0 bg-[#0d0c1e]/80 backdrop-blur-xl z-10">
+              <div>
+                <h3 className="text-2xl font-bold text-white serif">Application Details</h3>
+                <p className="text-slate-400 text-sm">Applying for {selectedJob?.title} at {selectedJob?.company}</p>
+              </div>
+              <button onClick={() => setApplying('options')} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={20} /></button>
+            </div>
+            
+            <form onSubmit={handleCustomApply} className="p-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Full Name</label>
+                  <input type="text" placeholder="John Doe" required />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Email Address</label>
+                  <input type="email" placeholder="john@example.com" required />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Phone Number</label>
+                <input type="tel" placeholder="+1 (555) 000-0000" />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Resume / CV</label>
+                <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center space-y-2 hover:border-indigo-500/30 transition-all cursor-pointer bg-white/[0.01]">
+                  <Upload size={24} className="mx-auto text-slate-500 mb-2" />
+                  <p className="text-sm text-slate-300 font-medium">Click to upload or drag and drop</p>
+                  <p className="text-xs text-slate-500">PDF, DOCX (Max 10MB)</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2 text-slate-400">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">LinkedIn URL</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+                    <input type="url" placeholder="linkedin.com/in/..." className="pl-10 w-full" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 text-slate-400">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Portfolio / Github</label>
+                  <div className="relative">
+                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+                    <input type="url" placeholder="github.com/..." className="pl-10 w-full" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Why do you want to join?</label>
+                <textarea rows={4} placeholder="Tell us what excites you about this role..." required />
+              </div>
+
+              <button type="submit" className="w-full btn-primary py-4 rounded-2xl font-bold text-base mt-4">
+                Submit Application
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Job Detail Modal (Optional Sidebar/Overlay) */}
+      {selectedJob && !applying && (
+        <div className="fixed inset-0 z-[90] modal-overlay flex justify-end p-0 md:p-4">
+          <div className="glass-card w-full max-w-2xl bg-[#0d0c1e] h-full overflow-y-auto modal-content rounded-none md:rounded-3xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-start sticky top-0 bg-[#0d0c1e]/80 backdrop-blur-xl z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <Building2 size={28} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white serif">{selectedJob.title}</h2>
+                  <p className="text-indigo-400 font-medium">{selectedJob.company}</p>
+                </div>
+              </div>
+              <button onClick={() => setSelectedJob(null)} className="p-2 hover:bg-white/5 rounded-full text-slate-500"><X size={24} /></button>
+            </div>
+
+            <div className="p-8 space-y-10">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Salary Range</p>
+                  <p className="text-sm font-semibold text-white">{selectedJob.salary}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Location</p>
+                  <p className="text-sm font-semibold text-white">{selectedJob.location}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Commitment</p>
+                  <p className="text-sm font-semibold text-white">{selectedJob.type}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Posted</p>
+                  <p className="text-sm font-semibold text-white">{selectedJob.posted}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-white font-bold uppercase text-xs tracking-widest">Role Description</h4>
+                <p className="text-slate-400 leading-relaxed">
+                  {selectedJob.description}
+                  <br /><br />
+                  As a {selectedJob.title} at {selectedJob.company}, you will be part of a dynamic team pushing the boundaries of technology. We look for individuals who are passionate about their craft and eager to make a global impact.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-white font-bold uppercase text-xs tracking-widest">Key Technologies</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedJob.tags.map(tag => (
+                    <span key={tag} className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-semibold text-indigo-300">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-8 flex gap-4">
+                <button 
+                  onClick={() => setApplying('options')}
+                  className="flex-1 btn-primary py-4 rounded-2xl font-bold"
+                >
+                  Apply for this position
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
