@@ -157,6 +157,11 @@ export default function LoginPage() {
           border-bottom-color: #6366F1;
           background: rgba(255,255,255,0.03);
         }
+        @media (max-width: 480px) {
+          .glass-card { border-radius: 0; border-left: none; border-right: none; }
+          h1 { font-size: 1.75rem !important; }
+          div[style*="padding: 2.5rem"] { padding: 1.5rem !important; }
+        }
       `}</style>
 
       <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1 }}>

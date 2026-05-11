@@ -29,7 +29,10 @@ export default function CoachShell({ children }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
-  useEffect(() => { setIsMounted(true); }, []);
+  useEffect(() => { 
+    setIsMounted(true); 
+    if (window.innerWidth < 768) setIsSidebarOpen(false);
+  }, []);
 
   const useShell = useMemo(() => {
     if (!pathname?.startsWith('/coach/')) return false;
@@ -222,11 +225,17 @@ export default function CoachShell({ children }) {
           min-height: calc(100vh - 68px);
           padding: ${pathname === '/coach/messages' ? '0' : '32px 32px 48px'};
           transition: margin-left 0.28s cubic-bezier(0.4,0,0.2,1);
+          margin-left: 0 !important;
         }
-        @media(max-width:767px){ .shell-content{ padding: ${pathname === '/coach/messages' ? '0' : '20px 16px 40px'}; margin-left:0 !important; } }
+        @media(min-width:768px){
+          .shell-content {
+            margin-left: var(--sidebar-width) !important;
+          }
+        }
+        @media(max-width:767px){ .shell-content{ padding: ${pathname === '/coach/messages' ? '0' : '20px 16px 40px'}; } }
       `}</style>
 
-      <div className="shell-root">
+      <div className="shell-root" style={{ '--sidebar-width': isSidebarOpen ? '256px' : '72px' }}>
         <CoachSidebar
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(p => !p)}
@@ -235,10 +244,21 @@ export default function CoachShell({ children }) {
 
         <div
           className="shell-content"
-          style={{ marginLeft: isSidebarOpen ? 256 : 72 }}
         >
           {/* ── Sticky Header ───────────────────────────────────── */}
-          <header className="shell-header" style={{ marginLeft: isSidebarOpen ? 256 : 72, width: `calc(100% - ${isSidebarOpen ? 256 : 72}px)`, position:'fixed', top:0, left:0 }}>
+          <header className="shell-header" style={{ 
+            left: 'auto',
+            right: 0,
+            width: '100%',
+            position: 'fixed',
+            top: 0,
+            zIndex: 50
+          }}>
+            <style>{`
+              @media(min-width:768px) {
+                .shell-header { width: calc(100% - var(--sidebar-width)) !important; }
+              }
+            `}</style>
             <button className="shell-hamburger" onClick={() => setIsSidebarOpen(p => !p)} aria-label="Toggle sidebar">
               <Menu size={18} strokeWidth={1.8} />
             </button>

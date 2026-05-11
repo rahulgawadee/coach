@@ -182,35 +182,41 @@ export default function CandidateJobsPage() {
         input:focus, select:focus, textarea:focus {
           border-color: rgba(99,102,241,0.5);
         }
+        @media (max-width: 640px) {
+          .serif { font-size: 2.2rem !important; }
+          .glass-card { border-radius: 20px; }
+          .hero-padding { padding: 2.5rem 1.5rem !important; }
+        }
       `}</style>
 
       {/* Header Section */}
       <div className="max-w-7xl mx-auto px-6 pt-12 mb-12">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8 mb-12">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
               <Sparkles size={12} className="text-indigo-400" />
               Opportunities
             </div>
-            <h1 className="serif text-4xl md:text-5xl text-white tracking-tight">
-              Find Your Next <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Career Leap</span>
+            <h1 className="serif text-4xl md:text-5xl lg:text-6xl text-white tracking-tight leading-[1.1]">
+              Find Your Next <br className="hidden sm:block" />
+              <span className="italic text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Career Leap</span>
             </h1>
-            <p className="text-slate-400 font-light max-w-xl">
+            <p className="text-slate-400 font-light max-w-xl text-sm sm:text-base">
               Curated roles from world-class tech companies and startups. Applied directly via Coach AI.
             </p>
           </div>
-          <div className="flex gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:w-80">
+          <div className="flex gap-4 w-full lg:w-auto">
+            <div className="relative flex-1 lg:w-96">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
               <input 
                 type="text" 
-                placeholder="Search jobs, skills, companies..." 
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-sm"
+                placeholder="Search jobs, skills..." 
+                className="w-full pl-12 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-2xl text-sm focus:bg-white/10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-slate-400">
+            <button className="p-3.5 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-slate-400">
               <Filter size={20} />
             </button>
           </div>

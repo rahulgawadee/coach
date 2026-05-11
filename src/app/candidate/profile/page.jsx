@@ -663,6 +663,12 @@ export default function ProfilePage() {
           display: block; font-size: 11px; font-weight: 700; color: #94a3b8;
           text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; padding-left: 4px;
         }
+        @media (max-width: 640px) {
+          .serif { font-size: 2rem !important; }
+          .glass-panel { padding: 1.5rem !important; border-radius: 20px; }
+          .btn-primary, .btn-ai { width: 100%; }
+          .section-title { font-size: 10px; }
+        }
       `}</style>
 
       {status && (
@@ -690,7 +696,7 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="glass-panel p-10 md:p-12 flex flex-col md:flex-row md:items-center justify-between gap-10 shadow-2xl shadow-black/40 relative overflow-hidden">
+      <div className="glass-panel p-6 sm:p-10 md:p-12 flex flex-col lg:flex-row lg:items-center justify-between gap-10 shadow-2xl shadow-black/40 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
@@ -729,17 +735,17 @@ export default function ProfilePage() {
             <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 mb-6">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
                 <ShieldCheck size={12} />
-                Verified Candidate
+                <span className="whitespace-nowrap">Verified Candidate</span>
               </div>
               {form.coachName && (
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-widest">
                   <Briefcase size={12} />
-                  Coach: {form.coachName}
+                  <span className="whitespace-nowrap">Coach: {form.coachName}</span>
                 </div>
               )}
             </div>
-            <h1 className="serif text-5xl text-white leading-tight mb-4 font-medium tracking-tight">Your Profile</h1>
-            <p className="text-slate-400 font-light text-base max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
+            <h1 className="serif text-4xl sm:text-5xl text-white leading-tight mb-4 font-medium tracking-tight">Your Profile</h1>
+            <p className="text-slate-400 font-light text-sm sm:text-base max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
 
             <div className="mt-8 flex flex-wrap justify-center md:justify-start gap-4">
               {form.videoUrl && !selectedVideo && (
@@ -767,12 +773,12 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 relative z-10">
-          <button className="btn-ai w-full sm:w-auto min-w-[180px] h-14" onClick={() => setAiModalOpen(true)}>
-            <Sparkles size={18} /> Enhance with AI
+        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 relative z-10 w-full sm:w-auto">
+          <button className="btn-ai w-full sm:w-auto sm:min-w-[180px] h-14" onClick={() => setAiModalOpen(true)}>
+            <Sparkles size={18} /> <span className="whitespace-nowrap">Enhance with AI</span>
           </button>
-          <button className="btn-primary w-full sm:w-auto min-w-[180px] h-14" onClick={saveProfile}>
-            <Save size={18} /> Save All Changes
+          <button className="btn-primary w-full sm:w-auto sm:min-w-[180px] h-14" onClick={saveProfile}>
+            <Save size={18} /> <span className="whitespace-nowrap">Save All Changes</span>
           </button>
         </div>
       </div>
@@ -992,12 +998,12 @@ export default function ProfilePage() {
               <h2 className="section-title mb-1"><FileText size={16} className="text-indigo-400" /> Resume & Professional Documents</h2>
               <p className="text-slate-400 text-sm font-light">Upload your existing resume or let Elevate AI generate one for you.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => resumeFileRef.current?.click()}
                 disabled={isUploading}
-                className="btn-outline"
+                className="btn-outline w-full sm:w-auto"
               >
                 <Upload size={16} /> Upload Resume
                 <input
@@ -1012,7 +1018,7 @@ export default function ProfilePage() {
                 type="button"
                 onClick={generateResumeAI}
                 disabled={isUploading}
-                className="btn-ai"
+                className="btn-ai w-full sm:w-auto"
               >
                 <Sparkles size={16} /> Generate with AI
               </button>

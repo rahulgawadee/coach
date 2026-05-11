@@ -71,11 +71,18 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
         .nav-btn-primary:hover{transform:translateY(-1px) scale(1.03);box-shadow:0 0 36px rgba(99,102,241,.55),0 6px 18px rgba(99,102,241,.38)}
         .mob-link{
           display:block;padding:12px 20px;
-          font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+          font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
           color:rgba(148,163,184,.85);text-decoration:none;
-          border-radius:10px;transition:all .2s ease;
+          border-radius:12px;transition:all .2s ease;
         }
-        .mob-link:hover{color:#f1f5f9;background:rgba(255,255,255,.05)}
+        .mob-link:hover{color:#fff;background:rgba(255,255,255,0.06);transform:translateX(4px)}
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .mobile-drawer {
+          animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
       `}</style>
 
       <nav style={{
@@ -147,20 +154,24 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
 
         {/* Mobile drawer */}
         {!isAuthPage && mobileOpen && (
-          <div style={{
-            borderTop: '1px solid rgba(255,255,255,.06)',
-            padding: '12px 0 20px',
-            background: 'rgba(8,8,15,.95)',
+          <div className="mobile-drawer" style={{
+            borderTop: '1px solid rgba(255,255,255,.08)',
+            padding: '20px',
+            background: 'rgba(8,8,15,0.98)',
+            backdropFilter: 'blur(30px)',
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            display: 'flex', flexDirection: 'column', gap: '8px'
           }}>
             {links.map(link => (
               <a key={link.label} href={link.href} className="mob-link"
                 onClick={() => setMobileOpen(false)}>{link.label}</a>
             ))}
-            <div style={{ display: 'flex', gap: 10, padding: '12px 20px 0' }}>
-              <Link href={signInHref} className="nav-btn-ghost" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
+            <div style={{ display: 'flex', gap: 12, marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
+              <Link href={signInHref} className="nav-btn-ghost" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }} onClick={() => setMobileOpen(false)}>
                 Sign in
               </Link>
-              <Link href={getStartedHref} className="nav-btn-primary" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setMobileOpen(false)}>
+              <Link href={getStartedHref} className="nav-btn-primary" style={{ flex: 1, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '14px' }} onClick={() => setMobileOpen(false)}>
                 Get started →
               </Link>
             </div>

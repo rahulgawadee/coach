@@ -300,6 +300,12 @@ export default function SignupPage() {
         }
         .step-dot.active { background: #6366F1; box-shadow: 0 0 10px #6366F1; }
         .step-dot.completed { background: #8B5CF6; }
+        @media (max-width: 480px) {
+          .glass-card { border-radius: 0; border-left: none; border-right: none; }
+          h2 { font-size: 1.5rem !important; }
+          div[style*="padding: 2.5rem"] { padding: 1.5rem !important; }
+          .role-btn { padding: 1rem 0.75rem !important; }
+        }
       `}</style>
 
       <div style={{ width: '100%', maxWidth: role === 'coach' ? '580px' : '460px', position: 'relative', zIndex: 1 }}>

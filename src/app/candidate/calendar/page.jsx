@@ -112,9 +112,9 @@ export default function CandidateCalendarPage() {
       const isBlocked = coachAvailability.some(a => a.date === dateStr && a.blocked);
 
       days.push(
-        <div key={day} className={`h-32 p-2 rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 border border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}>
+        <div key={day} className={`calendar-day h-32 p-1 sm:p-2 rounded-xl sm:rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 border border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}>
           <div className="flex justify-between items-start">
-            <span className={`text-sm font-bold ml-1 ${isToday ? 'text-indigo-400' : 'text-slate-400'}`}>{day}</span>
+            <span className={`text-[10px] sm:text-sm font-bold ml-1 ${isToday ? 'text-indigo-400' : 'text-slate-400'}`}>{day}</span>
             {isBlocked && <Lock size={12} className="text-slate-600 mt-1 mr-1" />}
           </div>
           <div className="mt-1 flex-1 space-y-1 overflow-y-auto pr-1">
@@ -162,9 +162,9 @@ export default function CandidateCalendarPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-3">
+        <div className="calendar-grid grid grid-cols-7 gap-1 sm:gap-3">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="text-center py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{d}</div>
+            <div key={d} className="text-center py-2 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">{d}</div>
           ))}
           {days}
         </div>
@@ -242,6 +242,12 @@ export default function CandidateCalendarPage() {
         }
         .input-dark:focus { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.03); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
         .input-dark::placeholder { color: rgba(255,255,255,0.2); }
+        @media (max-width: 767px) {
+          .calendar-grid { grid-template-columns: repeat(7, minmax(40px, 1fr)); overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .calendar-day { height: 80px !important; min-width: 40px; }
+          .serif { font-size: 2rem !important; }
+          .glass-card { padding: 1.5rem !important; border-radius: 20px; }
+        }
       `}</style>
 
       {/* Header */}

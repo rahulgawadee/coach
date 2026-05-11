@@ -230,6 +230,11 @@ export default function CoachDashboardPage() {
           background: rgba(14,165,233,0.08);
           border-color: rgba(14,165,233,0.2);
         }
+        @media (max-width: 640px) {
+          .serif { font-size: 2.2rem !important; }
+          .glass-card { border-radius: 20px; }
+          .hero-gradient { padding: 2rem 1.5rem !important; }
+        }
       `}</style>
 
       <div className="space-y-8">
@@ -252,7 +257,7 @@ export default function CoachDashboardPage() {
               <Star size={12} className="animate-pulse" />
               Mentor Workspace
             </div>
-            <h1 className="serif text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+            <h1 className="serif text-4xl sm:text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
               Welcome back, <br />
               <span className="italic bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
                 {user.name.split(' ')[0]}
@@ -285,9 +290,9 @@ export default function CoachDashboardPage() {
         {/* PENDING REQUESTS ACTION BANNER */}
         {pendingRequests.length > 0 && (
           <div className="glass-card p-8 bg-sky-500/10 border-sky-500/20 relative overflow-hidden group">
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform">
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+                <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform shrink-0">
                   <UserCheck size={32} />
                 </div>
                 <div>
@@ -296,7 +301,7 @@ export default function CoachDashboardPage() {
                 </div>
               </div>
               <button 
-                className="btn-premium px-8 py-4 text-base"
+                className="btn-premium px-8 py-4 text-base w-full lg:w-auto justify-center"
                 onClick={() => {
                   if (pendingRequests.length > 0 && !selectedRequest) {
                     setSelectedRequest(pendingRequests[0]);
@@ -447,15 +452,15 @@ export default function CoachDashboardPage() {
         title={`Review Match Requests (${pendingRequests.length})`}
         size="6xl"
       >
-        <div className="flex flex-col md:flex-row h-[70vh] -mx-6 -mb-6 bg-[#0a0a14] rounded-b-2xl overflow-hidden border-t border-white/10">
-          <div className="w-full md:w-80 border-r border-white/10 bg-[#06060f] overflow-y-auto p-4 space-y-2">
+        <div className="flex flex-col lg:flex-row h-full max-h-[85vh] lg:h-[70vh] -mx-6 -mb-6 bg-[#0a0a14] rounded-b-2xl overflow-hidden border-t border-white/10">
+          <div className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-white/10 bg-[#06060f] overflow-y-auto p-4 flex lg:flex-col gap-2 no-scrollbar">
             {pendingRequests.map((request) => {
               const isSelected = selectedRequest?.assignmentId === request.assignmentId;
               return (
                 <button
                   key={request.assignmentId}
                   onClick={() => setSelectedRequest(request)}
-                  className={`w-full text-left p-3 rounded-xl transition-all border ${isSelected ? 'bg-sky-500/10 border-sky-500/30 shadow-lg' : 'border-transparent hover:bg-white/5'}`}
+                  className={`flex-shrink-0 lg:flex-shrink-1 text-left p-3 rounded-xl transition-all border ${isSelected ? 'bg-sky-500/10 border-sky-500/30 shadow-lg' : 'border-transparent hover:bg-white/5'} min-w-[200px] lg:min-w-0`}
                 >
                   <div className="flex items-center gap-3">
                     <AvatarCell name={request.candidateName} avatarUrl={request.avatarUrl} size={40} />
@@ -472,10 +477,10 @@ export default function CoachDashboardPage() {
             })}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-10 relative">
+          <div className="flex-1 overflow-y-auto p-6 md:p-10 relative">
             {selectedRequest ? (
-              <div className="space-y-8 animate-in slide-in-from-right-4 duration-500 pb-24">
-                <div className="flex items-start justify-between pb-8 border-b border-white/10">
+              <div className="space-y-8 animate-in slide-in-from-right-4 duration-500 pb-32">
+                <div className="flex flex-col sm:flex-row items-start justify-between pb-8 border-b border-white/10 gap-6">
                   <div className="flex items-center gap-6">
                     <AvatarCell name={selectedRequest.candidateName} avatarUrl={selectedRequest.avatarUrl} size={72} />
                     <div className="space-y-2">
@@ -534,7 +539,7 @@ export default function CoachDashboardPage() {
                 </div>
 
                 {/* Sticky Modal Actions */}
-                <div className="absolute bottom-0 left-0 right-0 p-8 bg-[#0a0a14]/90 backdrop-blur-md border-t border-white/10 flex gap-4">
+                <div className="sticky lg:absolute bottom-0 left-0 right-0 p-6 md:p-8 bg-[#0a0a14]/95 backdrop-blur-md border-t border-white/10 flex flex-col sm:flex-row gap-4 z-20">
                   <button 
                     className="btn-premium flex-1 py-4 text-base"
                     onClick={() => handleAccept(selectedRequest.assignmentId)}

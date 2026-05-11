@@ -94,6 +94,39 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         .sidebar-root.open  { width: 256px; }
         .sidebar-root.closed{ width: 72px; }
 
+        @media (max-width: 767px) {
+          .sidebar-root {
+            width: 256px !important;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+          }
+          .sidebar-root.open {
+            transform: translateX(0);
+            box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+          }
+          .sidebar-root.closed {
+            transform: translateX(-100%);
+          }
+          .sb-toggle {
+            display: none;
+          }
+          .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 95;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+          }
+          .sidebar-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+          }
+        }
+
         /* Inner grid line for depth */
         .sidebar-root::before {
           content:''; position:absolute; inset:0;
@@ -294,6 +327,12 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         }
       `}</style>
 
+      {isOpen && (
+        <div 
+          className="sidebar-overlay visible lg:hidden" 
+          onClick={onToggle}
+        />
+      )}
       <aside className={`sidebar-root ${isOpen ? 'open' : 'closed'}`}>
         {/* Toggle button — always visible, floats on the edge */}
         <button className="sb-toggle" onClick={onToggle} aria-label={isOpen ? 'Collapse' : 'Expand'}>
@@ -332,6 +371,9 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
                 key={item.label}
                 href={item.href}
                 className={`sb-item ${active ? 'active' : ''}`}
+                onClick={() => {
+                  if (window.innerWidth < 768) onToggle();
+                }}
               >
                 <div className="sb-icon">
                   <Icon

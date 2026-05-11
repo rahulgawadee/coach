@@ -201,6 +201,11 @@ export default function CandidateDashboardPage() {
           background: rgba(255,255,255,0.07);
           border-color: rgba(255,255,255,0.2);
         }
+        @media (max-width: 640px) {
+          .serif { font-size: 2.5rem !important; }
+          .glass-card { border-radius: 20px; }
+          .hero-gradient { padding: 2rem 1.5rem !important; }
+        }
       `}</style>
 
       <div className="space-y-8">
@@ -223,7 +228,7 @@ export default function CandidateDashboardPage() {
               <Sparkles size={12} className="animate-pulse" />
               Your Roadmap
             </div>
-            <h1 className="serif text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+            <h1 className="serif text-4xl sm:text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
               Welcome back, <br />
               <span className="italic bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
                 {user?.name?.split(' ')[0] || 'Candidate'}
@@ -258,8 +263,8 @@ export default function CandidateDashboardPage() {
           {/* MENTOR & MESSAGES */}
           <div className="lg:col-span-2 space-y-8">
             {/* MENTOR CARD */}
-            <div className="glass-card p-8">
-              <div className="flex items-center justify-between mb-8">
+            <div className="glass-card p-6 md:p-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-6 rounded-full bg-indigo-500" />
                   <h3 className="text-lg font-bold text-white">Your Assigned Coach</h3>
@@ -308,7 +313,7 @@ export default function CandidateDashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-10">
                 <Link href="/candidate/messages" className="btn-outline-premium justify-center">
                   <MessageSquare size={18} /> Message Coach
                 </Link>

@@ -116,15 +116,19 @@ const Chip = ({ children, color="#6366f1" }) => (
   <div style={{ display:"inline-block", padding:"5px 15px", borderRadius:100, background:`${color}18`, border:`1px solid ${color}35`, fontSize:11, color, fontWeight:700, letterSpacing:".09em", textTransform:"uppercase", marginBottom:20 }}>{children}</div>
 );
 
-const SHead = ({ chip, cc, h, sub, center=true }) => (
-  <div style={{ textAlign:center?"center":"left", marginBottom:52 }}>
-    {chip && <Chip color={cc}>{chip}</Chip>}
-    <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:"-0.035em", lineHeight:1.1, color:"#f8fafc", margin:"0 0 16px" }} dangerouslySetInnerHTML={{__html:h}} />
-    {sub && <p style={{ fontSize:15, color:"rgba(148,163,184,.75)", maxWidth:500, margin:center?"0 auto":"0", lineHeight:1.8 }}>{sub}</p>}
-  </div>
-);
+const SHead = ({ chip, cc, h, sub, center=true }) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return (
+    <div style={{ textAlign:center?"center":"left", marginBottom:mounted ? 52 : 40 }} className="section-head">
+      {chip && <Chip color={cc}>{chip}</Chip>}
+      <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:"-0.035em", lineHeight:1.1, color:"#f8fafc", margin:"0 0 16px" }} dangerouslySetInnerHTML={{__html:h}} />
+      {sub && <p style={{ fontSize:15, color:"rgba(148,163,184,.75)", maxWidth:500, margin:center?"0 auto":"0", lineHeight:1.8 }}>{sub}</p>}
+    </div>
+  );
+};
 
-const W = { maxWidth:1060, margin:"0 auto", padding:"0 32px" };
+const W = { maxWidth:1060, margin:"0 auto", padding:"0 clamp(20px, 5vw, 32px)", width:"100%" };
 
 export default function CoachLanding() {
   const [mounted, setMounted] = useState(false);
@@ -179,6 +183,31 @@ export default function CoachLanding() {
         .bg{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:13px 28px;font-size:14px;font-weight:600;color:#e2e8f0;cursor:pointer;font-family:'Syne',sans-serif;transition:all .3s ease;backdrop-filter:blur(10px)}
         .bg:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
         ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#08080f}::-webkit-scrollbar-thumb{background:rgba(99,102,241,.4);border-radius:2px}
+        
+        .mentor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; position: relative; z-index: 1; }
+        .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; position: relative; }
+        .how-line { position: absolute; top: 34px; left: 18%; right: 18%; height: 1px; background: linear-gradient(90deg,rgba(99,102,241,.35),rgba(56,189,248,.35)); z-index: 0; }
+        .cta-input-group { display: flex; gap: 10px; justify-content: center; maxWidth: 440px; margin: 0 auto; }
+        .hero-container { display: flex; flex-direction: column; }
+
+        @media (max-width: 991px) {
+          .mentor-grid { grid-template-columns: 1fr; gap: 40px; }
+          .how-grid { grid-template-columns: repeat(2, 1fr); }
+          .how-line { display: none; }
+        }
+
+        @media (max-width: 768px) {
+          .hero-container { align-items: center; text-align: center; }
+          .hero-sub { margin: 22px auto 38px !important; }
+          .hero-cta { justify-content: center; }
+          .hero-social { flex-direction: column; align-items: center !important; text-align: center; }
+          .how-grid { grid-template-columns: 1fr; }
+          .cta-input-group { flex-direction: column; align-items: stretch; }
+          .stats-grid { justify-content: center; }
+          .section-head { margin-bottom: 36px !important; }
+          .footer-content { flex-direction: column; text-align: center; gap: 24px !important; }
+        }
+
       `}</style>
 
       <div style={{ background:"#08080f", fontFamily:"'DM Sans',sans-serif", color:"#f1f5f9" }}>
@@ -200,8 +229,8 @@ export default function CoachLanding() {
           </div>
           <div style={{ position:"absolute", right:80, top:"50%", transform:"translateY(-50%)", width:360, height:360, borderRadius:"50%", border:"1px solid rgba(56,189,248,.07)", animation:"spin 24s linear infinite reverse", pointerEvents:"none" }} />
 
-          <div style={{ ...W, position:"relative", zIndex:10, paddingTop:100, paddingBottom:80, width:"100%" }}>
-            <div style={{ maxWidth:660 }}>
+          <div style={{ ...W, position:"relative", zIndex:10, paddingTop:mounted ? 120 : 100, paddingBottom:80 }}>
+            <div style={{ maxWidth:660 }} className="hero-container">
 
               {/* badge */}
               <div style={{ ...fade(80), display:"inline-flex", alignItems:"center", gap:8, padding:"7px 16px", borderRadius:100, background:"rgba(99,102,241,.1)", border:"1px solid rgba(99,102,241,.25)", marginBottom:30 }}>
@@ -219,12 +248,12 @@ export default function CoachLanding() {
               </div>
 
               {/* sub */}
-              <p style={{ ...fade(290), fontSize:16, lineHeight:1.8, color:"rgba(148,163,184,.85)", maxWidth:520, marginTop:22, marginBottom:38 }}>
+              <p className="hero-sub" style={{ ...fade(290), fontSize:16, lineHeight:1.8, color:"rgba(148,163,184,.85)", maxWidth:520, marginTop:22, marginBottom:38 }}>
                 Connect with world-class mentors handpicked for your goals. Unlock personalised guidance, structured growth plans, and the network that opens every door.
               </p>
 
               {/* CTAs */}
-              <div style={{ ...fade(380), display:"flex", gap:12, flexWrap:"wrap" }}>
+              <div className="hero-cta" style={{ ...fade(380), display:"flex", gap:12, flexWrap:"wrap" }}>
                 <Link href="/login">
                   <button className="bp" style={{ fontSize:15, padding:"15px 36px" }}>Start for free →</button>
                 </Link>
@@ -237,7 +266,7 @@ export default function CoachLanding() {
               </div>
 
               {/* social proof */}
-              <div style={{ ...fade(470), display:"flex", alignItems:"center", gap:18, marginTop:44, paddingTop:26, borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <div className="hero-social" style={{ ...fade(470), display:"flex", alignItems:"center", gap:18, marginTop:44, paddingTop:26, borderTop:"1px solid rgba(255,255,255,.06)" }}>
                 <div style={{ display:"flex" }}>
                   {["#6366f1","#38bdf8","#10b981","#f59e0b","#ec4899"].map((c,i)=>(
                     <div key={i} style={{ width:34, height:34, borderRadius:"50%", background:`linear-gradient(135deg,${c},${c}88)`, border:"2px solid #08080f", marginLeft:i?-10:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, fontFamily:"'Syne',sans-serif", color:"#fff" }}>
@@ -259,7 +288,7 @@ export default function CoachLanding() {
         {/* ── STATS BAND ── */}
         <div ref={sRef} style={{ background:"rgba(255,255,255,.025)", borderTop:"1px solid rgba(255,255,255,.05)", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
           <div style={{ ...W, paddingTop:36, paddingBottom:36 }}>
-            <div style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
+            <div className="stats-grid" style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
               {[{n:50000,s:"+",l:"Active Members"},{n:15000,s:"+",l:"Expert Mentors"},{n:98,s:"%",l:"Satisfaction"},{n:120,s:"+",l:"Countries"}].map((d,i)=>(
                 <StatPill key={i} n={d.n} suf={d.s} label={d.l} go={sVis} />
               ))}
@@ -283,9 +312,9 @@ export default function CoachLanding() {
         {/* ── MENTORS ── */}
         <section style={{ padding:"0 0 90px" }}>
           <div style={W}>
-            <div style={{ background:"linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.02))", border:"1px solid rgba(255,255,255,.07)", borderRadius:34, padding:"52px 48px", position:"relative", overflow:"hidden" }}>
+            <div style={{ background:"linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.02))", border:"1px solid rgba(255,255,255,.07)", borderRadius:34, padding:"clamp(30px, 5vw, 52px) clamp(24px, 5vw, 48px)", position:"relative", overflow:"hidden" }}>
               <Orb color="radial-gradient(circle,#6366f1,transparent)" sz={360} style={{ top:-90, right:-70, opacity:.14 }} />
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:48, alignItems:"center", position:"relative", zIndex:1 }}>
+              <div className="mentor-grid">
                 <div>
                   <Chip color="#818cf8">Meet the mentors</Chip>
                   <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(26px,3.5vw,38px)", fontWeight:800, letterSpacing:"-0.035em", lineHeight:1.1, marginBottom:16 }}>
@@ -312,8 +341,8 @@ export default function CoachLanding() {
               h={`Three steps to your <span style="background:linear-gradient(135deg,#10b981,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">ideal mentor</span>`}
               sub="From sign-up to first session in under 48 hours."
             />
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:18, position:"relative" }}>
-              <div style={{ position:"absolute", top:34, left:"18%", right:"18%", height:1, background:"linear-gradient(90deg,rgba(99,102,241,.35),rgba(56,189,248,.35))", zIndex:0 }} />
+            <div className="how-grid">
+              <div className="how-line" />
               {[
                 { n:"01", title:"Create your profile",  desc:"Tell us about your goals, experience level, and the kind of mentor you're looking for.", col:"#6366f1" },
                 { n:"02", title:"Get matched by AI",    desc:"Our algorithm surfaces your top 3 mentor matches within 48 hours. Browse profiles and pick your fit.", col:"#38bdf8" },
@@ -340,7 +369,7 @@ export default function CoachLanding() {
         {/* ── CTA ── */}
         <section style={{ padding:"0 0 90px" }}>
           <div style={W}>
-            <div style={{ background:"linear-gradient(145deg,#0c0b18,#101020)", border:"1px solid rgba(99,102,241,.2)", borderRadius:38, padding:"68px 52px", textAlign:"center", position:"relative", overflow:"hidden" }}>
+            <div style={{ background:"linear-gradient(145deg,#0c0b18,#101020)", border:"1px solid rgba(99,102,241,.2)", borderRadius:38, padding:"clamp(40px, 6vw, 68px) clamp(24px, 5vw, 52px)", textAlign:"center", position:"relative", overflow:"hidden" }}>
               <Orb color="radial-gradient(circle,#6366f1,transparent)" sz={460} style={{ top:-70, left:"50%", transform:"translateX(-50%)", opacity:.22 }} />
               <Orb color="radial-gradient(circle,#38bdf8,transparent)" sz={300} style={{ bottom:-80, right:-60, opacity:.14 }} />
               <div style={{ position:"relative", zIndex:1 }}>
@@ -352,7 +381,7 @@ export default function CoachLanding() {
                 <p style={{ fontSize:15, color:"rgba(148,163,184,.75)", maxWidth:440, margin:"0 auto 36px", lineHeight:1.78 }}>
                   Get matched with your ideal mentor in under 48 hours. No commitments, no risk — just momentum.
                 </p>
-                <div style={{ display:"flex", gap:10, justifyContent:"center", maxWidth:440, margin:"0 auto" }}>
+                <div className="cta-input-group">
                   <input type="email" placeholder="Enter your work email" value={email} onChange={e=>setEmail(e.target.value)}
                     style={{ flex:1, padding:"13px 17px", borderRadius:13, fontSize:14, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", color:"#f1f5f9", outline:"none", fontFamily:"'DM Sans',sans-serif" }} />
                   <Link href="/login">
@@ -366,8 +395,8 @@ export default function CoachLanding() {
         </section>
 
         {/* ── FOOTER ── */}
-        <footer style={{ borderTop:"1px solid rgba(255,255,255,.06)", padding:"36px 32px" }}>
-          <div style={{ ...W, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:18 }}>
+        <footer style={{ borderTop:"1px solid rgba(255,255,255,.06)", padding:"36px 0" }}>
+          <div className="footer-content" style={{ ...W, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:18 }}>
             <div>
               <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:21, background:"linear-gradient(135deg,#38bdf8,#818cf8)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Coach.</div>
               <div style={{ fontSize:11, color:"rgba(148,163,184,.4)", marginTop:5 }}>AI-powered mentorship for modern careers.</div>
