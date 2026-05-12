@@ -634,7 +634,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="relative max-w-6xl mx-auto px-0 sm:px-0 space-y-5 sm:space-y-8 pb-16 sm:pb-20 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+    <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-8 pb-16 sm:pb-20 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <Script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" strategy="afterInteractive" />
       <BackgroundGrid />
 
