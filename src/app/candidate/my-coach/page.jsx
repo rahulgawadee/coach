@@ -131,7 +131,7 @@ export default function CandidateMyCoachPage() {
   }
 
   return (
-    <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500 font-['DM_Sans',sans-serif] space-y-5 sm:space-y-8">
+    <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500 font-['DM_Sans',sans-serif] space-y-5 sm:space-y-8">
       <BackgroundGrid />
 
       <style>{`
@@ -168,12 +168,7 @@ export default function CandidateMyCoachPage() {
       {/* Hero Profile Card */}
       <div className="glass-panel p-5 sm:p-8 md:p-10 relative overflow-hidden shadow-2xl shadow-black/20">
         {/* Active Badge */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 md:top-8 md:right-8 z-10">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-            Active Mentor
-          </span>
-        </div>
+       
 
         {/* Profile Content */}
         <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6 sm:gap-8 md:gap-10 pt-8 sm:pt-0">
