@@ -800,15 +800,17 @@ export default function ProfilePage() {
             <p className="text-slate-400 font-light text-sm max-w-sm sm:max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
             <div className="mt-4 sm:mt-6 flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
               {form.resumeUrl && (
-                <a
-                  href={form.resumeUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPreviewResumeUrl(form.resumeUrl);
+                    setShowResumePreview(true);
+                  }}
                   className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-cyan-500/20 hover:border-cyan-500/30 hover:text-cyan-300 transition-all shadow-xl group"
                 >
                   <FileText size={14} className="text-cyan-400 group-hover:scale-110 transition-transform" />
                   View Resume
-                </a>
+                </button>
               )}
             </div>
           </div>
