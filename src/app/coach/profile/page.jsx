@@ -35,11 +35,14 @@ export default function CoachProfilePage() {
     expertise: [],
     yearsOfExperience: 0,
     certifications: '',
-    preferredWorkingHours: '',
-    maxCandidateCapacity: 15,
-    currentAssignment: 0,
+    languages: [],
+    preferredWorkingHours: { startTime: '09:00', endTime: '17:00', timezone: 'Europe/Stockholm' },
+    maxCandidates: 15,
+    currentAssignmentCount: 0,
     profilePictureUrl: '',
-    videoIntroUrl: '',
+    videoIntroductionUrl: '',
+    averageRating: 4.9,
+    reviewCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,6 +60,9 @@ export default function CoachProfilePage() {
     'Professional Development',
     'Leadership Skills',
     'Communication Skills',
+    'Sales Training',
+    'Technical Interviewing',
+    'Negotiation'
   ];
 
   useEffect(() => {
@@ -68,14 +74,12 @@ export default function CoachProfilePage() {
     const fetchProfile = async () => {
       try {
         const data = await apiService.coach.getProfile();
-        setProfile(data.profile);
-      } catch (err) {
-        console.error('Profile error:', err);
-        if (err.message === 'Unauthorized') {
-          router.push('/login');
-          return;
+        if (data.success && data.profile) {
+          setProfile(data.profile);
         }
-        setError('Failed to load profile');
+      } catch (err) {
+        console.error('Profile load error:', err);
+        setError('Failed to load profile data');
       } finally {
         setLoading(false);
       }
@@ -85,30 +89,47 @@ export default function CoachProfilePage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProfile({ ...profile, [name]: value });
+    setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleWorkingHoursChange = (e) => {
+    const { name, value } = e.target;
+    setProfile(prev => ({
+      ...prev,
+      preferredWorkingHours: {
+        ...prev.preferredWorkingHours,
+        [name]: value
+      }
+    }));
   };
 
   const handleExpertiseToggle = (expertise) => {
-    setProfile({
-      ...profile,
-      expertise: profile.expertise.includes(expertise)
-        ? profile.expertise.filter((e) => e !== expertise)
-        : [...profile.expertise, expertise],
+    setProfile(prev => {
+      const current = prev.expertise || [];
+      return {
+        ...prev,
+        expertise: current.includes(expertise)
+          ? current.filter(e => e !== expertise)
+          : [...current, expertise]
+      };
     });
   };
 
   const handleSaveProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      await apiService.coach.updateProfile(profile);
-      setSuccess('Profile updated successfully!');
-      setTimeout(() => setSuccess(''), 3000);
+      const res = await apiService.coach.updateProfile(profile);
+      if (res.success) {
+        setSuccess('Profile updated successfully!');
+        if (profile.fullName) updateUser({ name: profile.fullName });
+        setTimeout(() => setSuccess(''), 3000);
+      }
     } catch (err) {
       console.error('Save error:', err);
-      setError('Failed to save profile');
+      setError('Failed to save profile changes');
     } finally {
       setSaving(false);
     }
@@ -120,12 +141,9 @@ export default function CoachProfilePage() {
     setUploadingPicture(true);
     setError('');
     try {
-      const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_avatars', {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
+      const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_avatars');
       const signData = await signRes.json();
-      if (!signData.success) throw new Error('Failed to authenticate upload');
-
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', signData.apiKey);
@@ -138,17 +156,14 @@ export default function CoachProfilePage() {
         body: formData
       });
       const uploadData = await uploadRes.json();
+      
       if (uploadData.secure_url) {
-        setProfile({ ...profile, profilePictureUrl: uploadData.secure_url });
+        setProfile(prev => ({ ...prev, profilePictureUrl: uploadData.secure_url }));
         await apiService.coach.updateProfile({ profilePictureUrl: uploadData.secure_url });
         updateUser({ avatarUrl: uploadData.secure_url });
         setSuccess('Profile picture updated!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        throw new Error('Failed to upload picture');
       }
     } catch (err) {
-      console.error('Upload error:', err);
       setError('Failed to upload picture');
     } finally {
       setUploadingPicture(false);
@@ -161,12 +176,9 @@ export default function CoachProfilePage() {
     setUploadingVideo(true);
     setError('');
     try {
-      const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_intros', {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
+      const signRes = await fetch('/api/candidate/cloudinary-sign?folder=techvance_coach_intros');
       const signData = await signRes.json();
-      if (!signData.success) throw new Error('Failed to authenticate upload');
-
+      
       const formData = new FormData();
       formData.append('file', file);
       formData.append('api_key', signData.apiKey);
@@ -179,16 +191,13 @@ export default function CoachProfilePage() {
         body: formData
       });
       const uploadData = await uploadRes.json();
+      
       if (uploadData.secure_url) {
-        setProfile({ ...profile, videoIntroUrl: uploadData.secure_url });
-        await apiService.coach.updateProfile({ videoIntroUrl: uploadData.secure_url });
-        setSuccess('Video uploaded successfully!');
-        setTimeout(() => setSuccess(''), 3000);
-      } else {
-        throw new Error('Failed to upload video');
+        setProfile(prev => ({ ...prev, videoIntroductionUrl: uploadData.secure_url }));
+        await apiService.coach.updateProfile({ videoIntroductionUrl: uploadData.secure_url });
+        setSuccess('Intro video updated!');
       }
     } catch (err) {
-      console.error('Upload error:', err);
       setError('Failed to upload video');
     } finally {
       setUploadingVideo(false);
@@ -197,29 +206,23 @@ export default function CoachProfilePage() {
 
   const handleAiEnhanceBio = async () => {
     if (!profile.bio && !profile.expertise?.length) {
-      setError('Add a brief bio or expertise areas first so AI can enhance them.');
+      setError('Add some bio details or expertise first.');
       return;
     }
     setAiEnhancing(true);
     try {
-      const res = await fetch('/api/ai/enhance-bio', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bio: profile.bio,
-          expertise: profile.expertise,
-          yearsOfExperience: profile.yearsOfExperience,
-          role: 'coach',
-        })
+      const res = await apiService.ai.enhanceBio({
+        bio: profile.bio,
+        expertise: profile.expertise,
+        yearsOfExperience: profile.yearsOfExperience,
+        role: 'coach',
       });
-      const data = await res.json();
-      if (data?.enhancedBio) {
-        setProfile(prev => ({ ...prev, bio: data.enhancedBio }));
-        setSuccess('AI has enhanced your bio!');
-        setTimeout(() => setSuccess(''), 3000);
+      if (res?.enhancedBio) {
+        setProfile(prev => ({ ...prev, bio: res.enhancedBio }));
+        setSuccess('AI has polished your bio!');
       }
     } catch (err) {
-      setError('AI enhancement failed. Try again.');
+      setError('AI enhancement failed');
     } finally {
       setAiEnhancing(false);
     }
@@ -227,288 +230,242 @@ export default function CoachProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-12 h-12 border-2 border-sky-500/20 border-t-sky-500 rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm font-medium animate-pulse">Loading Coach Identity...</p>
       </div>
     );
   }
 
-  const InputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all";
+  const InputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all text-sm";
 
   return (
-    <div className="relative max-w-4xl mx-auto pb-20 animate-in fade-in duration-500">
+    <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-24 animate-in fade-in duration-700">
       <BackgroundGrid />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap');
         .profile-root { font-family: 'DM Sans', sans-serif; }
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
-        .card {
-          background: rgba(255,255,255,0.028);
-          border: 1px solid rgba(255,255,255,0.07);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        .glass-card {
+          background: rgba(15, 15, 25, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(24px);
+          border-radius: 28px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-        .card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
         .section-label {
-          font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase;
-          color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;
+          font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+          color: #64748b; margin-bottom: 12px; display: block;
         }
         .btn-primary {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:14px 24px; border-radius:14px; font-weight:600;
-          font-size:14px; letter-spacing:0.02em; cursor:pointer; border:none;
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-          color:#fff; box-shadow: 0 4px 20px rgba(2,132,199,0.25);
-          transition: box-shadow 0.25s, transform 0.2s;
+          display:flex; align-items:center; justify-content:center; gap:10px;
+          padding:16px 32px; border-radius:18px; font-weight:700;
+          font-size:15px; cursor:pointer; border:none;
+          background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+          color:#fff; box-shadow: 0 8px 25px rgba(37,99,235,0.25);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(2,132,199,0.38); transform:translateY(-1px); }
-        .btn-ghost {
-          display:flex; align-items:center; justify-content:center; gap:8px;
-          width:100%; padding:14px 24px; border-radius:14px; font-weight:600;
-          font-size:14px; cursor:pointer;
-          background:rgba(255,255,255,0.04);
-          border:1px solid rgba(255,255,255,0.1);
-          color:rgba(255,255,255,0.85);
-          transition: background 0.2s, border-color 0.2s;
-        }
-        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(37,99,235,0.35); }
+        .btn-primary:active { transform: translateY(0); }
         .btn-ai {
-          display:inline-flex; align-items:center; gap:6px;
-          padding:10px 18px; border-radius:12px; font-weight:600; font-size:12px;
-          letter-spacing:0.04em; cursor:pointer; border:none;
-          background: linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(168,85,247,0.3) 100%);
-          color:#c084fc; border:1px solid rgba(168,85,247,0.3);
-          transition: all 0.2s;
+          display:inline-flex; align-items:center; gap:8px;
+          padding:12px 20px; border-radius:14px; font-weight:700; font-size:12px;
+          background: rgba(14, 165, 233, 0.1); color: #38bdf8;
+          border: 1px solid rgba(14, 165, 233, 0.2); transition: all 0.2s;
         }
-        .btn-ai:hover { background: linear-gradient(135deg, rgba(139,92,246,0.5) 0%, rgba(168,85,247,0.5) 100%); transform:translateY(-1px); }
-        .fade-up { animation: fadeUp 0.5s ease both; }
-        .delay-1 { animation-delay:0.07s; }
-        .delay-2 { animation-delay:0.14s; }
-        .delay-3 { animation-delay:0.21s; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .btn-ai:hover { background: rgba(14, 165, 233, 0.2); transform: scale(1.02); }
       `}</style>
 
-      <div className="profile-root space-y-8">
-
-        {/* ── PAGE HEADER ── */}
-        <div className="fade-up pt-8 px-4 sm:px-0">
-          <h1 className="serif text-3xl sm:text-4xl text-white font-medium tracking-tight">Coach Profile</h1>
-          <p className="text-slate-400 mt-2 font-light text-sm sm:text-base">Manage your identity, expertise, and availability.</p>
-        </div>
-
-        {/* ── ALERTS ── */}
-        {error && (
-          <div className="fade-up card p-4 border-red-500/20 bg-red-500/10 text-red-200 flex items-center gap-3">
-            <span>⚠️</span> {error}
+      <div className="profile-root">
+        {/* HEADER SECTION */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pt-10">
+          <div>
+            <h1 className="serif text-4xl sm:text-5xl lg:text-6xl text-white font-medium tracking-tight">Professional Profile</h1>
+            <p className="text-slate-400 mt-4 font-light text-lg max-w-2xl leading-relaxed">
+              Define your coaching expertise and manage how you appear to aspiring candidates.
+            </p>
           </div>
-        )}
-        {success && (
-          <div className="fade-up card p-4 border-emerald-500/20 bg-emerald-500/10 text-emerald-200 flex items-center gap-3">
-            <span>✓</span> {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSaveProfile} className="space-y-8">
-
-          {/* ── SECTION 1: PROFILE IDENTITY (TOP) ── */}
-          <div className="fade-up delay-1 card overflow-hidden mx-4 sm:mx-0">
-            {/* Hero accent */}
-            <div className="relative p-6 sm:p-10 md:p-14 border-b border-white/7" style={{ background:'linear-gradient(135deg,rgba(14,165,233,0.12) 0%,rgba(79,70,229,0.08) 100%)' }}>
-              <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-radial-gradient from-sky-500/15 to-transparent pointer-events-none" />
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10 relative z-10">
-
-                {/* PROFILE PHOTO UPLOAD */}
-                <div className="flex-shrink-0 relative group">
-                  <label className="cursor-pointer block">
-                    <div style={{ width:110, height:110, borderRadius:20, overflow:'hidden', border:'2px solid rgba(14,165,233,0.3)', position:'relative', boxShadow:'0 8px 30px rgba(0,0,0,0.4)' }}>
-                      {profile.profilePictureUrl && !uploadingPicture ? (
-                        <img src={profile.profilePictureUrl} alt="Profile" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                      ) : uploadingPicture ? (
-                        <div style={{ width:'100%', height:'100%', background:'rgba(14,165,233,0.1)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <div style={{ width:28, height:28, border:'2px solid rgba(14,165,233,0.3)', borderTop:'2px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
-                        </div>
-                      ) : (
-                        <div style={{ width:'100%', height:'100%', background:'rgba(14,165,233,0.1)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4 }}>
-                          <span style={{ fontSize:28 }}>👤</span>
-                          <span style={{ fontSize:9, color:'rgba(14,165,233,0.8)', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em' }}>Upload</span>
-                        </div>
-                      )}
-                      {/* Hover overlay */}
-                      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.5)', opacity:0, transition:'opacity 0.2s', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:18 }} className="group-hover:opacity-100">
-                        <span style={{ fontSize:20 }}>📸</span>
-                      </div>
-                    </div>
-                    <input type="file" onChange={handleUploadPicture} disabled={uploadingPicture} className="hidden" accept="image/*" />
-                  </label>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center border-2 border-[#09090f] cursor-pointer shadow-lg hover:scale-110 transition-transform">
-                    <span className="text-xs text-white">✎</span>
-                  </div>
-                </div>
-
-                {/* IDENTITY TEXT */}
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="serif text-2xl sm:text-3xl md:text-4xl text-white font-medium leading-tight">{profile.fullName || user?.name || 'Your Name'}</h2>
-                  <p className="text-slate-400 mt-1.5 font-light text-sm sm:text-base">{profile.email}</p>
-                  {profile.expertise?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
-                      {profile.expertise.slice(0, 3).map(e => (
-                        <span key={e} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{e}</span>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-4 mt-5 justify-center sm:justify-start">
-                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <span className="text-sky-400">⭐</span> {profile.yearsOfExperience || 0} yrs experience
-                    </span>
-                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <span className="text-sky-400">👥</span> Capacity: {profile.maxCandidateCapacity || 15}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Personal fields below the hero */}
-            <div style={{ padding:'28px 36px' }}>
-              <h3 className="serif text-xl text-white mb-5">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="section-label">Full Name</label>
-                  <input type="text" name="fullName" value={profile.fullName} onChange={handleInputChange} className={InputClass} placeholder="Your full name" />
-                </div>
-                <div>
-                  <label className="section-label">Email Address</label>
-                  <input type="email" name="email" value={profile.email} className={InputClass} disabled title="Email cannot be changed" style={{ opacity:0.7, cursor:'not-allowed' }} />
-                </div>
-                <div>
-                  <label className="section-label">Phone Number</label>
-                  <input type="tel" name="phone" value={profile.phone || ''} onChange={handleInputChange} className={InputClass} placeholder="+1 555 000 0000" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── SECTION 2: PROFESSIONAL INFORMATION ── */}
-          <div className="fade-up delay-1 card p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="serif text-2xl text-white">Professional Information</h2>
-              <button
-                type="button"
-                onClick={handleAiEnhanceBio}
-                disabled={aiEnhancing}
-                className="btn-ai"
-              >
-                <Sparkles size={14} />
-                {aiEnhancing ? 'Enhancing...' : 'AI Enhance Bio'}
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <label className="section-label">Bio / Professional Summary</label>
-              <textarea
-                name="bio"
-                value={profile.bio}
-                onChange={handleInputChange}
-                rows="4"
-                className={`${InputClass} resize-none`}
-                placeholder="Share your background, mentorship style, and what candidates can expect working with you..."
-              />
-              <p className="text-[10px] text-slate-500 mt-2">Tip: Use the AI Enhance button to automatically improve your bio using your expertise and experience.</p>
-            </div>
-
-            <div className="mb-6">
-              <label className="section-label mb-4">Expertise Areas</label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {expertiseOptions.map((expertise) => {
-                  const isChecked = profile.expertise?.includes(expertise);
-                  return (
-                    <label key={expertise} className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-sky-500/10 border-sky-500/30 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
-                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${isChecked ? 'bg-sky-500 border-sky-500' : 'border-slate-500 bg-transparent'}`}>
-                        {isChecked && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
-                      </div>
-                      <input type="checkbox" checked={isChecked} onChange={() => handleExpertiseToggle(expertise)} className="hidden" />
-                      <span className="font-medium text-xs sm:text-sm">{expertise}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="section-label">Years of Experience</label>
-                <input type="number" name="yearsOfExperience" value={profile.yearsOfExperience} onChange={handleInputChange} className={InputClass} min="0" />
-              </div>
-              <div>
-                <label className="section-label">Certifications (Optional)</label>
-                <input type="text" name="certifications" value={profile.certifications || ''} onChange={handleInputChange} placeholder="e.g., ICF Coach, PCC" className={InputClass} />
-              </div>
-            </div>
-          </div>
-
-          {/* ── SECTION 3: AVAILABILITY ── */}
-          <div className="fade-up delay-2 card p-6 sm:p-8 mx-4 sm:mx-0">
-            <h2 className="serif text-xl sm:text-2xl text-white mb-6">Availability & Capacity</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <div>
-                <label className="section-label">Working Hours</label>
-                <input type="text" name="preferredWorkingHours" value={profile.preferredWorkingHours || ''} onChange={handleInputChange} placeholder="e.g., 9 AM – 5 PM" className={InputClass} />
-              </div>
-              <div>
-                <label className="section-label">Max Candidate Capacity</label>
-                <input type="number" name="maxCandidateCapacity" value={profile.maxCandidateCapacity} onChange={handleInputChange} min="1" max="50" className={InputClass} />
-              </div>
-              <div>
-                <label className="section-label">Current Mentees</label>
-                <div className={`${InputClass} flex items-center justify-between opacity-70 cursor-not-allowed`} style={{ pointerEvents:'none' }}>
-                  <span className="text-white font-bold text-lg">{profile.currentAssignment || 0}</span>
-                  <span className="text-slate-500 font-medium">/ {profile.maxCandidateCapacity}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── SECTION 4: MEDIA (VIDEO INTRO) ── */}
-          <div className="fade-up delay-3 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Video Introduction</h2>
-            <p className="text-slate-400 font-light text-sm mb-5">Upload a short intro video so candidates can get to know you before connecting.</p>
-            <label className="flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:bg-white/5 transition-all relative overflow-hidden group">
-              {profile.videoIntroUrl && !uploadingVideo ? (
-                <>
-                  <div className="absolute inset-0 bg-sky-900/30 flex items-center justify-center">
-                    <span className="text-5xl">🎥</span>
-                  </div>
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                    <span className="text-2xl">🎥</span>
-                    <span className="text-xs font-bold text-white uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">Change Video</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <span className="text-4xl mb-3">🎥</span>
-                  <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
-                    {uploadingVideo ? 'Uploading...' : 'Click to Upload Video'}
-                  </span>
-                  <span className="text-[10px] text-slate-500 mt-1">MP4, MOV up to 100MB</span>
-                </>
-              )}
-              <input type="file" onChange={handleUploadVideo} disabled={uploadingVideo} className="hidden" accept="video/*" />
-            </label>
-          </div>
-
-          {/* ── SAVE ACTIONS ── */}
-          <div className="fade-up delay-3 flex flex-col sm:flex-row gap-4 pt-4 px-4 sm:px-0">
-            <button type="submit" disabled={saving} className="btn-primary">
-              {saving ? 'Saving Changes...' : 'Save Profile Changes'}
-            </button>
-            <button type="button" onClick={() => router.back()} className="btn-ghost">
+          <div className="flex gap-3">
+            <button onClick={() => router.back()} className="px-6 py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all">
               Cancel
             </button>
+            <button onClick={handleSaveProfile} disabled={saving} className="btn-primary min-w-[200px]">
+              {saving ? 'Saving...' : 'Save Profile'}
+            </button>
           </div>
-        </form>
+        </div>
+
+        {/* STATUS MESSAGES */}
+        {(error || success) && (
+          <div className={`mb-8 p-5 rounded-2xl border flex items-center gap-4 animate-in slide-in-from-top-4 ${error ? 'bg-rose-500/10 border-rose-500/20 text-rose-200' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'}`}>
+            <span className="text-xl">{error ? '⚠️' : '✅'}</span>
+            <span className="font-medium">{error || success}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* LEFT COLUMN: IDENTITY & MEDIA */}
+          <div className="lg:col-span-4 space-y-8">
+            
+            {/* AVATAR CARD */}
+            <div className="glass-card p-10 flex flex-col items-center text-center">
+              <div className="relative group mb-6">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-sky-500/20 bg-slate-900 shadow-2xl relative">
+                  {profile.profilePictureUrl ? (
+                    <img src={profile.profilePictureUrl} alt="Coach" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-6xl opacity-20">👤</div>
+                  )}
+                  {uploadingPicture && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
+                <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-sky-500 text-white flex items-center justify-center cursor-pointer shadow-xl hover:bg-sky-400 transition-all border-4 border-[#0f0f19]">
+                  <span className="text-xl">📸</span>
+                  <input type="file" onChange={handleUploadPicture} className="hidden" accept="image/*" />
+                </label>
+              </div>
+              <h3 className="serif text-2xl text-white mb-1">{profile.fullName || 'New Coach'}</h3>
+              <p className="text-sky-400 text-sm font-bold uppercase tracking-widest mb-6">Certified Career Coach</p>
+              
+              <div className="w-full grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white">{profile.averageRating}</p>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Rating</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-white">{profile.currentAssignmentCount}</p>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Active Mentees</p>
+                </div>
+              </div>
+            </div>
+
+            {/* VIDEO INTRO CARD */}
+            <div className="glass-card p-8">
+              <label className="section-label">Intro Video</label>
+              <div className="aspect-video rounded-2xl bg-black/40 border-2 border-dashed border-white/10 flex flex-col items-center justify-center relative group overflow-hidden">
+                {profile.videoIntroductionUrl ? (
+                  <video src={profile.videoIntroductionUrl} controls className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-center p-6">
+                    <span className="text-4xl mb-4 block">🎥</span>
+                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+                      Share your vision with<br/>potential candidates
+                    </p>
+                  </div>
+                )}
+                <label className="absolute inset-0 bg-sky-500/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
+                  <span className="bg-white text-sky-600 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl">
+                    {uploadingVideo ? 'Uploading...' : 'Upload Video'}
+                  </span>
+                  <input type="file" onChange={handleUploadVideo} className="hidden" accept="video/*" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: DETAILS */}
+          <div className="lg:col-span-8 space-y-8">
+            
+            {/* GENERAL INFO SECTION */}
+            <div className="glass-card p-8 sm:p-10">
+              <h4 className="serif text-2xl text-white mb-8 border-b border-white/5 pb-6">General Information</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="md:col-span-2">
+                  <label className="section-label">Full Professional Name</label>
+                  <input name="fullName" value={profile.fullName} onChange={handleInputChange} className={InputClass} placeholder="John Doe" />
+                </div>
+                <div>
+                  <label className="section-label">Direct Phone Number</label>
+                  <input name="phone" value={profile.phone} onChange={handleInputChange} className={InputClass} placeholder="+46 70 123 45 67" />
+                </div>
+                <div>
+                  <label className="section-label">Official Email</label>
+                  <input value={profile.email} disabled className={`${InputClass} opacity-50 cursor-not-allowed`} />
+                </div>
+              </div>
+            </div>
+
+            {/* PROFESSIONAL INFO SECTION */}
+            <div className="glass-card p-8 sm:p-10">
+              <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
+                <h4 className="serif text-2xl text-white">Professional Background</h4>
+                <button onClick={handleAiEnhanceBio} disabled={aiEnhancing} className="btn-ai">
+                  <Sparkles size={14} /> {aiEnhancing ? 'Writing...' : 'AI Enhance'}
+                </button>
+              </div>
+              
+              <div className="space-y-8">
+                <div>
+                  <label className="section-label">Professional Bio</label>
+                  <textarea name="bio" value={profile.bio} onChange={handleInputChange} rows="6" className={`${InputClass} resize-none leading-relaxed p-6`} placeholder="Craft your professional narrative..." />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div>
+                    <label className="section-label">Years of Experience</label>
+                    <input type="number" name="yearsOfExperience" value={profile.yearsOfExperience} onChange={handleInputChange} className={InputClass} min="0" />
+                  </div>
+                  <div>
+                    <label className="section-label">Key Certifications</label>
+                    <input name="certifications" value={profile.certifications} onChange={handleInputChange} className={InputClass} placeholder="e.g. ICF-PCC, CIPD" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="section-label">Expertise Areas</label>
+                  <div className="flex flex-wrap gap-3">
+                    {expertiseOptions.map(opt => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => handleExpertiseToggle(opt)}
+                        className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
+                          profile.expertise?.includes(opt) 
+                          ? 'bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-500/20' 
+                          : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* CAPACITY & HOURS SECTION */}
+            <div className="glass-card p-8 sm:p-10">
+              <h4 className="serif text-2xl text-white mb-8 border-b border-white/5 pb-6">Availability & Workload</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                  <label className="section-label">Start Time</label>
+                  <input type="time" name="startTime" value={profile.preferredWorkingHours?.startTime || '09:00'} onChange={handleWorkingHoursChange} className={InputClass} />
+                </div>
+                <div>
+                  <label className="section-label">End Time</label>
+                  <input type="time" name="endTime" value={profile.preferredWorkingHours?.endTime || '17:00'} onChange={handleWorkingHoursChange} className={InputClass} />
+                </div>
+                <div>
+                  <label className="section-label">Max Capacity</label>
+                  <input type="number" name="maxCandidates" value={profile.maxCandidates} onChange={handleInputChange} className={InputClass} min="5" max="50" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* BOTTOM ACTIONS MOBILE */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 z-50 flex gap-3">
+          <button onClick={handleSaveProfile} disabled={saving} className="btn-primary flex-1">
+            {saving ? 'Saving...' : 'Save Profile'}
+          </button>
+        </div>
       </div>
     </div>
   );

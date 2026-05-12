@@ -152,7 +152,7 @@ export default function SchedulePage() {
     
     // Add empty slots for the previous month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="hidden sm:block h-24 sm:h-32 border border-white/5 bg-white/[0.02] rounded-2xl" />);
+      days.push(<div key={`empty-${i}`} className="h-24 sm:h-36 bg-white/[0.02] rounded-2xl" />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -161,7 +161,7 @@ export default function SchedulePage() {
       const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
 
       days.push(
-        <div key={day} className={`h-24 sm:h-32 p-2 rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-900/30 border border-sky-500/50 shadow-[inset_0_0_20px_rgba(14,165,233,0.15)]' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}>
+        <div key={day} className={`h-24 sm:h-36 p-2 rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-900/30 shadow-[inset_0_0_20px_rgba(14,165,233,0.15)]' : 'bg-white/5 hover:bg-white/[0.08]'}`}>
           <span className={`text-xs sm:text-sm font-bold ml-1 ${isToday ? 'text-sky-400' : 'text-slate-500'}`}>{day}</span>
           <div className="mt-1 flex-1 space-y-1 overflow-y-auto no-scrollbar pr-1">
             {daySessions.map((s, idx) => (

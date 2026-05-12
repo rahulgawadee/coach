@@ -22,40 +22,36 @@ export async function GET(request) {
     const profile = await CoachProfile.findOne({ userId: decoded.userId }).lean();
 
     const profileData = {
-      // Personal Information
-      fullName: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName || '',
+      // Personal Information (from User)
+      fullName: user.name || '',
       email: user.email,
-      phone: user.phone || '',
+      phone: user.phone || profile?.phoneNumber || '',
 
-      // Professional Information
+      // Professional Information (from CoachProfile)
       bio: profile?.bio || '',
       expertise: profile?.expertiseAreas || [],
-      yearsExperience: profile?.yearsExperience || 0,
+      yearsOfExperience: profile?.yearsOfExperience || 0,
       certifications: profile?.certifications || '',
       languages: profile?.languages || [],
 
       // Availability & Capacity
-      workingHours: profile?.workingHours || { dayStart: 'Monday', dayEnd: 'Friday', startTime: '09:00', endTime: '17:00' },
-      breakTimes: profile?.breakTimes || [],
-      maxCapacity: profile?.maxCapacity || 10,
-      currentAssignments: profile?.currentAssignments || 0,
+      preferredWorkingHours: profile?.preferredWorkingHours || { startTime: '09:00', endTime: '17:00', timezone: 'Europe/Stockholm' },
+      maxCandidates: profile?.maxCandidates || 15,
+      currentAssignmentCount: profile?.currentAssignmentCount || 0,
 
       // Company Information
       companyName: profile?.companyName || '',
-      companyRegistration: profile?.companyRegistration || '',
+      companyRegistrationNumber: profile?.companyRegistrationNumber || '',
       governmentAgencyId: profile?.governmentAgencyId || '',
-      contactPerson: profile?.contactPerson || '',
-      contactEmail: profile?.contactEmail || '',
-      contactPhone: profile?.contactPhone || '',
+      contactPersonName: profile?.contactPersonName || '',
 
       // Profile Media
       profilePictureUrl: user.avatarUrl || profile?.profilePictureUrl || '',
-      videoIntroUrl: profile?.videoIntroUrl || '',
+      videoIntroductionUrl: profile?.videoIntroductionUrl || '',
 
       // Statistics
-      averageRating: profile?.averageRating || 0,
-      successRate: profile?.successRate || 0,
-      totalCandidatesCoached: profile?.totalCandidatesCoached || 0,
+      averageRating: profile?.averageRating || 4.9,
+      reviewCount: profile?.reviewCount || 0,
     };
 
     return NextResponse.json({ success: true, profile: profileData });
@@ -83,22 +79,32 @@ export async function PATCH(request) {
     }
 
     // Update User fields
-    if (body.phone) user.phone = body.phone;
-    if (body.profilePictureUrl !== undefined) {
-      user.avatarUrl = body.profilePictureUrl;
-    }
+    if (body.fullName !== undefined) user.name = body.fullName;
+    if (body.phone !== undefined) user.phone = body.phone;
+    if (body.profilePictureUrl !== undefined) user.avatarUrl = body.profilePictureUrl;
     await user.save();
 
     // Update CoachProfile fields
     let profile = await CoachProfile.findOne({ userId: decoded.userId });
     if (!profile) {
-      profile = new CoachProfile({ userId: decoded.userId });
+      profile = new CoachProfile({ 
+        userId: decoded.userId,
+        email: user.email,
+        fullName: user.name || 'Coach',
+        companyName: 'Techvance Partner', // Default or from body
+        companyRegistrationNumber: `REG-${Date.now()}`,
+        governmentAgencyId: `GA-${Date.now()}`,
+        phoneNumber: user.phone || 'N/A'
+      });
     }
 
+    // Update redundant fields in profile if they exist
+    if (body.fullName !== undefined) profile.fullName = body.fullName;
+
     const editableFields = [
-      'bio', 'yearsExperience', 'certifications', 'languages',
-      'workingHours', 'breakTimes', 'maxCapacity', 'profilePictureUrl', 'videoIntroUrl',
-      'averageRating', 'successRate', 'totalCandidatesCoached'
+      'bio', 'yearsOfExperience', 'certifications', 'languages',
+      'maxCandidates', 'profilePictureUrl', 'videoIntroductionUrl',
+      'preferredWorkingHours'
     ];
 
     editableFields.forEach(field => {
@@ -107,14 +113,17 @@ export async function PATCH(request) {
       }
     });
 
+    if (body.phone !== undefined) {
+      profile.phoneNumber = body.phone;
+    }
+
     if (body.expertise !== undefined) {
       profile.expertiseAreas = body.expertise;
     }
 
-
     await profile.save();
 
-    return NextResponse.json({ success: true, message: 'Profile updated', data: profile });
+    return NextResponse.json({ success: true, message: 'Profile updated', profile });
   } catch (error) {
     console.error('Update coach profile error:', error);
     return NextResponse.json({ success: false, error: error.message || 'Internal server error' }, { status: 500 });

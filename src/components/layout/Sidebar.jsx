@@ -83,7 +83,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
 
         .sidebar-root {
           font-family: 'DM Sans', sans-serif;
-          position: fixed; left: 0; top: 0; z-index: 50; height: 100vh;
+          position: fixed; left: 0; top: 0; z-index: 110; height: 100vh;
           background: rgba(6,6,15,0.97);
           border-right: 1px solid rgba(255,255,255,0.055);
           backdrop-filter: blur(24px);
@@ -169,7 +169,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
 
         /* Toggle button */
         .sb-toggle {
-          position: absolute; top: 18px; right: -13px;
+          position: absolute; top: 21px; right: -13px;
           width: 26px; height: 26px; border-radius: 50%;
           background: #0f0e1c;
           border: 1px solid rgba(99,102,241,0.3);

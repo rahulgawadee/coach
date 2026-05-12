@@ -92,85 +92,7 @@ export default function CandidateCalendarPage() {
   const getDaysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year, month) => new Date(year, month, 1).getDay();
 
-  const renderCalendar = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const daysInMonth = getDaysInMonth(year, month);
-    const firstDay = getFirstDayOfMonth(year, month);
-    const days = [];
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
-    // Empty cells for the first week
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 sm:h-32 border border-white/5 bg-white/5 rounded-xl sm:rounded-2xl" />);
-    }
 
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const dayEvents = events.filter(e => e.date === dateStr);
-      const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
-      const isBlocked = coachAvailability.some(a => a.date === dateStr && a.blocked);
-
-      days.push(
-        <div key={day} className={`calendar-day h-24 sm:h-32 p-1 sm:p-2 rounded-xl sm:rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 border border-indigo-500/50 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 border border-white/10 hover:border-white/20'}`}>
-          <div className="flex justify-between items-start">
-            <span className={`text-[10px] sm:text-sm font-bold ml-1 ${isToday ? 'text-indigo-400' : 'text-slate-400'}`}>{day}</span>
-            {isBlocked && <Lock size={10} className="text-slate-600 mt-0.5 sm:mt-1 mr-0.5 sm:mr-1" />}
-          </div>
-          <div className="mt-1 flex-1 space-y-0.5 sm:space-y-1 overflow-y-auto pr-0.5 sm:pr-1 no-scrollbar">
-            {dayEvents.map((ev, idx) => (
-              <div 
-                key={idx} 
-                className={`px-1 py-0.5 sm:px-1.5 sm:py-1 border text-[8px] sm:text-[10px] font-medium rounded-md sm:rounded-lg truncate w-full ${
-                  ev.status === 'confirmed' 
-                    ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-100' 
-                    : 'bg-amber-500/20 border-amber-500/30 text-amber-100'
-                }`}
-                title={`${ev.time} - ${ev.title}`}
-              >
-                {ev.time} {ev.title}
-              </div>
-            ))}
-          </div>
-          <button 
-            onClick={() => {
-              setReq({...req, preferredDate: dateStr});
-              setShowRequestModal(true);
-            }}
-            className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 w-5 h-5 sm:w-6 h-6 bg-indigo-500 text-white rounded-md sm:rounded-lg flex items-center justify-center opacity-0 sm:group-hover:opacity-100 transition-all hover:bg-indigo-400 font-black shadow-lg"
-          >
-            +
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-start">
-            <h2 className="text-xl sm:text-2xl font-medium text-white serif">{monthNames[month]} {year}</h2>
-            <div className="flex gap-1">
-              <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft size={18} /></button>
-              <button onClick={() => setCurrentDate(new Date())} className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold bg-white/10 text-slate-300 rounded-lg hover:bg-white/20 transition-colors">Today</button>
-              <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"><ChevronRight size={18} /></button>
-            </div>
-          </div>
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
-            <button onClick={() => setViewMode('month')} className={`flex-1 sm:flex-none px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${viewMode === 'month' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-sm' : 'text-slate-400 border border-transparent'}`}>Calendar</button>
-            <button onClick={() => setViewMode('list')} className={`flex-1 sm:flex-none px-4 py-2 text-[10px] sm:text-xs font-bold rounded-lg transition-all ${viewMode === 'list' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 shadow-sm' : 'text-slate-400 border border-transparent'}`}>List</button>
-          </div>
-        </div>
-
-        <div className="calendar-grid grid grid-cols-7 gap-1 sm:gap-3">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="text-center py-2 text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">{d}</div>
-          ))}
-          {days}
-        </div>
-      </div>
-    );
-  };
 
   if (loading && !events.length) {
     return (
@@ -257,8 +179,8 @@ export default function CandidateCalendarPage() {
           .calendar-day, .empty-day { 
             min-width: 0 !important;
             height: auto !important; 
-            aspect-ratio: 1 / 1.3; 
-            min-height: 60px !important;
+            aspect-ratio: 1 / 1 !important; 
+            min-height: 50px !important;
             padding: 4px !important;
             border-radius: 8px !important;
             border: none !important;
@@ -321,7 +243,7 @@ export default function CandidateCalendarPage() {
               
               {/* Empty cells */}
               {Array.from({ length: getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => (
-                <div key={`empty-${i}`} className="empty-day h-32 bg-white/5 rounded-xl sm:rounded-2xl" />
+                <div key={`empty-${i}`} className="empty-day h-24 sm:h-36 bg-white/5 rounded-xl sm:rounded-2xl" />
               ))}
 
               {/* Days in Month */}
@@ -333,7 +255,7 @@ export default function CandidateCalendarPage() {
                 const isBlocked = coachAvailability.some(a => a.date === dateStr && a.blocked);
 
                 return (
-                  <div key={day} className={`calendar-day h-32 p-1 sm:p-2 rounded-xl sm:rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 hover:bg-white/[0.08]'}`}>
+                  <div key={day} className={`calendar-day h-24 sm:h-36 p-1 sm:p-3 rounded-xl sm:rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-indigo-900/30 shadow-[inset_0_0_20px_rgba(99,102,241,0.15)]' : 'bg-white/5 hover:bg-white/[0.08]'}`}>
                     <div className="flex justify-between items-start">
                       <span className={`text-[10px] sm:text-sm font-bold ml-1 ${isToday ? 'text-indigo-400' : 'text-slate-400'}`}>{day}</span>
                       {isBlocked && <Lock size={10} className="text-slate-600 mt-0.5 sm:mt-1 mr-0.5 sm:mr-1" />}
