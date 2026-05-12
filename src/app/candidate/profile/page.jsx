@@ -739,7 +739,7 @@ export default function ProfilePage() {
           {/* Avatar block */}
           <div className="relative shrink-0 group flex flex-col items-center">
             <div className="relative">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : form.avatarUrl ? (
