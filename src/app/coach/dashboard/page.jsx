@@ -241,9 +241,9 @@ export default function CoachDashboardPage() {
         }
       `}</style>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
         {/* HERO SECTION */}
-        <div className="glass-card coach-gradient p-10 md:p-14 relative overflow-hidden">
+        <div className="glass-card coach-gradient p-6 sm:p-10 md:p-14 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
             <svg viewBox="0 0 400 400" className="w-full h-full text-sky-500">
               <defs>
@@ -261,30 +261,30 @@ export default function CoachDashboardPage() {
               <Star size={12} className="animate-pulse" />
               Mentor Workspace
             </div>
-            <h1 className="serif text-4xl sm:text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+            <h1 className="serif text-3xl sm:text-5xl md:text-6xl text-white mb-4 sm:mb-6 leading-[1.1]">
               Welcome back, <br />
               <span className="italic bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
                 {user.name.split(' ')[0]}
               </span>
             </h1>
-            <div className="flex flex-col md:flex-row md:items-center gap-6 mt-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-6 mt-6 sm:mt-8">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
-                  <Users size={28} />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                  <Users size={24} className="sm:size-[28px]" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Active Mentees</p>
-                  <p className="text-2xl font-bold text-white">{activeCandidates.length} <span className="text-sm font-medium text-slate-400 ml-1">Students</span></p>
+                  <p className="text-xl sm:text-2xl font-bold text-white">{activeCandidates.length} <span className="text-sm font-medium text-slate-400 ml-1">Students</span></p>
                 </div>
               </div>
-              <div className="h-10 w-px bg-white/10 hidden md:block" />
+              <div className="hidden sm:block h-10 w-px bg-white/10" />
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <TrendingUp size={28} />
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <TrendingUp size={24} className="sm:size-[28px]" />
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Performance</p>
-                  <p className="text-2xl font-bold text-white">4.9 <span className="text-sm font-medium text-slate-400 ml-1">Rating</span></p>
+                  <p className="text-xl sm:text-2xl font-bold text-white">4.9 <span className="text-sm font-medium text-slate-400 ml-1">Rating</span></p>
                 </div>
               </div>
             </div>
@@ -296,12 +296,12 @@ export default function CoachDashboardPage() {
           <div className="glass-card p-8 bg-sky-500/10 border-sky-500/20 relative overflow-hidden group">
             <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-6">
               <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-                <div className="w-16 h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform shrink-0">
-                  <UserCheck size={32} />
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-sky-500 flex items-center justify-center text-white shadow-lg shadow-sky-500/40 group-hover:scale-105 transition-transform shrink-0">
+                  <UserCheck size={28} className="sm:size-[32px]" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-white">Action Required</h2>
-                  <p className="text-sky-300/70 text-sm mt-1">You have <span className="text-white font-bold">{pendingRequests.length}</span> new candidate match requests waiting for your review.</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Action Required</h2>
+                  <p className="text-sky-300/70 text-xs sm:text-sm mt-1">You have <span className="text-white font-bold">{pendingRequests.length}</span> requests waiting for review.</p>
                 </div>
               </div>
               <button 
@@ -340,8 +340,8 @@ export default function CoachDashboardPage() {
                   <thead>
                     <tr className="border-b border-white/5">
                       <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Candidate</th>
-                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile</th>
-                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Skills</th>
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden sm:table-cell">Profile</th>
+                      <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest hidden md:table-cell">Skills</th>
                       <th className="pb-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Action</th>
                     </tr>
                   </thead>
@@ -358,10 +358,10 @@ export default function CoachDashboardPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="py-5">
+                          <td className="py-5 hidden sm:table-cell">
                             <span className="text-xs text-slate-300 font-light">{c.profileData?.occupation || 'Student'}</span>
                           </td>
-                          <td className="py-5">
+                          <td className="py-5 hidden md:table-cell">
                             <div className="flex flex-wrap gap-1.5">
                               {(c.profileData?.skills || []).slice(0, 2).map(skill => (
                                 <span key={skill} className="px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-[9px] font-bold text-sky-300 uppercase">

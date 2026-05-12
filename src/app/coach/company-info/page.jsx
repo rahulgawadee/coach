@@ -1,10 +1,39 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import apiService from '@/services/api';
+import { 
+  Building2, 
+  Mail, 
+  Phone, 
+  User, 
+  Award, 
+  TrendingUp, 
+  Users, 
+  Star, 
+  Globe,
+  MapPin,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  ExternalLink
+} from 'lucide-react';
+
+const BackgroundGrid = () => (
+  <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+      </pattern>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+  </div>
+);
 
 export default function CompanyInfoPage() {
   const router = useRouter();
@@ -41,147 +70,188 @@ export default function CompanyInfoPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading company information...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
+  const StatCard = ({ icon: Icon, label, value, colorClass }) => (
+    <div className="glass-card p-6 flex flex-col items-center text-center">
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-white/5 border border-white/10 ${colorClass}`}>
+        <Icon size={24} />
+      </div>
+      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-2xl font-black text-white">{value}</p>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Company Information</h1>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
-            Request Edit
-          </button>
-        </div>
+    <div className="relative max-w-5xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+      <BackgroundGrid />
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        .glass-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px);
+          border-radius: 28px;
+        }
+        .btn-premium {
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center; gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(2,132,199,0.25);
+        }
+        .btn-premium:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(2,132,199,0.35); }
+      `}</style>
+
+      {/* Header */}
+      <div className="pt-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4 sm:px-0">
+        <div className="text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-widest mb-4">
+            <Building2 size={12} />
+            Enterprise Identity
           </div>
-        )}
+          <h1 className="serif text-4xl sm:text-5xl text-white font-medium tracking-tight">Organization Profile</h1>
+          <p className="text-slate-400 font-light mt-2 max-w-md">Overview of your parent organization, performance metrics, and professional network.</p>
+        </div>
+        <button className="btn-premium w-full sm:w-auto justify-center">
+          <ExternalLink size={18} /> Request Edit
+        </button>
+      </div>
 
-        {companyInfo ? (
-          <div className="space-y-6">
-            {/* Company Details */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Company Details</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-gray-600">Company Name</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.name}</p>
+      {error && (
+        <div className="mt-8 mx-4 sm:mx-0 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
+
+      {companyInfo ? (
+        <div className="mt-10 space-y-8 px-4 sm:px-0">
+          {/* Main Info */}
+          <div className="glass-card overflow-hidden">
+            <div className="relative p-8 sm:p-12 border-b border-white/5" style={{ background:'linear-gradient(135deg,rgba(14,165,233,0.05) 0%,transparent 100%)' }}>
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-3xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 shadow-2xl">
+                  <Building2 size={48} strokeWidth={1.5} />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-600">Registration Number</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.registrationNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Government Agency ID</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.governmentAgencyId}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Contact Person</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.contactPerson}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Email</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Phone</p>
-                  <p className="text-lg font-semibold text-gray-900 mt-2">{companyInfo.phone}</p>
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="serif text-3xl sm:text-4xl text-white font-medium tracking-tight mb-2">{companyInfo.name}</h2>
+                  <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-slate-400 font-medium text-sm">
+                    <span className="flex items-center gap-2"><Globe size={16} className="text-sky-500" /> Professional Services</span>
+                    <span className="flex items-center gap-2"><MapPin size={16} className="text-sky-500" /> Enterprise Headquarters</span>
+                  </div>
+                  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500"><FileText size={16} /></div>
+                      <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Reg No.</p>
+                        <p className="text-sm font-bold text-white tracking-wide">{companyInfo.registrationNumber}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500"><User size={16} /></div>
+                      <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Contact</p>
+                        <p className="text-sm font-bold text-white tracking-wide">{companyInfo.contactPerson}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500"><Mail size={16} /></div>
+                      <div>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Inquiries</p>
+                        <p className="text-sm font-bold text-white tracking-wide">{companyInfo.email}</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Performance Metrics */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Performance Metrics</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <p className="text-sm text-gray-600">Rating</p>
-                  <p className="text-3xl font-bold text-yellow-500 mt-2">{companyInfo.rating} ★</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Success Rate</p>
-                  <p className="text-3xl font-bold text-green-600 mt-2">{companyInfo.successRate}%</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Active Candidates</p>
-                  <p className="text-3xl font-bold text-blue-600 mt-2">{companyInfo.activeCandidates || 0}</p>
-                </div>
-              </div>
-            </div>
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <StatCard icon={Star} label="Avg Rating" value={`${companyInfo.rating} / 5`} colorClass="text-amber-400" />
+            <StatCard icon={TrendingUp} label="Success Rate" value={`${companyInfo.successRate}%`} colorClass="text-emerald-400" />
+            <StatCard icon={Users} label="Active Program" value={companyInfo.activeCandidates || 0} colorClass="text-sky-400" />
+          </div>
 
-            {/* Testimonials */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Testimonials from Candidates</h2>
-              <div className="space-y-4">
+          {/* Testimonials */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div className="glass-card p-8 sm:p-10">
+              <h3 className="serif text-2xl text-white mb-8 flex items-center gap-3">
+                <Award size={24} className="text-sky-500" />
+                Mentee Voices
+              </h3>
+              <div className="space-y-6">
                 {companyInfo.testimonials && companyInfo.testimonials.length > 0 ? (
                   companyInfo.testimonials.map((testimonial) => (
-                    <div key={testimonial.id} className="border-l-4 border-blue-500 pl-4 py-2">
-                      <p className="text-gray-700">{testimonial.text}</p>
-                      <p className="text-sm text-gray-600 mt-2">— {testimonial.candidateName}</p>
+                    <div key={testimonial.id} className="p-6 rounded-2xl bg-white/[0.03] border border-white/5 relative group transition-all hover:bg-white/[0.05]">
+                      <div className="absolute top-4 right-4 text-sky-500/20 group-hover:text-sky-500/40 transition-colors">
+                        <Star size={32} fill="currentColor" />
+                      </div>
+                      <p className="text-slate-300 italic font-light leading-relaxed">"{testimonial.text}"</p>
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-sky-500/10 flex items-center justify-center text-sky-500 font-black text-xs">
+                          {testimonial.candidateName.charAt(0)}
+                        </div>
+                        <p className="text-xs font-bold text-white tracking-wide">— {testimonial.candidateName}</p>
+                      </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-8">No testimonials yet</p>
+                  <div className="py-12 text-center opacity-30 italic font-light text-slate-400">No testimonials captured yet.</div>
                 )}
               </div>
             </div>
 
             {/* Coaches List */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Coaches at This Company</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Assigned Candidates</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {companyInfo.coaches && companyInfo.coaches.length > 0 ? (
-                      companyInfo.coaches.map((coach) => (
-                        <tr key={coach.id} className="hover:bg-gray-50 transition">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{coach.name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{coach.email}</td>
-                          <td className="px-6 py-4 text-sm text-gray-600">{coach.assignedCandidates}</td>
-                          <td className="px-6 py-4">
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                              Active
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
-                          No coaches listed
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+            <div className="glass-card p-8 sm:p-10">
+              <h3 className="serif text-2xl text-white mb-8 flex items-center gap-3">
+                <Users size={24} className="text-sky-500" />
+                Expert Faculty
+              </h3>
+              <div className="space-y-4">
+                {companyInfo.coaches && companyInfo.coaches.length > 0 ? (
+                  companyInfo.coaches.map((coach) => (
+                    <div key={coach.id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] transition-all">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-500 font-bold">
+                          {coach.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm">{coach.name}</p>
+                          <p className="text-[10px] text-slate-500 font-medium uppercase mt-0.5">{coach.assignedCandidates} Active Mentees</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Active
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-12 text-center opacity-30 italic text-slate-400">No coaches listed.</div>
+                )}
               </div>
             </div>
           </div>
-        ) : (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <p className="text-red-700">Company information not available</p>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="mt-12 glass-card p-12 text-center">
+          <AlertCircle size={48} className="mx-auto mb-4 text-rose-500/50" />
+          <p className="text-slate-400 font-light">Unable to retrieve organization profile at this moment.</p>
+        </div>
+      )}
     </div>
   );
 }

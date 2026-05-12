@@ -738,20 +738,34 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 relative z-10">
           {/* Avatar block */}
           <div className="relative shrink-0 group flex flex-col items-center">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
-              {avatarPreview ? (
-                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-              ) : form.avatarUrl ? (
-                <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center">
-                  <UserCircle size={44} className="text-indigo-400/50" />
-                </div>
-              )}
-              {isUploading && (
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                  <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
-                </div>
+            <div className="relative">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-[24px] sm:rounded-[28px] md:rounded-[32px] overflow-hidden bg-[#0f0e1c] border-2 border-white/10 flex items-center justify-center shadow-2xl transition-transform duration-500 group-hover:scale-[1.02]">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : form.avatarUrl ? (
+                  <img src={form.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 flex items-center justify-center">
+                    <UserCircle size={44} className="text-indigo-400/50" />
+                  </div>
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              {/* Video Icon Overlapping Avatar Top Right */}
+              {form.videoUrl && !selectedVideo && (
+                <button
+                  type="button"
+                  onClick={() => setPlayingVideo(true)}
+                  className="absolute -top-1.5 -right-1.5 z-30 w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-600 text-white shadow-[0_4px_12px_rgba(79,70,229,0.5)] border border-white/20 hover:bg-indigo-500 hover:scale-110 active:scale-95 transition-all group"
+                  title="View Intro Video"
+                >
+                  <Video size={16} className="group-hover:rotate-12 transition-transform" />
+                </button>
               )}
             </div>
 
@@ -784,18 +798,7 @@ export default function ProfilePage() {
             </div>
             <h1 className="serif text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-2 sm:mb-3 font-medium tracking-tight">Your Profile</h1>
             <p className="text-slate-400 font-light text-sm max-w-sm sm:max-w-md">Fine-tune your professional narrative and let coaches see your full potential.</p>
-
             <div className="mt-4 sm:mt-6 flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
-              {form.videoUrl && !selectedVideo && (
-                <button
-                  type="button"
-                  onClick={() => setPlayingVideo(true)}
-                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-2xl text-xs font-bold bg-white/5 border border-white/10 text-white hover:bg-indigo-500/20 hover:border-indigo-500/30 hover:text-indigo-300 transition-all shadow-xl group"
-                >
-                  <Video size={14} className="text-indigo-400 group-hover:scale-110 transition-transform" />
-                  View Intro Video
-                </button>
-              )}
               {form.resumeUrl && (
                 <a
                   href={form.resumeUrl}

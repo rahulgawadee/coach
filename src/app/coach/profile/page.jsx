@@ -294,9 +294,9 @@ export default function CoachProfilePage() {
       <div className="profile-root space-y-8">
 
         {/* ── PAGE HEADER ── */}
-        <div className="fade-up pt-8">
-          <h1 className="serif text-4xl text-white font-medium tracking-tight">Coach Profile</h1>
-          <p className="text-slate-400 mt-2 font-light">Manage your identity, expertise, and availability.</p>
+        <div className="fade-up pt-8 px-4 sm:px-0">
+          <h1 className="serif text-3xl sm:text-4xl text-white font-medium tracking-tight">Coach Profile</h1>
+          <p className="text-slate-400 mt-2 font-light text-sm sm:text-base">Manage your identity, expertise, and availability.</p>
         </div>
 
         {/* ── ALERTS ── */}
@@ -314,11 +314,11 @@ export default function CoachProfilePage() {
         <form onSubmit={handleSaveProfile} className="space-y-8">
 
           {/* ── SECTION 1: PROFILE IDENTITY (TOP) ── */}
-          <div className="fade-up delay-1 card overflow-hidden">
+          <div className="fade-up delay-1 card overflow-hidden mx-4 sm:mx-0">
             {/* Hero accent */}
-            <div style={{ position:'relative', background:'linear-gradient(135deg,rgba(14,165,233,0.12) 0%,rgba(79,70,229,0.08) 100%)', padding:'36px', borderBottom:'1px solid rgba(255,255,255,0.07)' }}>
-              <div style={{ position:'absolute', top:0, right:0, width:200, height:200, background:'radial-gradient(circle at top right, rgba(14,165,233,0.15) 0%, transparent 70%)', pointerEvents:'none' }} />
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+            <div className="relative p-6 sm:p-10 md:p-14 border-b border-white/7" style={{ background:'linear-gradient(135deg,rgba(14,165,233,0.12) 0%,rgba(79,70,229,0.08) 100%)' }}>
+              <div className="absolute top-0 right-0 w-48 h-48 sm:w-64 sm:h-64 bg-radial-gradient from-sky-500/15 to-transparent pointer-events-none" />
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10 relative z-10">
 
                 {/* PROFILE PHOTO UPLOAD */}
                 <div className="flex-shrink-0 relative group">
@@ -343,28 +343,28 @@ export default function CoachProfilePage() {
                     </div>
                     <input type="file" onChange={handleUploadPicture} disabled={uploadingPicture} className="hidden" accept="image/*" />
                   </label>
-                  <div style={{ position:'absolute', bottom:-6, right:-6, width:24, height:24, borderRadius:'50%', background:'rgba(14,165,233,0.9)', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #09090f', cursor:'pointer' }}>
-                    <span style={{ fontSize:10 }}>✎</span>
+                  <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-sky-500 flex items-center justify-center border-2 border-[#09090f] cursor-pointer shadow-lg hover:scale-110 transition-transform">
+                    <span className="text-xs text-white">✎</span>
                   </div>
                 </div>
 
                 {/* IDENTITY TEXT */}
                 <div className="flex-1 text-center sm:text-left">
-                  <h2 className="serif text-3xl text-white font-medium">{profile.fullName || user?.name || 'Your Name'}</h2>
-                  <p className="text-slate-400 mt-1 font-light">{profile.email}</p>
+                  <h2 className="serif text-2xl sm:text-3xl md:text-4xl text-white font-medium leading-tight">{profile.fullName || user?.name || 'Your Name'}</h2>
+                  <p className="text-slate-400 mt-1.5 font-light text-sm sm:text-base">{profile.email}</p>
                   {profile.expertise?.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+                    <div className="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
                       {profile.expertise.slice(0, 3).map(e => (
-                        <span key={e} className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{e}</span>
+                        <span key={e} className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{e}</span>
                       ))}
                     </div>
                   )}
-                  <div className="flex flex-wrap gap-3 mt-4 justify-center sm:justify-start">
-                    <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center', gap:5 }}>
-                      <span>⭐</span> {profile.yearsOfExperience || 0} yrs experience
+                  <div className="flex flex-wrap gap-4 mt-5 justify-center sm:justify-start">
+                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                      <span className="text-sky-400">⭐</span> {profile.yearsOfExperience || 0} yrs experience
                     </span>
-                    <span style={{ fontSize:12, color:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center', gap:5 }}>
-                      <span>👥</span> Capacity: {profile.maxCandidateCapacity || 15}
+                    <span className="text-xs text-slate-400 flex items-center gap-1.5">
+                      <span className="text-sky-400">👥</span> Capacity: {profile.maxCandidateCapacity || 15}
                     </span>
                   </div>
                 </div>
@@ -421,16 +421,16 @@ export default function CoachProfilePage() {
 
             <div className="mb-6">
               <label className="section-label mb-4">Expertise Areas</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {expertiseOptions.map((expertise) => {
                   const isChecked = profile.expertise?.includes(expertise);
                   return (
-                    <label key={expertise} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-sky-500/10 border-sky-500/30 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
+                    <label key={expertise} className={`flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer ${isChecked ? 'bg-sky-500/10 border-sky-500/30 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'}`}>
                       <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0 ${isChecked ? 'bg-sky-500 border-sky-500' : 'border-slate-500 bg-transparent'}`}>
                         {isChecked && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>}
                       </div>
                       <input type="checkbox" checked={isChecked} onChange={() => handleExpertiseToggle(expertise)} className="hidden" />
-                      <span className="font-medium text-sm">{expertise}</span>
+                      <span className="font-medium text-xs sm:text-sm">{expertise}</span>
                     </label>
                   );
                 })}
@@ -450,9 +450,9 @@ export default function CoachProfilePage() {
           </div>
 
           {/* ── SECTION 3: AVAILABILITY ── */}
-          <div className="fade-up delay-2 card p-8">
-            <h2 className="serif text-2xl text-white mb-6">Availability & Capacity</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="fade-up delay-2 card p-6 sm:p-8 mx-4 sm:mx-0">
+            <h2 className="serif text-xl sm:text-2xl text-white mb-6">Availability & Capacity</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               <div>
                 <label className="section-label">Working Hours</label>
                 <input type="text" name="preferredWorkingHours" value={profile.preferredWorkingHours || ''} onChange={handleInputChange} placeholder="e.g., 9 AM – 5 PM" className={InputClass} />
@@ -500,11 +500,11 @@ export default function CoachProfilePage() {
           </div>
 
           {/* ── SAVE ACTIONS ── */}
-          <div className="fade-up delay-3 flex flex-col sm:flex-row gap-4 pt-4">
-            <button type="submit" disabled={saving} className="btn-primary flex-1">
+          <div className="fade-up delay-3 flex flex-col sm:flex-row gap-4 pt-4 px-4 sm:px-0">
+            <button type="submit" disabled={saving} className="btn-primary">
               {saving ? 'Saving Changes...' : 'Save Profile Changes'}
             </button>
-            <button type="button" onClick={() => router.back()} className="btn-ghost flex-1">
+            <button type="button" onClick={() => router.back()} className="btn-ghost">
               Cancel
             </button>
           </div>

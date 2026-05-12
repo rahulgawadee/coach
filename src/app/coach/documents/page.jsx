@@ -1,10 +1,39 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import apiService from '@/services/api';
+import { 
+  FolderOpen, 
+  FileText, 
+  Upload, 
+  Search, 
+  Trash2, 
+  Download, 
+  Eye, 
+  ChevronDown, 
+  ChevronRight,
+  MoreVertical,
+  Plus,
+  Shield,
+  MessageSquare,
+  Users
+} from 'lucide-react';
+
+const BackgroundGrid = () => (
+  <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
+      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+      </pattern>
+      <rect width="100%" height="100%" fill="url(#grid)" />
+    </svg>
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+  </div>
+);
 
 export default function DocumentsPage() {
   const router = useRouter();
@@ -20,6 +49,7 @@ export default function DocumentsPage() {
   const [expandedFolder, setExpandedFolder] = useState('sharedWithAll');
   const [uploadFolder, setUploadFolder] = useState('sharedWithAll');
   const [uploadingFile, setUploadingFile] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated || !hasRole('Coach')) {
@@ -83,6 +113,7 @@ export default function DocumentsPage() {
   };
 
   const handleDelete = async (fileId, folder) => {
+    if (!confirm('Are you sure you want to delete this document?')) return;
     try {
       const response = await fetch('/api/coach/documents', {
         method: 'DELETE',
@@ -110,196 +141,169 @@ export default function DocumentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading documents...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
+  const FolderIcon = (key) => {
+    switch(key) {
+      case 'sharedWithAll': return <Shield className="text-sky-400" size={20} />;
+      case 'candidateDocuments': return <Users className="text-indigo-400" size={20} />;
+      case 'messageDocuments': return <MessageSquare className="text-emerald-400" size={20} />;
+      default: return <FolderOpen className="text-slate-400" size={20} />;
+    }
+  };
+
+  const FolderTitle = (key) => {
+    switch(key) {
+      case 'sharedWithAll': return "Public Resources";
+      case 'candidateDocuments': return "Candidate Portfolio";
+      case 'messageDocuments': return "Conversation Assets";
+      default: return key;
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Documents Hub</h1>
-          <div className="flex gap-3">
-            <select
-              value={uploadFolder}
-              onChange={(e) => setUploadFolder(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            >
-              <option value="sharedWithAll">📁 Shared with All</option>
-              <option value="candidateDocuments">📁 Candidate Documents</option>
-              <option value="messageDocuments">📁 Message Documents</option>
-            </select>
-            <label className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition cursor-pointer">
-              {uploadingFile ? `Uploading: ${uploadingFile}` : '📤 Upload'}
-              <input
-                type="file"
-                onChange={handleUpload}
-                className="hidden"
-                disabled={!!uploadingFile}
-              />
-            </label>
+    <div className="relative max-w-6xl mx-auto pb-16 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
+      <BackgroundGrid />
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        .serif { font-family: 'DM Serif Display', Georgia, serif; }
+        .glass-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.06);
+          backdrop-filter: blur(20px);
+          border-radius: 28px;
+        }
+        .btn-premium {
+          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          color: white;
+          padding: 12px 24px;
+          border-radius: 14px;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center; gap: 8px;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(2,132,199,0.25);
+        }
+        .btn-premium:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px rgba(2,132,199,0.35);
+        }
+      `}</style>
+
+      {/* Header */}
+      <div className="pt-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4 sm:px-0">
+        <div className="text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-widest mb-4">
+            <FolderOpen size={12} />
+            Asset Library
           </div>
+          <h1 className="serif text-4xl sm:text-5xl text-white font-medium tracking-tight">Documents Hub</h1>
+          <p className="text-slate-400 font-light mt-2 max-w-md">Securely manage, share, and organize all mentorship artifacts and resources.</p>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-
-        {/* Folders */}
-        <div className="space-y-4">
-          {/* Shared with All Candidates */}
-          <div className="bg-white rounded-lg shadow">
-            <button
-              onClick={() =>
-                setExpandedFolder(expandedFolder === 'sharedWithAll' ? '' : 'sharedWithAll')
-              }
-              className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📁</span>
-                <h3 className="text-lg font-bold text-gray-900">Shared with All Candidates</h3>
-              </div>
-              <span className="text-gray-600">
-                {expandedFolder === 'sharedWithAll' ? '▼' : '▶'}
+        
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <select
+            value={uploadFolder}
+            onChange={(e) => setUploadFolder(e.target.value)}
+            className="px-4 py-3 bg-white/5 border border-white/10 rounded-xl outline-none text-white text-xs font-bold uppercase tracking-widest focus:border-sky-500/50 transition-all appearance-none cursor-pointer sm:min-w-[200px]"
+          >
+            <option value="sharedWithAll" className="bg-[#0d0c1e]">📁 Public Resources</option>
+            <option value="candidateDocuments" className="bg-[#0d0c1e]">📁 Candidate Portfolio</option>
+            <option value="messageDocuments" className="bg-[#0d0c1e]">📁 Message Assets</option>
+          </select>
+          <label className="btn-premium flex-1 sm:flex-none justify-center cursor-pointer">
+            {uploadingFile ? (
+              <span className="flex items-center gap-2">
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Uploading...
               </span>
+            ) : (
+              <><Upload size={18} /> Upload File</>
+            )}
+            <input type="file" onChange={handleUpload} className="hidden" disabled={!!uploadingFile} />
+          </label>
+        </div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mt-8 mx-4 sm:mx-0 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex items-center gap-3">
+          <AlertCircle size={18} /> {error}
+        </div>
+      )}
+
+      {/* Main Grid */}
+      <div className="mt-8 space-y-6 px-4 sm:px-0">
+        {Object.keys(folders).map((folderKey) => (
+          <div key={folderKey} className="glass-card overflow-hidden">
+            <button
+              onClick={() => setExpandedFolder(expandedFolder === folderKey ? '' : folderKey)}
+              className="w-full flex items-center justify-between p-6 sm:p-8 hover:bg-white/[0.02] transition-colors"
+            >
+              <div className="flex items-center gap-4 sm:gap-6">
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${expandedFolder === folderKey ? 'bg-sky-500/10 border-sky-500/20' : 'bg-white/5 border-white/10'}`}>
+                  {FolderIcon(folderKey)}
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-bold text-white tracking-tight">{FolderTitle(folderKey)}</h3>
+                  <p className="text-xs text-slate-500 font-medium uppercase tracking-widest mt-1">{folders[folderKey].length} Items</p>
+                </div>
+              </div>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center border border-white/10 text-slate-500 transition-transform ${expandedFolder === folderKey ? 'rotate-180 bg-white/5' : ''}`}>
+                <ChevronDown size={18} />
+              </div>
             </button>
 
-            {expandedFolder === 'sharedWithAll' && (
-              <div className="border-t p-6 space-y-3">
-                {folders.sharedWithAll.length > 0 ? (
-                  folders.sharedWithAll.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📄</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{file.name}</p>
-                          <p className="text-xs text-gray-500">{file.size}</p>
+            <div className={`transition-all duration-300 ease-in-out ${expandedFolder === folderKey ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+              <div className="p-6 sm:p-8 pt-0 border-t border-white/5 space-y-3">
+                {folders[folderKey].length > 0 ? (
+                  folders[folderKey].map((file) => (
+                    <div key={file.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] hover:border-white/10 transition-all group gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-sky-400 transition-colors">
+                          <FileText size={20} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-bold text-white text-sm truncate">{file.name}</p>
+                          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
+                            {file.size || 'Unknown size'} • {file.candidateName || file.conversationName || 'Shared'}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          Preview
+                      <div className="flex items-center gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition-all" title="Preview">
+                          <Eye size={16} />
                         </button>
-                        <button className="text-green-600 hover:text-green-800 text-sm font-medium">
-                          Download
+                        <button className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Download">
+                          <Download size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(file.id, 'sharedWithAll')}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(file.id, folderKey); }}
+                          className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                          title="Delete"
                         >
-                          Delete
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-center py-4">No documents</p>
+                  <div className="py-12 text-center opacity-30">
+                    <FolderOpen size={40} className="mx-auto mb-3 text-slate-600" />
+                    <p className="text-slate-500 text-sm font-light">This vault is currently empty.</p>
+                  </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
-
-          {/* Candidate Documents */}
-          <div className="bg-white rounded-lg shadow">
-            <button
-              onClick={() =>
-                setExpandedFolder(expandedFolder === 'candidateDocuments' ? '' : 'candidateDocuments')
-              }
-              className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📁</span>
-                <h3 className="text-lg font-bold text-gray-900">Candidate Documents</h3>
-              </div>
-              <span className="text-gray-600">
-                {expandedFolder === 'candidateDocuments' ? '▼' : '▶'}
-              </span>
-            </button>
-
-            {expandedFolder === 'candidateDocuments' && (
-              <div className="border-t p-6 space-y-3">
-                {folders.candidateDocuments.length > 0 ? (
-                  folders.candidateDocuments.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📄</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{file.name}</p>
-                          <p className="text-xs text-gray-500">{file.candidateName}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          Preview
-                        </button>
-                        <button
-                          onClick={() => handleDelete(file.id, 'candidateDocuments')}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-4">No documents</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Message Documents */}
-          <div className="bg-white rounded-lg shadow">
-            <button
-              onClick={() =>
-                setExpandedFolder(expandedFolder === 'messageDocuments' ? '' : 'messageDocuments')
-              }
-              className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">📁</span>
-                <h3 className="text-lg font-bold text-gray-900">Message Documents</h3>
-              </div>
-              <span className="text-gray-600">
-                {expandedFolder === 'messageDocuments' ? '▼' : '▶'}
-              </span>
-            </button>
-
-            {expandedFolder === 'messageDocuments' && (
-              <div className="border-t p-6 space-y-3">
-                {folders.messageDocuments.length > 0 ? (
-                  folders.messageDocuments.map((file) => (
-                    <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📄</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{file.name}</p>
-                          <p className="text-xs text-gray-500">From: {file.conversationName}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          Download
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-center py-4">No documents</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

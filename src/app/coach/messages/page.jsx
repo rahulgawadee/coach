@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 
-import { Search, Phone, MoreVertical, Send, MessageSquare, Sparkles } from 'lucide-react';
+import { Search, Phone, MoreVertical, Send, MessageSquare, Sparkles, ChevronLeft } from 'lucide-react';
 
 const AvatarCircle = ({ name, avatarUrl, size = 40, className = '' }) => {
   const [imgError, setImgError] = useState(false);
@@ -41,6 +41,7 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const scrollRef = useRef(null);
 
   const [aiSuggestions, setAiSuggestions] = useState([]);
@@ -52,7 +53,6 @@ export default function MessagesPage() {
       return;
     }
     
-    // Coach-specific mock AI suggestions
     const text = lastMsg.text.toLowerCase();
     let suggestions = ["Great!", "Keep it up.", "Happy to help."];
 
@@ -76,9 +76,6 @@ export default function MessagesPage() {
       const data = await res.json();
       if (data.success) {
         setConversations(data.conversations || []);
-        if (data.conversations?.length > 0 && !selectedConvId) {
-          setSelectedConvId(data.conversations[0].id);
-        }
       }
     } catch (err) {
       console.error(err);
@@ -98,8 +95,6 @@ export default function MessagesPage() {
       if (data.success) {
         const newMsgs = data.messages || [];
         setMessages(newMsgs);
-        
-        // Generate AI suggestions for the coach
         if (newMsgs.length > 0) {
           const lastMsg = newMsgs[newMsgs.length - 1];
           generateAiSuggestions(lastMsg);
@@ -197,7 +192,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-80px)] flex gap-0 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-100px)] flex gap-0 animate-in fade-in duration-500 font-['DM_Sans',sans-serif]">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap');
         .msg-root { font-family: 'DM Sans', sans-serif; }
@@ -205,14 +200,11 @@ export default function MessagesPage() {
 
       <div className="msg-root flex w-full h-full rounded-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(6,6,15,0.95)', backdropFilter: 'blur(24px)' }}>
         
-        {/* ── SIDEBAR ────────────────────────────────────────────────── */}
-        <div className="w-80 flex-shrink-0 flex flex-col border-r border-white/10">
+        {/* ── SIDEBAR ── */}
+        <div className={`w-full md:w-80 flex-shrink-0 flex flex-col border-r border-white/10 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-5 border-b border-white/10">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-lg font-bold text-white">Conversations</h1>
-              <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
-                <Send size={14} />
-              </button>
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
@@ -228,13 +220,13 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto py-2">
+          <div className="flex-1 overflow-y-auto py-2 no-scrollbar">
             {filteredConversations.length > 0 ? filteredConversations.map(conv => {
               const isSelected = selectedConvId === conv.id;
               return (
                 <button
                   key={conv.id}
-                  onClick={() => setSelectedConvId(conv.id)}
+                  onClick={() => { setSelectedConvId(conv.id); setShowMobileChat(true); }}
                   className={`w-full px-4 py-3 flex items-center gap-3 transition-all relative text-left ${isSelected ? 'bg-sky-500/10' : 'hover:bg-white/5'}`}
                 >
                   {isSelected && <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-sky-400 rounded-full" />}
@@ -253,11 +245,6 @@ export default function MessagesPage() {
                       {conv.lastMessage || 'Start conversation...'}
                     </p>
                   </div>
-                  {conv.unreadCount > 0 && (
-                    <div className="w-5 h-5 rounded-full bg-sky-500 flex items-center justify-center text-[10px] text-white font-bold flex-shrink-0">
-                      {conv.unreadCount}
-                    </div>
-                  )}
                 </button>
               );
             }) : (
@@ -268,56 +255,58 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        {/* ── CHAT AREA ───────────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col min-w-0">
+        {/* ── CHAT AREA ── */}
+        <div className={`flex-1 flex flex-col min-w-0 ${showMobileChat ? 'flex' : 'hidden md:flex'}`}>
           {selectedConv ? (
             <>
               {/* Chat header */}
               <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div className="flex items-center gap-3">
+                  <button onClick={() => setShowMobileChat(false)} className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
+                    <ChevronLeft size={24} />
+                  </button>
                   <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={40} />
                   <div>
                     <h2 className="text-sm font-bold text-white">{selectedConv.candidateName}</h2>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Online</span>
+                      <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                      <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
-                    <Phone size={14} />
+                  <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                    <Phone size={16} />
                   </button>
-                  <button className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all text-sm">
-                    <MoreVertical size={14} />
+                  <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                    <MoreVertical size={16} />
                   </button>
                 </div>
               </div>
 
               {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth" style={{ backgroundImage: `radial-gradient(rgba(14,165,233,0.03) 1px, transparent 1px)`, backgroundSize: '24px 24px' }}>
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth no-scrollbar" style={{ backgroundImage: `radial-gradient(rgba(14,165,233,0.03) 1px, transparent 1px)`, backgroundSize: '32px 32px' }}>
                 {Object.entries(groupedMessages).map(([date, msgs]) => (
-                  <div key={date} className="space-y-4">
+                  <div key={date} className="space-y-6">
                     <div className="flex justify-center">
-                      <span className="px-3 py-1 bg-white/5 border border-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                      <span className="px-3 py-1 bg-white/5 border border-white/10 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
                         {date === new Date().toDateString() ? 'Today' : date}
                       </span>
                     </div>
                     {msgs.map((msg, i) => {
                       const isMe = msg.sender === 'coach';
                       return (
-                        <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-2.5 animate-in slide-in-from-bottom-2`}>
-                          {!isMe && <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={28} />}
-                          <div className={`max-w-[65%] space-y-1`}>
-                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${isMe ? 'bg-sky-500 text-white rounded-br-sm shadow-lg shadow-sky-500/20' : 'bg-white/8 text-slate-200 border border-white/10 rounded-bl-sm'}`}
-                              style={isMe ? {} : { background: 'rgba(255,255,255,0.07)' }}>
+                        <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-3 animate-in slide-in-from-bottom-2`}>
+                          {!isMe && <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={32} />}
+                          <div className={`max-w-[75%] sm:max-w-[65%] space-y-1.5`}>
+                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${isMe ? 'bg-sky-500 text-white rounded-br-none shadow-lg shadow-sky-500/10' : 'bg-white/10 text-slate-200 border border-white/10 rounded-bl-none'}`}>
                               {msg.text}
                             </div>
-                            <div className={`flex items-center gap-1 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span className="text-[10px] text-slate-500 uppercase tracking-tighter">
+                            <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                              <span className="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">
                                 {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              {isMe && <span className="text-[10px] text-sky-400 font-bold">✓✓</span>}
+                              {isMe && <span className="text-[10px] text-sky-500/80 font-black">✓✓</span>}
                             </div>
                           </div>
                         </div>
@@ -327,19 +316,15 @@ export default function MessagesPage() {
                 ))}
               </div>
 
-              {/* Input & Suggestions */}
+              {/* Input */}
               <div className="p-4 border-t border-white/10" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 {showAiSuggestions && aiSuggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4 animate-in slide-in-from-bottom-4 fade-in duration-500 px-2">
-                    <div className="w-full flex items-center gap-2 mb-1 px-1">
-                      <Sparkles size={12} className="text-sky-400" />
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mentor Suggestions</span>
-                    </div>
+                  <div className="flex flex-wrap gap-2 mb-4 px-2 no-scrollbar overflow-x-auto pb-1">
                     {aiSuggestions.map((suggestion, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs font-medium hover:bg-sky-500/20 hover:border-sky-500/30 transition-all active:scale-95 shadow-lg"
+                        className="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold hover:bg-sky-500/20 transition-all whitespace-nowrap active:scale-95"
                       >
                         {suggestion}
                       </button>
@@ -347,22 +332,19 @@ export default function MessagesPage() {
                   </div>
                 )}
 
-                <form onSubmit={handleFormSubmit} className="flex items-end gap-3">
+                <form onSubmit={handleFormSubmit} className="flex items-center gap-3">
                   <div className="flex-1 relative">
-                    <textarea
-                      rows={1}
+                    <input
+                      type="text"
                       value={messageInput}
                       onChange={e => setMessageInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(messageInput); }
-                      }}
-                      placeholder="Type a message..."
-                      className="w-full p-4 pr-14 rounded-xl bg-white/5 border border-white/10 outline-none text-white placeholder-slate-500 text-sm focus:border-sky-500/50 transition-all resize-none max-h-32"
+                      placeholder="Message..."
+                      className="w-full p-4 pr-14 rounded-2xl bg-white/5 border border-white/10 outline-none text-white placeholder-slate-500 text-sm focus:border-sky-500/40 transition-all"
                     />
                     <button
                       type="submit"
                       disabled={!messageInput.trim() || sending}
-                      className="absolute right-2 bottom-2 w-10 h-10 rounded-lg flex items-center justify-center transition-all disabled:opacity-40 hover:scale-105 active:scale-95"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 hover:scale-105 active:scale-95"
                       style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1)', boxShadow: '0 4px 16px rgba(2,132,199,0.3)' }}
                     >
                       <Send size={16} className="text-white" />
@@ -372,13 +354,13 @@ export default function MessagesPage() {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400">
-                <MessageSquare size={32} />
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
+              <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-700">
+                <MessageSquare size={40} />
               </div>
               <div className="text-center">
-                <h2 className="text-white font-bold text-lg">Your Messages</h2>
-                <p className="text-slate-500 text-sm mt-1 max-w-xs font-light">Select a candidate from the left panel to view messages.</p>
+                <h2 className="text-white font-bold text-xl">Private Messaging</h2>
+                <p className="text-slate-500 text-sm mt-2 max-w-xs font-light">Choose a mentee from your network to start a secure conversation.</p>
               </div>
             </div>
           )}

@@ -17,20 +17,14 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const folder = searchParams.get('folder') || 'techvance_candidate_intros';
-    const use_filename = searchParams.get('use_filename') || 'true';
-    const unique_filename = searchParams.get('unique_filename') || 'false';
-    const type = searchParams.get('type') || 'upload';
-
     const timestamp = Math.round((new Date).getTime()/1000);
 
-    const signature = cloudinary.utils.api_sign_request({
-      timestamp: timestamp,
-      folder: folder,
-      use_filename: use_filename,
-      unique_filename: unique_filename,
-      type: type
-    }, process.env.CLOUDINARY_API_SECRET);
+    const paramsToSign = { timestamp };
+    searchParams.forEach((value, key) => {
+      paramsToSign[key] = value;
+    });
+
+    const signature = cloudinary.utils.api_sign_request(paramsToSign, process.env.CLOUDINARY_API_SECRET);
 
     return NextResponse.json({ 
       success: true, 

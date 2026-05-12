@@ -8,19 +8,22 @@ import apiService from '@/services/api';
 
 const AvatarCell = ({ name, avatarUrl, size = 56 }) => {
   const [imgError, setImgError] = useState(false);
-  if (avatarUrl && !imgError) {
-    return (
-      <img
-        src={avatarUrl}
-        alt={name}
-        onError={() => setImgError(true)}
-        style={{ width: size, height: size, borderRadius: 14, objectFit: 'cover', flexShrink: 0 }}
-      />
-    );
-  }
   return (
-    <div style={{ width: size, height: size, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.15)', border: '1px solid rgba(14,165,233,0.3)', color: '#38bdf8', fontWeight: 700, fontSize: size * 0.38 }}>
-      {name?.charAt(0)?.toUpperCase() || '?'}
+    <div className="relative shrink-0">
+      <div style={{ width: size, height: size }} className="rounded-2xl overflow-hidden bg-sky-500/10 border border-sky-500/20 shadow-lg">
+        {avatarUrl && !imgError ? (
+          <img
+            src={avatarUrl}
+            alt={name}
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-sky-400 font-bold" style={{ fontSize: size * 0.35 }}>
+            {name?.charAt(0)?.toUpperCase() || '?'}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -143,18 +146,18 @@ export default function CandidatesPage() {
           <Link href="/coach/dashboard" className="text-xs font-bold text-sky-400 uppercase tracking-widest hover:text-sky-300 transition-colors mb-4 inline-block">
             ← Dashboard
           </Link>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <div>
-              <h1 className="serif text-4xl text-white font-medium tracking-tight mb-2">Mentee Directory</h1>
-              <p className="text-slate-400 font-light">You have <span className="text-white font-medium">{candidates.length}</span> candidates in your network.</p>
+          <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-6">
+            <div className="text-center sm:text-left">
+              <h1 className="serif text-3xl sm:text-4xl md:text-5xl text-white font-medium tracking-tight mb-2">Mentee Directory</h1>
+              <p className="text-slate-400 font-light text-sm sm:text-base">You have <span className="text-white font-medium">{candidates.length}</span> candidates in your network.</p>
             </div>
             
-            <div className="w-full md:w-80 relative">
+            <div className="w-full lg:w-80 relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
               <input 
                 type="text" 
-                placeholder="Search by name or email..." 
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all font-medium"
+                placeholder="Search candidates..." 
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all font-medium text-sm sm:text-base"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
@@ -163,19 +166,19 @@ export default function CandidatesPage() {
         </div>
 
         {/* Filters */}
-        <div className="fade-up delay-1 flex flex-wrap items-center justify-between gap-4 px-4 sm:px-0">
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+        <div className="fade-up delay-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-4 sm:px-0">
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
             {['all', 'accepted', 'completed', 'paused'].map(status => (
               <button 
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-5 py-2 text-[10px] font-bold rounded-lg uppercase tracking-widest transition-all ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
+                className={`px-4 sm:px-5 py-2 text-[10px] font-bold rounded-lg uppercase tracking-widest transition-all whitespace-nowrap ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
               >
                 {status}
               </button>
             ))}
           </div>
-          <button className="btn-ghost" style={{ width: 'auto', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Export (CSV)</button>
+          <button className="btn-ghost sm:w-auto" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Export (CSV)</button>
         </div>
 
         {/* Error Message */}
@@ -186,7 +189,7 @@ export default function CandidatesPage() {
         )}
 
         {/* Grid Layout */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 fade-up delay-2 px-4 sm:px-0">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 fade-up delay-2 px-4 sm:px-0">
           {filteredCandidates.length > 0 ? filteredCandidates.map((candidate) => (
             <div key={candidate.id} className="card p-6 group">
               <div className="flex items-start justify-between mb-5">
