@@ -117,13 +117,53 @@ export default function ProfilePage() {
   }, [showRecorder]);
 
   const startWebcam = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setStatus({ type: 'error', message: 'Your browser does not support webcam access. Please use a modern browser like Chrome or Safari.' });
+      return;
+    }
+
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      setStatus({ type: 'error', message: 'Webcam access requires a secure (HTTPS) connection.' });
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      // Try with both audio and video first
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
+        audio: true 
+      });
       streamRef.current = stream;
       setShowRecorder(true);
     } catch (err) {
-      console.error("Error accessing webcam:", err);
-      setStatus({ type: 'error', message: 'Could not access webcam. Please check permissions.' });
+      console.error("Error accessing webcam + audio:", err);
+      
+      // Fallback: try video only if audio failed (e.g. no microphone)
+      if (err.name === 'NotReadableError' || err.name === 'NotFoundError' || err.name === 'NotAllowedError') {
+        try {
+          const videoOnlyStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'user' }, 
+            audio: false 
+          });
+          streamRef.current = videoOnlyStream;
+          setShowRecorder(true);
+          setStatus({ type: 'info', message: 'Camera access granted, but microphone was not available.' });
+          return;
+        } catch (videoErr) {
+          console.error("Error accessing video-only:", videoErr);
+        }
+      }
+
+      let errorMsg = 'Could not access webcam. Please check permissions and ensure no other app is using it.';
+      if (err.name === 'NotAllowedError') errorMsg = 'Permission denied. Please allow camera access in your browser settings.';
+      if (err.name === 'NotFoundError') errorMsg = 'No camera or microphone found on this device.';
+      if (err.name === 'NotReadableError') errorMsg = 'Camera is already in use by another application.';
+      
+      setStatus({ type: 'error', message: errorMsg });
     }
   };
 
@@ -693,16 +733,22 @@ export default function ProfilePage() {
           display: block; font-size: 11px; font-weight: 700; color: #94a3b8;
           text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; padding-left: 4px;
         }
-        @media (max-width: 768px) {
-          .glass-panel { border-radius: 20px !important; }
+        @media (max-width: 1024px) {
+          .glass-panel { padding: 1.75rem !important; }
         }
-        @media (max-width: 640px) {
-          .serif { font-size: 2rem !important; }
-          .glass-panel { padding: 1.25rem !important; border-radius: 16px !important; }
-          .btn-primary, .btn-ai, .btn-outline { width: 100%; font-size: 13px; padding: 11px 16px; }
-          .section-title { font-size: 10px; }
-          .input-dark { padding: 10px 14px; font-size: 13px; }
-          .form-label { font-size: 10px; }
+        @media (max-width: 768px) {
+          .glass-panel { border-radius: 24px !important; padding: 1.5rem !important; }
+          .serif { font-size: clamp(2rem, 8vw, 3rem) !important; }
+        }
+        @media (max-width: 480px) {
+          .glass-panel { padding: 1.25rem !important; border-radius: 20px !important; }
+          .btn-primary, .btn-ai, .btn-outline { width: 100%; font-size: 13px; padding: 12px 16px; border-radius: 12px; }
+          .section-title { font-size: 9px; letter-spacing: 0.15em; }
+          .input-dark { padding: 10px 14px; font-size: 14px; }
+          .form-label { font-size: 9px; }
+        }
+        @media (max-width: 360px) {
+          .glass-panel { padding: 1rem !important; }
         }
       `}</style>
 
@@ -1151,8 +1197,8 @@ export default function ProfilePage() {
       </div>
 
       {aiModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0f0e1c] border border-emerald-500/20 shadow-[0_24px_50px_rgba(0,0,0,0.6)] rounded-3xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200 relative">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0f0e1c] border border-emerald-500/20 shadow-[0_24px_50px_rgba(0,0,0,0.6)] rounded-t-3xl sm:rounded-3xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 relative">
             <div className="absolute top-[-20%] right-[-20%] w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none" />
             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
               <div>
@@ -1189,8 +1235,8 @@ export default function ProfilePage() {
       )}
 
       {showRecorder && (
-        <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-[#0d0c1e] border border-white/10 shadow-2xl rounded-3xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 relative">
+        <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-[#0d0c1e] border border-white/10 shadow-2xl rounded-t-3xl sm:rounded-3xl w-full max-w-2xl overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 relative">
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-rose-500 animate-pulse' : 'bg-slate-600'}`} />
@@ -1265,8 +1311,8 @@ export default function ProfilePage() {
       )}
 
       {isAiGenerating && (
-        <div className="fixed inset-0 z-[300] bg-[#06060f]/60 backdrop-blur-md flex items-center justify-center p-6 animate-in fade-in duration-300">
-          <div className="glass-panel max-w-sm w-full p-10 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/10 border-indigo-500/20 animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[300] bg-[#06060f]/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="glass-panel max-w-sm w-full p-6 sm:p-10 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/10 border-indigo-500/20 animate-in zoom-in-95 duration-300">
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full animate-pulse" />
               <div className="relative w-20 h-20 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
@@ -1292,8 +1338,8 @@ export default function ProfilePage() {
       )}
 
       {showResumeNamePrompt && (
-        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="glass-panel max-w-md w-full p-8 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="glass-panel max-w-md w-full p-6 sm:p-8 rounded-t-3xl sm:rounded-3xl animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
             <h3 className="serif text-2xl text-white mb-2">Name Your Resume</h3>
             <p className="text-slate-400 text-sm mb-6 font-light">Give your generated resume a descriptive name to help you keep track of different versions.</p>
 
@@ -1362,8 +1408,8 @@ export default function ProfilePage() {
 
       {/* ── Save Confirmation Modal ── */}
       {showSaveModal && (
-        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-[#0f0e1c] border border-indigo-500/20 shadow-[0_32px_64px_rgba(0,0,0,0.7)] rounded-3xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 relative">
+        <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="bg-[#0f0e1c] border border-indigo-500/20 shadow-[0_32px_64px_rgba(0,0,0,0.7)] rounded-t-3xl sm:rounded-3xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 relative">
             {/* Glow */}
             <div className="absolute top-[-30%] left-1/2 -translate-x-1/2 w-64 h-32 bg-indigo-500/15 blur-[60px] pointer-events-none rounded-full" />
 

@@ -143,8 +143,19 @@ export default function CandidateMyCoachPage() {
           backdrop-filter: blur(24px);
           border-radius: 28px;
         }
-        @media (max-width: 640px) {
-          .glass-panel { border-radius: 20px; }
+        @media (max-width: 1024px) {
+          .glass-panel { padding: 1.75rem !important; }
+        }
+        @media (max-width: 768px) {
+          .glass-panel { border-radius: 24px !important; padding: 1.5rem !important; }
+          .serif { font-size: clamp(1.85rem, 7vw, 2.75rem) !important; }
+        }
+        @media (max-width: 480px) {
+          .glass-panel { padding: 1.25rem !important; border-radius: 20px !important; }
+          .btn-primary, .btn-outline { width: 100%; font-size: 13px; padding: 12px 16px; border-radius: 12px; }
+        }
+        @media (max-width: 360px) {
+          .glass-panel { padding: 1rem !important; }
         }
         .btn-primary {
           display: flex; align-items: center; justify-content: center; gap: 8px;
