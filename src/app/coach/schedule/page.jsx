@@ -23,14 +23,15 @@ import {
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
-    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
-      <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#080a15 50%,#06060f 100%)' }} />
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.03 }} xmlns="http://www.w3.org/2000/svg">
+      <pattern id="grid" width="60" height="60" patternUnits="userSpaceOnUse">
+        <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'-10%', right:'-5%', width:'70vw', height:'70vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.05) 0%, transparent 70%)', filter:'blur(60px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', left:'-10%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)', filter:'blur(50px)' }} />
   </div>
 );
 
@@ -152,7 +153,7 @@ export default function SchedulePage() {
     
     // Add empty slots for the previous month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-24 sm:h-36 bg-white/[0.02] rounded-2xl" />);
+      days.push(<div key={`empty-${i}`} className="aspect-square sm:h-36 bg-white/[0.01] rounded-xl sm:rounded-2xl border border-transparent" />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -161,14 +162,22 @@ export default function SchedulePage() {
       const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
 
       days.push(
-        <div key={day} className={`h-24 sm:h-36 p-2 rounded-2xl transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-900/30 shadow-[inset_0_0_20px_rgba(14,165,233,0.15)]' : 'bg-white/5 hover:bg-white/[0.08]'}`}>
-          <span className={`text-xs sm:text-sm font-bold ml-1 ${isToday ? 'text-sky-400' : 'text-slate-500'}`}>{day}</span>
-          <div className="mt-1 flex-1 space-y-1 overflow-y-auto no-scrollbar pr-1">
-            {daySessions.map((s, idx) => (
-              <div key={idx} className="px-1.5 py-0.5 sm:py-1 bg-sky-500/20 border border-sky-500/30 text-sky-100 text-[8px] sm:text-[10px] font-medium rounded-lg truncate w-full">
-                {s.time?.split(' - ')[0] || s.time} {s.candidateName}
+        <div key={day} className={`aspect-square sm:h-36 p-1 sm:p-2.5 rounded-xl sm:rounded-2xl border transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-500/10 border-sky-500/30 shadow-[0_0_15px_rgba(14,165,233,0.1)]' : 'bg-white/[0.03] border-white/5 hover:bg-white/[0.06] hover:border-white/10'}`}>
+          <div className="flex justify-between items-start">
+            <span className={`text-[10px] sm:text-sm font-bold leading-none ${isToday ? 'text-sky-400' : 'text-slate-400'}`}>{day}</span>
+            {daySessions.length > 0 && (
+              <span className="xs:hidden w-1 h-1 rounded-full bg-sky-500" />
+            )}
+          </div>
+          <div className="mt-1 flex-1 space-y-0.5 sm:space-y-1 overflow-y-auto no-scrollbar hidden xs:block">
+            {daySessions.slice(0, 3).map((s, idx) => (
+              <div key={idx} className="px-1 py-0.5 bg-sky-500/10 border border-sky-500/20 text-sky-200 text-[8px] sm:text-[9px] font-medium rounded-md truncate w-full">
+                {s.time?.split(' - ')[0] || s.time}
               </div>
             ))}
+            {daySessions.length > 3 && (
+              <div className="text-[7px] sm:text-[8px] text-slate-500 font-bold px-1">+{daySessions.length - 3} more</div>
+            )}
           </div>
           <button 
             onClick={() => {
@@ -188,9 +197,9 @@ export default function SchedulePage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl sm:text-2xl font-medium text-white serif">{monthNames[month]} {year}</h2>
-            <div className="flex gap-1.5 p-1 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex gap-1.5 p-1 bg-white/5 rounded-xl border border-white/10 shrink-0">
               <button onClick={() => setCurrentDate(new Date(year, month - 1))} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"><ChevronLeft size={16} /></button>
-              <button onClick={() => setCurrentDate(new Date())} className="px-3 py-1 text-[10px] font-bold text-slate-300 rounded-lg hover:bg-white/10 transition-colors uppercase tracking-widest">Today</button>
+              <button onClick={() => setCurrentDate(new Date())} className="px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] font-bold text-slate-300 rounded-lg hover:bg-white/10 transition-colors uppercase tracking-widest">Today</button>
               <button onClick={() => setCurrentDate(new Date(year, month + 1))} className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"><ChevronRight size={16} /></button>
             </div>
           </div>
@@ -200,9 +209,12 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-2 sm:gap-3">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-            <div key={d} className="text-center py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">{d}</div>
+        <div className="grid grid-cols-7 gap-1 sm:gap-4">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+            <div key={i} className="text-center pb-3 sm:pb-4 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-white/5 mb-1 sm:mb-2">
+              <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
+              <span className="sm:hidden">{d}</span>
+            </div>
           ))}
           {days}
         </div>
@@ -263,6 +275,21 @@ export default function SchedulePage() {
           transition: all 0.2s;
         }
         .btn-outline-premium:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
+
+        @media (max-width: 1024px) {
+          .glass-card { padding: 1.75rem !important; }
+        }
+        @media (max-width: 768px) {
+          .glass-card { border-radius: 24px !important; padding: 1.5rem !important; }
+          .serif { font-size: clamp(2rem, 8vw, 3rem) !important; }
+        }
+        @media (max-width: 480px) {
+          .glass-card { padding: 1.25rem !important; border-radius: 20px !important; }
+          .btn-premium, .btn-outline-premium { width: 100%; font-size: 13px; padding: 12px 16px; border-radius: 12px; }
+        }
+        @media (max-width: 360px) {
+          .glass-card { padding: 1rem !important; }
+        }
       `}</style>
 
       <div className="space-y-8 px-4 sm:px-0">
@@ -357,11 +384,11 @@ export default function SchedulePage() {
 
         {/* Add Session Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
              <div className="fixed inset-0 bg-[#06060f]/90 backdrop-blur-sm" onClick={() => setShowAddModal(false)} />
-             <div className="relative bg-[#0d0c1e] border border-white/10 rounded-3xl shadow-2xl p-8 sm:p-12 max-w-2xl w-full max-h-[90vh] overflow-y-auto no-scrollbar">
-                <div className="flex items-center justify-between mb-10">
-                  <h2 className="text-3xl font-medium text-white serif tracking-tight">Schedule Session</h2>
+             <div className="relative bg-[#0d0c1e] border border-white/10 rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 sm:p-12 max-w-2xl w-full max-h-[90vh] overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+                <div className="flex items-center justify-between mb-6 sm:mb-10">
+                  <h2 className="text-2xl sm:text-3xl font-medium text-white serif tracking-tight">Schedule Session</h2>
                   <button onClick={() => setShowAddModal(false)} className="p-2 rounded-full hover:bg-white/5 text-slate-400 transition-colors"><X size={24} /></button>
                 </div>
                 
