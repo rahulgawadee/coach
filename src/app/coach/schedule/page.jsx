@@ -153,7 +153,7 @@ export default function SchedulePage() {
     
     // Add empty slots for the previous month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="aspect-square sm:h-36 bg-white/[0.01] rounded-xl sm:rounded-2xl border border-transparent" />);
+      days.push(<div key={`empty-${i}`} className="aspect-square bg-white/[0.01] rounded-xl sm:rounded-2xl border border-transparent" />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -162,9 +162,9 @@ export default function SchedulePage() {
       const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
 
       days.push(
-        <div key={day} className={`aspect-square sm:h-36 p-1 sm:p-2.5 rounded-xl sm:rounded-2xl border transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-500/10 border-sky-500/30 shadow-[0_0_15px_rgba(14,165,233,0.1)]' : 'bg-white/[0.03] border-white/5 hover:bg-white/[0.06] hover:border-white/10'}`}>
+        <div key={day} className={`aspect-square p-1 sm:p-2 rounded-xl sm:rounded-2xl border transition-all group relative overflow-hidden flex flex-col ${isToday ? 'bg-sky-500/10 border-sky-500/30 shadow-[0_0_15px_rgba(14,165,233,0.1)]' : 'bg-white/[0.03] border-white/5 hover:bg-white/[0.06] hover:border-white/10'}`}>
           <div className="flex justify-between items-start">
-            <span className={`text-[10px] sm:text-sm font-bold leading-none ${isToday ? 'text-sky-400' : 'text-slate-400'}`}>{day}</span>
+            <span className={`text-[10px] sm:text-xs md:text-sm font-bold leading-none ${isToday ? 'text-sky-400' : 'text-slate-400'}`}>{day}</span>
             {daySessions.length > 0 && (
               <span className="xs:hidden w-1 h-1 rounded-full bg-sky-500" />
             )}
@@ -209,11 +209,11 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 sm:gap-4">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-            <div key={i} className="text-center pb-3 sm:pb-4 text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-white/5 mb-1 sm:mb-2">
-              <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
-              <span className="sm:hidden">{d}</span>
+            <div key={i} className="text-center pb-2 sm:pb-3 text-[8px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] sm:tracking-[0.2em] border-b border-white/5 mb-1 sm:mb-2">
+              <span className="hidden md:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][i]}</span>
+              <span className="md:hidden">{d}</span>
             </div>
           ))}
           {days}
@@ -308,8 +308,8 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 order-2 lg:order-1">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 sm:gap-8">
+          <div className="xl:col-span-3 order-2 xl:order-1">
             <div className="glass-card p-6 sm:p-10">
               {viewMode === 'month' ? renderCalendar() : (
                 <div className="space-y-8">
