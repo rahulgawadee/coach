@@ -21,15 +21,15 @@ import {
 // Subtle animated background lines
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <div style={{ position:'absolute', inset:0, background:'var(--background)' }} />
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
       <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#6366f1" strokeWidth="0.5"/>
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="var(--primary)" strokeWidth="0.5"/>
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
-    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,116,144,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
     <style>{`
       @keyframes driftSlow{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-42%,-58%) scale(1.15)}}
     `}</style>
@@ -126,7 +126,7 @@ export default function CandidateDashboardPage() {
   if (loading && !workspace) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div style={{ width:40, height:40, border:'1.5px solid rgba(99,102,241,0.15)', borderTop:'1.5px solid #6366f1', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <div style={{ width:40, height:40, border:'1.5px solid var(--primary-glow)', borderTop:'1.5px solid var(--primary)', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -139,35 +139,35 @@ export default function CandidateDashboardPage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
         .glass-card {
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.06);
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
           backdrop-filter: blur(20px);
           border-radius: 28px;
           transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .glass-card:hover {
-          background: rgba(255,255,255,0.04);
-          border-color: rgba(99,102,241,0.2);
+          background: var(--card-bg);
+          border-color: var(--primary);
           transform: translateY(-4px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
         .hero-gradient {
-          background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(14,116,144,0.05) 100%);
-          border: 1px solid rgba(99,102,241,0.15);
+          background: var(--primary-glow);
+          border: 1px solid var(--primary);
         }
         .stat-badge {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
           border-radius: 16px;
           padding: 16px 20px;
           transition: all 0.3s ease;
         }
         .stat-badge:hover {
-          background: rgba(99,102,241,0.08);
-          border-color: rgba(99,102,241,0.2);
+          background: var(--primary-glow);
+          border-color: var(--primary);
         }
         .btn-premium {
-          background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+          background: var(--primary);
           color: white;
           padding: 12px 24px;
           border-radius: 14px;
@@ -177,17 +177,17 @@ export default function CandidateDashboardPage() {
           align-items: center;
           gap: 8px;
           transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(79,70,229,0.3);
+          box-shadow: 0 4px 15px var(--primary-glow);
         }
         .btn-premium:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(79,70,229,0.4);
+          box-shadow: 0 8px 25px var(--primary-glow);
           filter: brightness(1.1);
         }
         .btn-outline-premium {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.1);
-          color: white;
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          color: var(--text-primary);
           padding: 12px 24px;
           border-radius: 14px;
           font-weight: 600;
@@ -198,8 +198,8 @@ export default function CandidateDashboardPage() {
           transition: all 0.3s ease;
         }
         .btn-outline-premium:hover {
-          background: rgba(255,255,255,0.07);
-          border-color: rgba(255,255,255,0.2);
+          background: var(--card-bg);
+          border-color: var(--primary);
         }
         @media (max-width: 640px) {
           .serif { font-size: 2.5rem !important; }
@@ -212,7 +212,7 @@ export default function CandidateDashboardPage() {
         {/* HERO SECTION */}
         <div className="glass-card hero-gradient p-10 md:p-14 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
-            <svg viewBox="0 0 400 400" className="w-full h-full text-indigo-500">
+            <svg viewBox="0 0 400 400" className="w-full h-full text-var(--primary)">
               <defs>
                 <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" />
@@ -224,34 +224,34 @@ export default function CandidateDashboardPage() {
           </div>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase tracking-widest mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-var(--primary-glow) border border-var(--primary) text-var(--primary) text-[10px] font-bold uppercase tracking-widest mb-6">
               <Sparkles size={12} className="animate-pulse" />
               Your Roadmap
             </div>
-            <h1 className="serif text-4xl sm:text-5xl md:text-6xl text-white mb-6 leading-[1.1]">
+            <h1 className="serif text-4xl sm:text-5xl md:text-6xl text-var(--text-primary) mb-6 leading-[1.1]">
               Welcome back, <br />
-              <span className="italic bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="italic bg-gradient-to-r from-var(--primary) to-var(--accent) bg-clip-text text-transparent">
                 {user?.name?.split(' ')[0] || 'Candidate'}
               </span>
             </h1>
             <div className="flex flex-col md:flex-row md:items-center gap-6 mt-8">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                <div className="w-14 h-14 rounded-2xl bg-var(--primary-glow) border border-var(--primary) flex items-center justify-center text-var(--primary)">
                   <ShieldCheck size={28} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Profile Score</p>
-                  <p className="text-2xl font-bold text-white">{stats.percentage}% <span className="text-sm font-medium text-slate-400 ml-1">Complete</span></p>
+                  <p className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest mb-0.5">Profile Score</p>
+                  <p className="text-2xl font-bold text-var(--text-primary)">{stats.percentage}% <span className="text-sm font-medium text-var(--text-secondary) ml-1">Complete</span></p>
                 </div>
               </div>
-              <div className="h-10 w-px bg-white/10 hidden md:block" />
+              <div className="h-10 w-px bg-var(--card-border) hidden md:block" />
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                <div className="w-14 h-14 rounded-2xl bg-var(--primary-glow) border border-var(--primary) flex items-center justify-center text-var(--primary)">
                   <Video size={28} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Sessions</p>
-                  <p className="text-2xl font-bold text-white">{stats.sessions} <span className="text-sm font-medium text-slate-400 ml-1">Completed</span></p>
+                  <p className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest mb-0.5">Sessions</p>
+                  <p className="text-2xl font-bold text-var(--text-primary)">{stats.sessions} <span className="text-sm font-medium text-var(--text-secondary) ml-1">Completed</span></p>
                 </div>
               </div>
             </div>
@@ -266,17 +266,17 @@ export default function CandidateDashboardPage() {
             <div className="glass-card p-6 md:p-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="w-1.5 h-6 rounded-full bg-indigo-500" />
-                  <h3 className="text-lg font-bold text-white">Your Assigned Coach</h3>
+                  <div className="w-1.5 h-6 rounded-full bg-var(--primary)" />
+                  <h3 className="text-lg font-bold text-var(--text-primary)">Your Assigned Coach</h3>
                 </div>
-                <button className="text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1">
+                <button className="text-xs font-bold text-var(--text-muted) hover:text-var(--text-primary) transition-colors uppercase tracking-widest flex items-center gap-1">
                   View Profile <ChevronRight size={14} />
                 </button>
               </div>
 
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="relative">
-                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-indigo-500/10 border border-white/10 shadow-xl">
+                  <div className="w-24 h-24 rounded-2xl overflow-hidden bg-var(--primary-glow) border border-var(--card-border) shadow-xl">
                     {coach?.coachAvatar ? (
                       <img src={coach.coachAvatar} alt="Coach" className="w-full h-full object-cover" />
                     ) : (
@@ -285,27 +285,27 @@ export default function CandidateDashboardPage() {
                       </div>
                     )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-emerald-500 border-4 border-[#06060f] flex items-center justify-center shadow-lg">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-emerald-500 border-4 border-var(--background) flex items-center justify-center shadow-lg">
                     <CheckCircle2 size={10} className="text-white" />
                   </div>
                 </div>
 
                 <div className="flex-1 space-y-4">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h2 className="serif text-3xl text-white">{coach?.coachName || 'Assigning Your Coach...'}</h2>
+                    <h2 className="serif text-3xl text-var(--text-primary)">{coach?.coachName || 'Assigning Your Coach...'}</h2>
                     {coach && (
                       <div className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold flex items-center gap-1">
                         <Star size={10} fill="currentColor" /> {coach.coachRating || 4.9}
                       </div>
                     )}
                   </div>
-                  <p className="text-indigo-400 text-xs font-bold uppercase tracking-widest">{coach?.coachCompany || 'Senior Career Strategist'}</p>
-                  <p className="text-slate-400 text-sm leading-relaxed max-w-xl font-light">
+                  <p className="text-var(--primary) text-xs font-bold uppercase tracking-widest">{coach?.coachName ? (coach?.coachCompany || 'Senior Career Strategist') : ''}</p>
+                  <p className="text-var(--text-secondary) text-sm leading-relaxed max-w-xl font-light">
                     "{coach?.coachBio || 'Your mentor is being selected to match your career goals and industry expertise.'}"
                   </p>
                   <div className="flex flex-wrap gap-2 pt-2">
                     {(coach?.coachExpertise || ['CV Review', 'Mock Interview', 'Networking']).map(tag => (
-                      <span key={tag} className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                      <span key={tag} className="px-3 py-1 rounded-full bg-var(--card-bg) border border-var(--card-border) text-[10px] font-bold text-var(--text-muted) uppercase tracking-tight">
                         {tag}
                       </span>
                     ))}
@@ -328,11 +328,11 @@ export default function CandidateDashboardPage() {
               {/* MESSAGES */}
               <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <MessageSquare size={16} className="text-indigo-400" /> Recent Chat
+                  <h3 className="text-sm font-bold text-var(--text-primary) flex items-center gap-2">
+                    <MessageSquare size={16} className="text-var(--primary)" /> Recent Chat
                   </h3>
                   {unreadMessages > 0 && (
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-500 text-white text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded-full bg-var(--primary) text-white text-[10px] font-bold">
                       {unreadMessages} New
                     </span>
                   )}
@@ -340,12 +340,12 @@ export default function CandidateDashboardPage() {
                 <div className="space-y-3">
                   {recentMessages.length > 0 ? recentMessages.map((msg, i) => (
                     <Link href="/candidate/messages" key={i} className="block group">
-                      <div className="p-3 rounded-xl bg-white/5 border border-transparent group-hover:bg-indigo-500/10 group-hover:border-indigo-500/20 transition-all">
+                      <div className="p-3 rounded-xl bg-var(--card-bg) border border-transparent group-hover:bg-var(--primary-glow) group-hover:border-var(--primary) transition-all">
                         <div className="flex justify-between items-center mb-1">
-                          <p className="text-[11px] font-bold text-slate-300">{msg.senderName || 'Coach'}</p>
-                          <p className="text-[9px] text-slate-500"><Clock size={8} className="inline mr-1" /> {new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</p>
+                          <p className="text-[11px] font-bold text-var(--text-secondary)">{msg.senderName || 'Coach'}</p>
+                          <p className="text-[9px] text-var(--text-muted)"><Clock size={8} className="inline mr-1" /> {new Date(msg.timestamp || msg.createdAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</p>
                         </div>
-                        <p className="text-xs text-slate-400 truncate group-hover:text-slate-200">{msg.text}</p>
+                        <p className="text-xs text-var(--text-muted) truncate group-hover:text-var(--text-primary)">{msg.text}</p>
                       </div>
                     </Link>
                   )) : (
@@ -359,18 +359,18 @@ export default function CandidateDashboardPage() {
               {/* ANNOUNCEMENTS */}
               <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <Megaphone size={16} className="text-cyan-400" /> Program Updates
+                  <h3 className="text-sm font-bold text-var(--text-primary) flex items-center gap-2">
+                    <Megaphone size={16} className="text-var(--accent)" /> Program Updates
                   </h3>
                 </div>
                 <div className="space-y-3">
                   {announcements.length > 0 ? announcements.slice(0, 3).map((ann, i) => (
-                    <div key={i} className="p-3 rounded-xl bg-white/5 border border-transparent hover:bg-cyan-500/10 hover:border-cyan-500/20 transition-all cursor-default group">
+                    <div key={i} className="p-3 rounded-xl bg-var(--card-bg) border border-transparent hover:bg-var(--primary-glow) hover:border-var(--primary) transition-all cursor-default group">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="text-[11px] font-bold text-slate-300 truncate max-w-[70%]">{ann.subject || 'Program Update'}</p>
-                        <p className="text-[9px] text-slate-500">{new Date(ann.createdAt).toLocaleDateString()}</p>
+                        <p className="text-[11px] font-bold text-var(--text-secondary) truncate max-w-[70%]">{ann.subject || 'Program Update'}</p>
+                        <p className="text-[9px] text-var(--text-muted)">{new Date(ann.createdAt).toLocaleDateString()}</p>
                       </div>
-                      <p className="text-xs text-slate-400 truncate group-hover:text-slate-200">{ann.text}</p>
+                      <p className="text-xs text-var(--text-muted) truncate group-hover:text-var(--text-primary)">{ann.text}</p>
                     </div>
                   )) : (
                     <div className="py-10 text-center">
@@ -385,17 +385,17 @@ export default function CandidateDashboardPage() {
           {/* SIDEBAR WIDGETS */}
           <div className="space-y-8">
             {/* UPCOMING SESSION */}
-            <div className="glass-card p-8 bg-indigo-500/5 border-indigo-500/20">
-              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Next Meeting</h3>
+            <div className="glass-card p-8 bg-var(--primary-glow) border-var(--primary)">
+              <h3 className="text-sm font-bold text-var(--text-primary) mb-6 uppercase tracking-widest">Next Meeting</h3>
               {nextSession ? (
                 <div className="space-y-6">
                   <div>
-                    <h4 className="serif text-2xl text-white mb-2">{nextSession.title || 'Mentorship Sync'}</h4>
+                    <h4 className="serif text-2xl text-var(--text-primary) mb-2">{nextSession.title || 'Mentorship Sync'}</h4>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-medium text-slate-300">
+                      <span className="px-3 py-1.5 rounded-lg bg-var(--card-bg) border border-var(--card-border) text-[11px] font-medium text-var(--text-secondary)">
                         {new Date(nextSession.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                       </span>
-                      <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-[11px] font-medium text-slate-300">
+                      <span className="px-3 py-1.5 rounded-lg bg-var(--card-bg) border border-var(--card-border) text-[11px] font-medium text-var(--text-secondary)">
                         {nextSession.time}
                       </span>
                     </div>
@@ -425,23 +425,23 @@ export default function CandidateDashboardPage() {
 
             {/* QUICK ACTIONS */}
             <div className="glass-card p-8">
-              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-widest">Quick Access</h3>
+              <h3 className="text-sm font-bold text-var(--text-primary) mb-6 uppercase tracking-widest">Quick Access</h3>
               <div className="grid grid-cols-2 gap-4">
                 <Link href="/candidate/documents" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
-                  <FileText size={20} className="text-amber-400" />
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Documents</span>
+                  <FileText size={20} className="text-amber-500" />
+                  <span className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest">Documents</span>
                 </Link>
                 <Link href="/candidate/profile" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
-                  <ShieldCheck size={20} className="text-emerald-400" />
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile</span>
+                  <ShieldCheck size={20} className="text-emerald-500" />
+                  <span className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest">Profile</span>
                 </Link>
                 <Link href="/candidate/messages" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
-                  <MessageSquare size={20} className="text-indigo-400" />
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Chat</span>
+                  <MessageSquare size={20} className="text-var(--primary)" />
+                  <span className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest">Chat</span>
                 </Link>
                 <Link href="/candidate/jobs" className="stat-badge flex flex-col items-center justify-center text-center gap-3">
-                  <ArrowRight size={20} className="text-cyan-400" />
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Explore</span>
+                  <ArrowRight size={20} className="text-var(--accent)" />
+                  <span className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest">Explore</span>
                 </Link>
               </div>
             </div>

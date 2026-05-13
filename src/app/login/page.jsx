@@ -8,11 +8,11 @@ const inputBase = {
   width: '100%',
   padding: '0.875rem 1rem',
   fontSize: '0.9375rem',
-  border: '1px solid rgba(255,255,255,0.1)',
+  border: '1px solid var(--card-border)',
   borderRadius: '12px',
   outline: 'none',
-  background: 'rgba(255,255,255,0.05)',
-  color: '#FFFFFF',
+  background: 'var(--card-bg)',
+  color: 'var(--text-primary)',
   transition: 'all 0.2s ease',
   boxSizing: 'border-box',
 };
@@ -21,7 +21,7 @@ function Field({ label, ...props }) {
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+      <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
         {label}
       </label>
       <input
@@ -30,9 +30,9 @@ function Field({ label, ...props }) {
         onBlur={() => setFocused(false)}
         style={{
           ...inputBase,
-          borderColor: focused ? '#6366F1' : 'rgba(255,255,255,0.1)',
-          background: focused ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.05)',
-          boxShadow: focused ? '0 0 0 4px rgba(99,102,241,0.15)' : 'none',
+          borderColor: focused ? 'var(--primary)' : 'var(--card-border)',
+          background: focused ? 'var(--primary-glow)' : 'var(--card-bg)',
+          boxShadow: focused ? '0 0 0 4px var(--primary-glow)' : 'none',
         }}
       />
     </div>
@@ -83,20 +83,21 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      background: '#08080F',
+      background: 'var(--background)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: 'calc(62px + 2rem) 1rem 2rem',
       fontFamily: "'Syne', sans-serif",
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      transition: 'background-color 0.4s ease'
     }}>
       <Orb color="radial-gradient(circle,#4f46e5,transparent)" sz={580} style={{ top:-110, left:-110, opacity:.22 }} />
       <Orb color="radial-gradient(circle,#0284c7,transparent)" sz={460} style={{ bottom:-60, right:-80, opacity:.18 }} />
       <Orb color="radial-gradient(circle,#7c3aed,transparent)" sz={260} style={{ top:"55%", left:"46%", opacity:.1 }} />
       {/* grid */}
-      <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(148,163,184,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.04) 1px,transparent 1px)", backgroundSize:"56px 56px", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(var(--card-border) 0.5px,transparent 0.5px),linear-gradient(90deg,var(--card-border) 0.5px,transparent 0.5px)", backgroundSize:"56px 56px", opacity:0.1, pointerEvents:"none" }} />
       {/* particles */}
       <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
         {mounted && pts.map(p => <div key={p.id} style={{ position:"absolute", left:`${p.x}%`, top:`${p.y}%`, width:p.sz, height:p.sz, borderRadius:"50%", background:`rgba(${p.c},${p.op})`, animation:`float ${p.dur}s ease-in-out ${p.delay}s infinite alternate` }} />)}
@@ -113,21 +114,21 @@ export default function LoginPage() {
         @keyframes float{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-20px) scale(1.07)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         .glass-card {
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--glass-bg);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 1px solid var(--glass-border);
           border-radius: 24px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          box-shadow: var(--shadow-lg);
         }
         .submit-btn {
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          background: var(--primary);
           color: white;
           border: none;
           border-radius: 12px;
           font-weight: 700;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+          box-shadow: 0 10px 20px -5px var(--primary-glow);
         }
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
@@ -145,7 +146,7 @@ export default function LoginPage() {
           padding: 1rem;
           font-size: 0.875rem;
           font-weight: 700;
-          color: rgba(255,255,255,0.4);
+          color: var(--text-muted);
           background: transparent;
           border: none;
           cursor: pointer;
@@ -153,9 +154,9 @@ export default function LoginPage() {
           border-bottom: 2px solid transparent;
         }
         .role-tab.active {
-          color: #FFFFFF;
-          border-bottom-color: #6366F1;
-          background: rgba(255,255,255,0.03);
+          color: var(--text-primary);
+          border-bottom-color: var(--primary);
+          background: var(--primary-glow);
         }
         @media (max-width: 480px) {
           .glass-card { border-radius: 0; border-left: none; border-right: none; }
@@ -168,14 +169,14 @@ export default function LoginPage() {
         <div className="glass-card overflow-hidden">
           {/* Header */}
           <div style={{ padding: '2.5rem 2.5rem 1.5rem' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>Welcome Back</h1>
-            <p style={{ color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem', fontSize: '0.9375rem', fontFamily: "'DM Sans', sans-serif" }}>
-              Sign in to your Coach account to continue.
+            <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.02em' }}>Welcome Back</h1>
+            <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem', fontSize: '0.9375rem', fontFamily: "'DM Sans', sans-serif" }}>
+              Sign in to your Elevate account to continue.
             </p>
           </div>
 
           {/* Role Switcher */}
-          <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--card-border)' }}>
             <button className={`role-tab ${isCandidate ? 'active' : ''}`} onClick={() => setActiveRole('candidate')}>Candidate</button>
             <button className={`role-tab ${!isCandidate ? 'active' : ''}`} onClick={() => setActiveRole('coach')}>Coach</button>
           </div>
@@ -212,7 +213,7 @@ export default function LoginPage() {
               />
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-0.5rem' }}>
-                <a href="#" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}>Forgot password?</a>
+                <a href="#" style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', textDecoration: 'none' }}>Forgot password?</a>
               </div>
 
               <button
@@ -231,9 +232,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '0.875rem', marginTop: '2rem', fontFamily: "'DM Sans', sans-serif" }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '2rem', fontFamily: "'DM Sans', sans-serif" }}>
           Don't have an account?{' '}
-          <Link href="/signup" style={{ color: '#818CF8', fontWeight: 700, textDecoration: 'none' }}>
+          <Link href="/signup" style={{ color: 'var(--primary)', fontWeight: 700, textDecoration: 'none' }}>
             Create one for free →
           </Link>
         </p>

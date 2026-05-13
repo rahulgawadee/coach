@@ -22,7 +22,7 @@ const AvatarCircle = ({ name, avatarUrl, size = 40, className = '' }) => {
   }
   return (
     <div
-      style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(14,165,233,0.15)', border: '1px solid rgba(14,165,233,0.3)', color: '#38bdf8', fontWeight: 700, fontSize: size * 0.38 }}
+      style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--primary-glow)', border: '1px solid var(--primary)', color: 'var(--primary)', fontWeight: 700, fontSize: size * 0.38 }}
       className={className}
     >
       {name?.charAt(0)?.toUpperCase() || '?'}
@@ -185,7 +185,7 @@ export default function MessagesPage() {
   if (loading && conversations.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div style={{ width: 40, height: 40, border: '1.5px solid rgba(14,165,233,0.15)', borderTop: '1.5px solid #0ea5e9', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: 40, height: 40, border: '1.5px solid var(--primary-glow)', borderTop: '1.5px solid var(--primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -198,24 +198,24 @@ export default function MessagesPage() {
         .msg-root { font-family: 'DM Sans', sans-serif; }
       `}</style>
 
-      <div className="msg-root flex w-full h-full rounded-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(6,6,15,0.95)', backdropFilter: 'blur(24px)' }}>
+      <div className="msg-root flex w-full h-full rounded-[40px] overflow-hidden shadow-[0_20px_80px_-15px_rgba(0,0,0,0.15)] bg-var(--background) backdrop-blur-[40px]">
         
         {/* ── SIDEBAR ── */}
-        <div className={`w-full md:w-80 flex-shrink-0 flex flex-col border-r border-white/10 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-5 border-b border-white/10">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-lg font-bold text-white">Conversations</h1>
+        <div className={`w-full md:w-85 flex-shrink-0 flex flex-col bg-var(--card-bg) bg-opacity-40 ${showMobileChat ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-var(--text-primary) serif tracking-tight">Messages</h1>
             </div>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
-                <Search size={14} />
+            <div className="relative group">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-var(--text-muted) transition-colors group-focus-within:text-var(--primary)">
+                <Search size={16} />
               </span>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder-slate-500 outline-none focus:border-sky-500/50 transition-all"
+                className="w-full pl-11 pr-5 py-3.5 rounded-[20px] bg-var(--input-bg) border-none text-var(--text-primary) text-sm placeholder-var(--text-muted) outline-none focus:ring-2 focus:ring-var(--primary-glow) transition-all shadow-sm"
               />
             </div>
           </div>
@@ -227,21 +227,21 @@ export default function MessagesPage() {
                 <button
                   key={conv.id}
                   onClick={() => { setSelectedConvId(conv.id); setShowMobileChat(true); }}
-                  className={`w-full px-4 py-3 flex items-center gap-3 transition-all relative text-left ${isSelected ? 'bg-sky-500/10' : 'hover:bg-white/5'}`}
+                  className={`w-full px-4 py-3 flex items-center gap-3 transition-all relative text-left ${isSelected ? 'bg-var(--primary-glow)' : 'hover:bg-var(--input-bg)'}`}
                 >
-                  {isSelected && <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-sky-400 rounded-full" />}
+                  {isSelected && <div className="absolute left-0 top-3 bottom-3 w-1 bg-var(--primary) rounded-full shadow-[0_0_12px_rgba(var(--primary-rgb),0.5)]" />}
                   <div className="relative flex-shrink-0">
                     <AvatarCircle name={conv.candidateName} avatarUrl={conv.avatarUrl} size={44} />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#06060f] rounded-full" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-var(--background) rounded-full" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline">
-                      <span className={`text-sm font-bold truncate ${isSelected ? 'text-sky-400' : conv.unreadCount > 0 ? 'text-white' : 'text-slate-200'}`}>
+                      <span className={`text-sm font-bold truncate ${isSelected ? 'text-var(--primary)' : conv.unreadCount > 0 ? 'text-var(--text-primary)' : 'text-var(--text-secondary)'}`}>
                         {conv.candidateName}
                       </span>
-                      <span className="text-[10px] text-slate-500 ml-1 flex-shrink-0">now</span>
+                      <span className="text-[10px] text-var(--text-muted) ml-1 flex-shrink-0">now</span>
                     </div>
-                    <p className={`text-xs truncate mt-0.5 ${conv.unreadCount > 0 ? 'text-slate-300 font-medium' : 'text-slate-500'}`}>
+                    <p className={`text-xs truncate mt-0.5 ${conv.unreadCount > 0 ? 'text-var(--text-primary) font-medium' : 'text-var(--text-muted)'}`}>
                       {conv.lastMessage || 'Start conversation...'}
                     </p>
                   </div>
@@ -249,7 +249,7 @@ export default function MessagesPage() {
               );
             }) : (
               <div className="p-8 text-center">
-                <p className="text-slate-500 text-sm">No conversations yet.</p>
+                <p className="text-var(--text-muted) text-sm">No conversations yet.</p>
               </div>
             )}
           </div>
@@ -260,14 +260,14 @@ export default function MessagesPage() {
           {selectedConv ? (
             <>
               {/* Chat header */}
-              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="px-8 py-6 flex items-center justify-between bg-var(--card-bg) bg-opacity-30 backdrop-blur-2xl shadow-sm">
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setShowMobileChat(false)} className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
+                  <button onClick={() => setShowMobileChat(false)} className="md:hidden p-2 -ml-2 text-var(--text-muted) hover:text-var(--text-primary) transition-colors">
                     <ChevronLeft size={24} />
                   </button>
                   <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={40} />
                   <div>
-                    <h2 className="text-sm font-bold text-white">{selectedConv.candidateName}</h2>
+                    <h2 className="text-sm font-bold text-var(--text-primary)">{selectedConv.candidateName}</h2>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
                       <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
@@ -275,21 +275,21 @@ export default function MessagesPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                  <button className="w-9 h-9 rounded-xl bg-var(--card-bg) border border-var(--card-border) flex items-center justify-center text-var(--text-muted) hover:text-var(--text-primary) hover:bg-var(--primary-glow) transition-all">
                     <Phone size={16} />
                   </button>
-                  <button className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+                  <button className="w-9 h-9 rounded-xl bg-var(--card-bg) border border-var(--card-border) flex items-center justify-center text-var(--text-muted) hover:text-var(--text-primary) hover:bg-var(--primary-glow) transition-all">
                     <MoreVertical size={16} />
                   </button>
                 </div>
               </div>
 
               {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth no-scrollbar" style={{ backgroundImage: `radial-gradient(rgba(14,165,233,0.03) 1px, transparent 1px)`, backgroundSize: '32px 32px' }}>
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth no-scrollbar" style={{ backgroundImage: `radial-gradient(var(--primary) 0.05px, transparent 1px)`, backgroundSize: '32px 32px' }}>
                 {Object.entries(groupedMessages).map(([date, msgs]) => (
                   <div key={date} className="space-y-6">
                     <div className="flex justify-center">
-                      <span className="px-3 py-1 bg-white/5 border border-white/10 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                      <span className="px-3 py-1 bg-var(--card-bg) border border-var(--card-border) text-var(--text-muted) text-[10px] font-bold uppercase tracking-widest rounded-full">
                         {date === new Date().toDateString() ? 'Today' : date}
                       </span>
                     </div>
@@ -299,14 +299,14 @@ export default function MessagesPage() {
                         <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end gap-3 animate-in slide-in-from-bottom-2`}>
                           {!isMe && <AvatarCircle name={selectedConv.candidateName} avatarUrl={selectedConv.avatarUrl} size={32} />}
                           <div className={`max-w-[75%] sm:max-w-[65%] space-y-1.5`}>
-                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed ${isMe ? 'bg-sky-500 text-white rounded-br-none shadow-lg shadow-sky-500/10' : 'bg-white/10 text-slate-200 border border-white/10 rounded-bl-none'}`}>
+                            <div className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] ${isMe ? 'bg-var(--primary-glow) text-var(--primary) rounded-br-none' : 'bg-var(--card-bg) text-var(--text-primary) rounded-bl-none'}`}>
                               {msg.text}
                             </div>
                             <div className={`flex items-center gap-1.5 px-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                              <span className="text-[9px] font-bold text-slate-600 uppercase tracking-tighter">
+                              <span className={`text-[9px] font-bold ${isMe ? 'text-var(--primary)' : 'text-var(--text-muted)'} uppercase tracking-tighter`}>
                                 {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              {isMe && <span className="text-[10px] text-sky-500/80 font-black">✓✓</span>}
+                              {isMe && <span className="text-[10px] text-var(--primary) opacity-70 font-black">✓✓</span>}
                             </div>
                           </div>
                         </div>
@@ -317,14 +317,14 @@ export default function MessagesPage() {
               </div>
 
               {/* Input */}
-              <div className="p-4 border-t border-white/10" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <div className="p-6 bg-var(--card-bg) bg-opacity-30 backdrop-blur-2xl">
                 {showAiSuggestions && aiSuggestions.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4 px-2 no-scrollbar overflow-x-auto pb-1">
                     {aiSuggestions.map((suggestion, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="px-4 py-2 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-xs font-bold hover:bg-sky-500/20 transition-all whitespace-nowrap active:scale-95"
+                        className="px-4 py-2 rounded-full bg-var(--primary-glow) border border-var(--primary) border-opacity-20 text-var(--primary) text-xs font-bold hover:opacity-80 transition-all whitespace-nowrap active:scale-95"
                       >
                         {suggestion}
                       </button>
@@ -339,13 +339,12 @@ export default function MessagesPage() {
                       value={messageInput}
                       onChange={e => setMessageInput(e.target.value)}
                       placeholder="Message..."
-                      className="w-full p-4 pr-14 rounded-2xl bg-white/5 border border-white/10 outline-none text-white placeholder-slate-500 text-sm focus:border-sky-500/40 transition-all"
+                      className="w-full p-4 pr-14 rounded-2xl bg-var(--card-bg) border border-transparent outline-none text-var(--text-primary) placeholder-var(--text-muted) text-sm focus:ring-2 focus:ring-var(--primary-glow) transition-all shadow-sm"
                     />
                     <button
                       type="submit"
                       disabled={!messageInput.trim() || sending}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 hover:scale-105 active:scale-95"
-                      style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1)', boxShadow: '0 4px 16px rgba(2,132,199,0.3)' }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-30 hover:scale-105 active:scale-95 bg-var(--primary) shadow-lg shadow-var(--primary-glow)"
                     >
                       <Send size={16} className="text-white" />
                     </button>
@@ -355,12 +354,12 @@ export default function MessagesPage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
-              <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-700">
+              <div className="w-20 h-20 rounded-3xl bg-var(--card-bg) border border-var(--card-border) flex items-center justify-center text-var(--text-muted)">
                 <MessageSquare size={40} />
               </div>
               <div className="text-center">
-                <h2 className="text-white font-bold text-xl">Private Messaging</h2>
-                <p className="text-slate-500 text-sm mt-2 max-w-xs font-light">Choose a mentee from your network to start a secure conversation.</p>
+                <h2 className="text-var(--text-primary) font-bold text-xl">Private Messaging</h2>
+                <p className="text-var(--text-muted) text-sm mt-2 max-w-xs font-light">Choose a mentee from your network to start a secure conversation.</p>
               </div>
             </div>
           )}

@@ -11,7 +11,10 @@ import {
   Settings,
   LogOut,
   Menu,
+  Sun,
+  Moon,
 } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 function initialsFromName(name = '') {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -28,6 +31,8 @@ export default function CoachShell({ children }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => { 
     setIsMounted(true); 
@@ -77,26 +82,27 @@ export default function CoachShell({ children }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [notificationsOpen, profileOpen]);
 
-  if (!isMounted) return <div style={{ minHeight:'100vh', background:'#06060f' }} />;
-  if (!useShell)   return <div style={{ background:'#06060f', minHeight:'100vh', color:'#cbd5e1' }}>{children}</div>;
+  if (!isMounted) return <div style={{ minHeight:'100vh', background:'var(--background)' }} />;
+  if (!useShell)   return <div style={{ background:'var(--background)', minHeight:'100vh', color:'var(--text-primary)' }}>{children}</div>;
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-        .shell-root { font-family:'DM Sans',sans-serif; min-height:100vh; background:#06060f; color:#cbd5e1; }
+        .shell-root { font-family:'DM Sans',sans-serif; min-height:100vh; background:var(--background); color:var(--text-primary); transition: background-color 0.4s ease; }
 
         /* ── Header ── */
         .shell-header {
           position: sticky; top: 0; z-index: 40;
-          background: rgba(6,6,15,0.85);
-          border-bottom: 1px solid rgba(255,255,255,0.055);
+          background: var(--header-bg);
+          border-bottom: 1px solid var(--glass-border);
           backdrop-filter: blur(20px);
           height: 68px;
           display: flex; align-items: center;
           padding: 0 28px;
           gap: 16px;
+          transition: background-color 0.4s ease, border-color 0.4s ease;
         }
 
         /* Mobile hamburger */
@@ -124,7 +130,7 @@ export default function CoachShell({ children }) {
         .shell-title-name {
           font-family: 'DM Serif Display', Georgia, serif;
           font-style: italic;
-          font-size: 19px; color: #fff; line-height: 1.1;
+          font-size: 19px; color: var(--text-primary); line-height: 1.1;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
@@ -169,7 +175,7 @@ export default function CoachShell({ children }) {
         }
         .shell-avatar:hover { background: rgba(255,255,255,0.065); border-color: rgba(14,165,233,0.2); }
         .shell-avatar-circle {
-          width: 30px; height: 30px; border-radius: 8px;
+          width: 30px; height: 30px; border-radius: 50%;
           background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
           display: flex; align-items: center; justify-content: center;
           font-size: 11px; font-weight: 700; color: #fff;
@@ -179,7 +185,7 @@ export default function CoachShell({ children }) {
           overflow: hidden;
         }
         .shell-avatar-name {
-          font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.8);
+          font-size: 13px; font-weight: 500; color: var(--text-secondary);
           max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         @media(max-width:480px){ .shell-avatar-name{ display:none; } }
@@ -188,13 +194,14 @@ export default function CoachShell({ children }) {
         .shell-dropdown {
           position: absolute; top: calc(100% + 10px); right: 0;
           min-width: 220px;
-          background: #0d0c1e;
-          border: 1px solid rgba(255,255,255,0.08);
+          background: var(--glass-bg);
+          border: 1px solid var(--glass-border);
           border-radius: 16px;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.55), 0 0 0 0.5px rgba(14,165,233,0.1);
+          box-shadow: var(--shadow-lg), 0 0 0 0.5px var(--glass-border);
           overflow: hidden;
           animation: dropIn 0.15s ease;
           z-index: 99;
+          backdrop-filter: blur(24px);
         }
         @keyframes dropIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
 
@@ -209,12 +216,12 @@ export default function CoachShell({ children }) {
           display: flex; align-items: center; gap: 10px;
           padding: 9px 12px; border-radius: 10px;
           font-size: 13px; font-weight: 500;
-          color: rgba(203,213,225,0.8);
+          color: var(--text-secondary);
           cursor: pointer; text-decoration: none;
           transition: background 0.15s, color 0.15s;
           width: 100%; border: none; background: none; text-align: left;
         }
-        .shell-dropdown-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .shell-dropdown-item:hover { background: var(--primary-glow); color: var(--text-primary); }
         .shell-dropdown-item.danger { color: rgba(248,113,113,0.8); }
         .shell-dropdown-item.danger:hover { background: rgba(239,68,68,0.08); color: #f87171; }
 
@@ -270,6 +277,20 @@ export default function CoachShell({ children }) {
 
             <div className="shell-actions">
 
+              {/* Theme Toggle */}
+              <button 
+                onClick={toggleTheme}
+                className="shell-icon-btn group relative overflow-hidden"
+                aria-label="Toggle theme"
+              >
+                <div className={`transition-all duration-500 transform ${theme === 'dark' ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                  <Moon size={17} strokeWidth={1.8} className="text-indigo-400" />
+                </div>
+                <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 transform ${theme === 'light' ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'}`}>
+                  <Sun size={17} strokeWidth={1.8} className="text-amber-500" />
+                </div>
+              </button>
+
               <div style={{ position:'relative' }} data-dropdown>
                 <button
                   className="shell-icon-btn"
@@ -300,8 +321,8 @@ export default function CoachShell({ children }) {
                 {profileOpen && (
                   <div className="shell-dropdown">
                     <div className="shell-dropdown-header">
-                      <p style={{ fontSize:13, fontWeight:600, color:'rgba(255,255,255,0.9)', margin:0 }}>{user?.name || firstName}</p>
-                      <p style={{ fontSize:11, color:'rgba(255,255,255,0.35)', margin:'2px 0 0', fontWeight:300, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.email || ''}</p>
+                      <p style={{ fontSize:13, fontWeight:600, color:'var(--text-primary)', margin:0 }}>{user?.name || firstName}</p>
+                      <p style={{ fontSize:11, color:'var(--text-muted)', margin:'2px 0 0', fontWeight:300, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{user?.email || ''}</p>
                     </div>
                     <div className="shell-dropdown-body">
                       <Link href="/coach/profile" className="shell-dropdown-item" onClick={() => setProfileOpen(false)}>

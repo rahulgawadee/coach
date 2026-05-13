@@ -23,6 +23,7 @@ export async function GET(request) {
     let coachName = workspace.coach?.name || 'Your Coach';
     let coachBio = workspace.coach?.bio || 'Professional Mentor';
     let coachCompany = workspace.coach?.company || 'Coach Mentorship';
+    let coachAvatar = workspace.coach?.avatarUrl || '';
 
     if (assignment && assignment.coachId) {
       const coachProfile = assignment.coachId;
@@ -31,6 +32,7 @@ export async function GET(request) {
         coachName = coachUser.name;
         coachBio = coachProfile.bio || coachBio;
         coachCompany = coachProfile.organization || coachCompany;
+        coachAvatar = coachUser.avatarUrl || '';
       }
     }
 
@@ -45,6 +47,7 @@ export async function GET(request) {
         coachName,
         coachBio,
         coachCompany,
+        coachAvatar: coachAvatar || workspace.coach?.avatarUrl || '',
         coachSpecialties: workspace.coach?.specialties || []
       } 
     });

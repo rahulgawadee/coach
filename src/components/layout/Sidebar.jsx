@@ -84,10 +84,10 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         .sidebar-root {
           font-family: 'DM Sans', sans-serif;
           position: fixed; left: 0; top: 0; z-index: 110; height: 100vh;
-          background: rgba(6,6,15,0.97);
-          border-right: 1px solid rgba(255,255,255,0.055);
+          background: var(--sidebar-bg);
+          border-right: 1px solid var(--card-border);
           backdrop-filter: blur(24px);
-          transition: width 0.28s cubic-bezier(0.4,0,0.2,1);
+          transition: width 0.28s cubic-bezier(0.4,0,0.2,1), background-color 0.4s ease, border-color 0.4s ease;
           display: flex; flex-direction: column;
           overflow: visible;
         }
@@ -145,7 +145,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
           overflow: hidden;
         }
         .sb-logo-icon {
-          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+          width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
           background: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%);
           display: flex; align-items: center; justify-content: center;
           box-shadow: 0 4px 16px rgba(79,70,229,0.35);
@@ -156,7 +156,7 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
           font-family: 'DM Serif Display', Georgia, serif;
           font-style: italic;
           font-size: 20px;
-          color: #fff;
+          color: var(--text-primary);
           white-space: nowrap;
           opacity: 1;
           transition: opacity 0.2s, transform 0.2s;
@@ -171,15 +171,15 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         .sb-toggle {
           position: absolute; top: 21px; right: -13px;
           width: 26px; height: 26px; border-radius: 50%;
-          background: #0f0e1c;
-          border: 1px solid rgba(99,102,241,0.3);
+          background: var(--sidebar-bg);
+          border: 1px solid var(--card-border);
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; z-index: 10;
-          color: rgba(165,180,252,0.8);
-          box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+          color: var(--text-secondary);
+          box-shadow: var(--shadow-md);
           transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.3s;
         }
-        .sb-toggle:hover { background:#1a1838; border-color:rgba(99,102,241,0.6); color:#a5b4fc; }
+        .sb-toggle:hover { background: var(--card-bg); border-color: var(--primary); color: var(--primary); }
         .sb-toggle svg { transition: transform 0.28s cubic-bezier(0.4,0,0.2,1); }
         .sidebar-root.closed .sb-toggle svg { transform: rotate(180deg); }
 
@@ -203,13 +203,13 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
           text-decoration: none;
           white-space: nowrap;
           transition: background 0.18s, border-color 0.18s;
-          color: rgba(148,163,184,0.8);
+          color: var(--text-secondary);
         }
-        .sb-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+        .sb-item:hover { background: var(--card-bg); color: var(--text-primary); }
         .sb-item.active {
-          background: rgba(99,102,241,0.1);
-          border-color: rgba(99,102,241,0.22);
-          color: #a5b4fc;
+          background: var(--primary-glow);
+          border-color: var(--primary);
+          color: var(--primary);
           box-shadow: inset 0 0 0 0.5px rgba(99,102,241,0.15), 0 0 16px rgba(99,102,241,0.06);
         }
 
@@ -275,15 +275,16 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         .sb-tooltip {
           position: absolute; left: calc(100% + 14px); top: 50%;
           transform: translateY(-50%) translateX(-4px);
-          background: #1a1838;
-          border: 1px solid rgba(99,102,241,0.25);
-          color: #e0e7ff; font-size: 12px; font-weight: 500;
+          background: var(--header-bg);
+          border: 1px solid var(--card-border);
+          color: var(--text-primary); font-size: 12px; font-weight: 500;
           padding: 6px 12px; border-radius: 8px; white-space: nowrap;
           pointer-events: none;
           opacity: 0;
           transition: opacity 0.15s, transform 0.15s;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+          box-shadow: var(--shadow-lg);
           z-index: 100;
+          backdrop-filter: blur(8px);
         }
         .sidebar-root.closed .sb-item:hover .sb-tooltip { opacity: 1; transform: translateY(-50%) translateX(0); }
 

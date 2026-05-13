@@ -10,7 +10,7 @@ const AvatarCell = ({ name, avatarUrl, size = 56 }) => {
   const [imgError, setImgError] = useState(false);
   return (
     <div className="relative shrink-0">
-      <div style={{ width: size, height: size }} className="rounded-2xl overflow-hidden bg-sky-500/10 border border-sky-500/20 shadow-lg">
+      <div style={{ width: size, height: size }} className="rounded-2xl overflow-hidden bg-var(--primary-glow) border border-var(--primary) shadow-lg">
         {avatarUrl && !imgError ? (
           <img
             src={avatarUrl}
@@ -19,7 +19,7 @@ const AvatarCell = ({ name, avatarUrl, size = 56 }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-sky-400 font-bold" style={{ fontSize: size * 0.35 }}>
+          <div className="w-full h-full flex items-center justify-center text-var(--primary) font-bold" style={{ fontSize: size * 0.35 }}>
             {name?.charAt(0)?.toUpperCase() || '?'}
           </div>
         )}
@@ -30,16 +30,16 @@ const AvatarCell = ({ name, avatarUrl, size = 56 }) => {
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <div style={{ position:'absolute', inset:0, background:'var(--background)' }} />
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#38bdf8" strokeWidth="0.5"/>
+          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="var(--primary)" strokeWidth="0.5"/>
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
   </div>
 );
 
@@ -88,7 +88,7 @@ export default function CandidatesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <div style={{ width:40, height:40, border:'1.5px solid var(--primary-glow)', borderTop:'1.5px solid var(--primary)', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -103,13 +103,14 @@ export default function CandidatesPage() {
         .page-root { font-family: 'DM Sans', sans-serif; }
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
         .card {
-          background: rgba(255,255,255,0.028);
-          border: 1px solid rgba(255,255,255,0.07);
-          backdrop-filter: blur(20px);
-          border-radius: 20px;
-          transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+          background: var(--card-bg);
+          border-radius: 32px;
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+          backdrop-filter: blur(24px);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid transparent;
         }
-        .card:hover { border-color: rgba(255,255,255,0.11); box-shadow: 0 12px 40px rgba(0,0,0,0.35); transform: translateY(-2px); }
+        .card:hover { border-color: var(--primary-glow); box-shadow: 0 20px 40px -10px var(--primary-glow); transform: translateY(-2px); }
         .pill {
           display:inline-flex; align-items:center; gap:6px;
           padding: 5px 12px; border-radius:999px;
@@ -119,21 +120,21 @@ export default function CandidatesPage() {
           display:flex; align-items:center; justify-content:center; gap:8px;
           width:100%; padding:10px 16px; border-radius:12px; font-weight:600;
           font-size:13px; letter-spacing:0.01em; cursor:pointer; border:none;
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-          color:#fff; box-shadow: 0 4px 20px rgba(2,132,199,0.25);
+          background: var(--primary);
+          color:#fff; box-shadow: 0 4px 20px var(--primary-glow);
           transition: box-shadow 0.25s, transform 0.2s;
         }
-        .btn-primary:hover { box-shadow: 0 8px 30px rgba(2,132,199,0.38); transform:translateY(-1px); }
+        .btn-primary:hover { box-shadow: 0 8px 30px var(--primary-glow); transform:translateY(-1px); }
         .btn-ghost {
           display:flex; align-items:center; justify-content:center; gap:8px;
           width:100%; padding:10px 16px; border-radius:12px; font-weight:600;
           font-size:13px; cursor:pointer;
-          background:rgba(255,255,255,0.04);
-          border:1px solid rgba(255,255,255,0.1);
-          color:rgba(255,255,255,0.85);
-          transition: background 0.2s, border-color 0.2s;
+          background: var(--card-bg);
+          border: 1px solid transparent;
+          color: var(--text-primary);
+          transition: all 0.2s;
         }
-        .btn-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.18); }
+        .btn-ghost:hover { background: var(--primary-glow); color: var(--primary); }
         .fade-up { animation: fadeUp 0.5s ease both; }
         .delay-1 { animation-delay:0.07s; }
         .delay-2 { animation-delay:0.14s; }
@@ -143,21 +144,21 @@ export default function CandidatesPage() {
       <div className="page-root space-y-8">
         {/* Header */}
         <div className="fade-up pt-8 px-4 sm:px-0">
-          <Link href="/coach/dashboard" className="text-xs font-bold text-sky-400 uppercase tracking-widest hover:text-sky-300 transition-colors mb-4 inline-block">
+          <Link href="/coach/dashboard" className="text-xs font-bold text-var(--primary) uppercase tracking-widest hover:opacity-80 transition-colors mb-4 inline-block">
             ← Dashboard
           </Link>
           <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-6">
             <div className="text-center sm:text-left">
-              <h1 className="serif text-3xl sm:text-4xl md:text-5xl text-white font-medium tracking-tight mb-2">Mentee Directory</h1>
-              <p className="text-slate-400 font-light text-sm sm:text-base">You have <span className="text-white font-medium">{candidates.length}</span> candidates in your network.</p>
+              <h1 className="serif text-3xl sm:text-4xl md:text-5xl text-var(--text-primary) font-medium tracking-tight mb-2">Mentee Directory</h1>
+              <p className="text-var(--text-muted) font-light text-sm sm:text-base">You have <span className="text-var(--text-primary) font-medium">{candidates.length}</span> candidates in your network.</p>
             </div>
             
             <div className="w-full lg:w-80 relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">🔍</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-var(--text-muted)">🔍</span>
               <input 
                 type="text" 
                 placeholder="Search candidates..." 
-                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all font-medium text-sm sm:text-base"
+                className="w-full pl-12 pr-4 py-3 bg-var(--input-bg) border border-transparent rounded-2xl focus:ring-2 focus:ring-var(--primary-glow) focus:border-var(--primary) outline-none text-var(--text-primary) placeholder-var(--text-muted) transition-all font-medium text-sm sm:text-base shadow-sm"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
               />
@@ -167,12 +168,12 @@ export default function CandidatesPage() {
 
         {/* Filters */}
         <div className="fade-up delay-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 px-4 sm:px-0">
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto no-scrollbar">
+          <div className="flex bg-var(--card-bg) p-1 rounded-xl border border-var(--card-border) overflow-x-auto no-scrollbar">
             {['all', 'accepted', 'completed', 'paused'].map(status => (
               <button 
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 sm:px-5 py-2 text-[10px] font-bold rounded-lg uppercase tracking-widest transition-all whitespace-nowrap ${statusFilter === status ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-sm' : 'text-slate-400 hover:text-slate-200 border border-transparent'}`}
+                className={`px-4 sm:px-5 py-2 text-[10px] font-bold rounded-lg uppercase tracking-widest transition-all whitespace-nowrap ${statusFilter === status ? 'bg-var(--primary-glow) text-var(--primary) border border-var(--primary) shadow-sm' : 'text-var(--text-muted) hover:text-var(--text-primary) border border-transparent'}`}
               >
                 {status}
               </button>
@@ -183,7 +184,7 @@ export default function CandidatesPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="fade-up card p-6 border-red-500/20 bg-red-500/10 text-red-200 font-medium text-center">
+          <div className="fade-up card p-6 border-rose-500/20 bg-rose-500/10 text-rose-400 font-medium text-center">
             {error}
           </div>
         )}
@@ -195,7 +196,7 @@ export default function CandidatesPage() {
               <div className="flex items-start justify-between mb-5">
                 <AvatarCell name={candidate.name} avatarUrl={candidate.avatarUrl} size={56} />
                 <span className={`pill ${
-                  candidate.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400 border border-slate-700'
+                  candidate.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-var(--primary-glow) text-var(--text-muted) border border-var(--card-border)'
                 }`}>
                   {candidate.status}
                 </span>
@@ -203,19 +204,19 @@ export default function CandidatesPage() {
               
               <div className="space-y-4 mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-white group-hover:text-sky-400 transition-colors">{candidate.name}</h3>
-                  <p className="text-sm text-slate-400 font-medium mt-0.5">{candidate.email}</p>
+                  <h3 className="text-xl font-bold text-var(--text-primary) group-hover:text-var(--primary) transition-colors">{candidate.name}</h3>
+                  <p className="text-sm text-var(--text-secondary) font-medium mt-0.5">{candidate.email}</p>
                   {candidate.occupation && (
-                    <p className="text-xs text-slate-500 mt-1">🏢 {candidate.occupation}</p>
+                    <p className="text-xs text-var(--text-muted) mt-1">🏢 {candidate.occupation}</p>
                   )}
                 </div>
                 {candidate.skills?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
                     {candidate.skills.slice(0, 4).map(skill => (
-                      <span key={skill} className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-300 bg-sky-900/40 border border-sky-800/50 rounded-md">{skill}</span>
+                      <span key={skill} className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-var(--primary) bg-var(--primary-glow) border border-var(--primary) rounded-md">{skill}</span>
                     ))}
                     {candidate.skills.length > 4 && (
-                      <span className="px-2 py-0.5 text-[10px] font-bold text-slate-400 bg-white/5 rounded-md">+{candidate.skills.length - 4}</span>
+                      <span className="px-2 py-0.5 text-[10px] font-bold text-var(--text-muted) bg-var(--card-bg) rounded-md">+{candidate.skills.length - 4}</span>
                     )}
                   </div>
                 )}
@@ -229,8 +230,8 @@ export default function CandidatesPage() {
               </div>
             </div>
           )) : (
-            <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-3xl bg-white/5">
-              <p className="text-slate-500 font-medium text-sm">No candidates match your search.</p>
+            <div className="col-span-full py-20 text-center border border-dashed border-var(--card-border) rounded-3xl bg-var(--card-bg)">
+              <p className="text-var(--text-muted) font-medium text-sm">No candidates match your search.</p>
             </div>
           )}
         </div>

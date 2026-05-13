@@ -47,11 +47,11 @@ const StatPill = ({ n, suf, label, go }) => {
   useEffect(() => setMounted(true), []);
 
   return (
-    <div style={{ flex:1, minWidth:130, textAlign:"center", padding:"26px 16px", background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.07)", borderRadius:20 }}>
+    <div style={{ flex:1, minWidth:130, textAlign:"center", padding:"26px 16px", background:"var(--card-bg)", border:"1px solid var(--card-border)", borderRadius:20 }}>
       <div style={{ fontFamily:"'Syne',sans-serif", fontSize:34, fontWeight:800, letterSpacing:"-0.04em", background:"linear-gradient(135deg,#38bdf8,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>
         {mounted ? (suf === "+" ? `${v.toLocaleString()}+` : `${v}${suf}`) : (suf === "+" ? `${v}+` : `${v}${suf}`)}
       </div>
-      <div style={{ fontSize:11, color:"rgba(148,163,184,.65)", marginTop:6, fontWeight:700, letterSpacing:".09em", textTransform:"uppercase" }}>{label}</div>
+      <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:6, fontWeight:700, letterSpacing:".09em", textTransform:"uppercase" }}>{label}</div>
     </div>
   );
 };
@@ -63,8 +63,8 @@ const Feat = ({ icon, title, desc, grad, delay }) => {
     <div ref={ref}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
-        background: hov ? "rgba(255,255,255,.07)" : "rgba(255,255,255,.03)",
-        border:`1px solid ${hov ? "rgba(99,102,241,.35)" : "rgba(255,255,255,.07)"}`,
+        background: hov ? "var(--primary-glow)" : "var(--card-bg)",
+        border:`1px solid ${hov ? "var(--primary)" : "var(--card-border)"}`,
         borderRadius:26, padding:"30px 26px",
         transition:"all .45s cubic-bezier(.23,1,.32,1)",
         transform: vis ? (hov ? "translateY(-7px)" : "translateY(0)") : "translateY(26px)",
@@ -73,8 +73,8 @@ const Feat = ({ icon, title, desc, grad, delay }) => {
       }}>
       {hov && <div style={{ position:"absolute", inset:0, background:`radial-gradient(ellipse at 25% 25%,${grad}16,transparent 65%)`, pointerEvents:"none" }} />}
       <div style={{ width:48, height:48, borderRadius:14, background:grad, marginBottom:20, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, boxShadow:`0 6px 20px ${grad}35` }}>{icon}</div>
-      <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:700, color:"#f1f5f9", marginBottom:9 }}>{title}</h3>
-      <p style={{ fontSize:14, color:"rgba(148,163,184,.8)", lineHeight:1.75, margin:0 }}>{desc}</p>
+      <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:700, color:"var(--text-primary)", marginBottom:9 }}>{title}</h3>
+      <p style={{ fontSize:14, color:"var(--text-secondary)", lineHeight:1.75, margin:0 }}>{desc}</p>
     </div>
   );
 };
@@ -83,31 +83,31 @@ const MCard = ({ name, role, spec, rating }) => {
   const grads = ["linear-gradient(135deg,#6366f1,#8b5cf6)","linear-gradient(135deg,#0ea5e9,#6366f1)","linear-gradient(135deg,#10b981,#0ea5e9)"];
   const g = grads[name.charCodeAt(0) % 3];
   return (
-    <div style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.08)", borderRadius:20, padding:"20px 18px" }}>
+    <div style={{ background:"var(--card-bg)", border:"1px solid var(--card-border)", borderRadius:20, padding:"20px 18px" }}>
       <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
         <div style={{ width:42, height:42, borderRadius:13, background:g, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, color:"#fff" }}>{name[0]}</div>
         <div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, fontSize:14, color:"#f1f5f9" }}>{name}</div>
-          <div style={{ fontSize:12, color:"rgba(148,163,184,.6)", marginTop:2 }}>{role}</div>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:700, fontSize:14, color:"var(--text-primary)" }}>{name}</div>
+          <div style={{ fontSize:12, color:"var(--text-muted)", marginTop:2 }}>{role}</div>
         </div>
       </div>
-      <div style={{ display:"inline-block", padding:"4px 11px", borderRadius:100, background:"rgba(99,102,241,.12)", border:"1px solid rgba(99,102,241,.28)", fontSize:11, color:"#818cf8", fontWeight:700, letterSpacing:".04em", marginBottom:11 }}>{spec}</div>
+      <div style={{ display:"inline-block", padding:"4px 11px", borderRadius:100, background:"var(--primary-glow)", border:"1px solid var(--primary)", fontSize:11, color:"var(--primary)", fontWeight:700, letterSpacing:".04em", marginBottom:11 }}>{spec}</div>
       <div style={{ display:"flex", alignItems:"center", gap:2 }}>
         {"★★★★★".split("").map((s,i)=><span key={i} style={{color:"#fbbf24",fontSize:12}}>{s}</span>)}
-        <span style={{ fontSize:11, color:"rgba(148,163,184,.55)", marginLeft:5 }}>{rating}</span>
+        <span style={{ fontSize:11, color:"var(--text-muted)", marginLeft:5 }}>{rating}</span>
       </div>
     </div>
   );
 };
 
 const Faq = ({ q, a, open, toggle }) => (
-  <div style={{ background: open?"rgba(99,102,241,.06)":"rgba(255,255,255,.03)", border:`1px solid ${open?"rgba(99,102,241,.28)":"rgba(255,255,255,.07)"}`, borderRadius:17, overflow:"hidden", marginBottom:9, transition:"all .3s ease" }}>
-    <button onClick={toggle} style={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center", padding:"18px 22px", background:"none", border:"none", cursor:"pointer", color:"#f1f5f9", textAlign:"left" }}>
+  <div style={{ background: open?"var(--primary-glow)":"var(--card-bg)", border:`1px solid ${open?"var(--primary)":"var(--card-border)"}`, borderRadius:17, overflow:"hidden", marginBottom:9, transition:"all .3s ease" }}>
+    <button onClick={toggle} style={{ width:"100%", display:"flex", justifyContent:"space-between", alignItems:"center", padding:"18px 22px", background:"none", border:"none", cursor:"pointer", color:"var(--text-primary)", textAlign:"left" }}>
       <span style={{ fontFamily:"'Syne',sans-serif", fontWeight:600, fontSize:14 }}>{q}</span>
-      <span style={{ width:25, height:25, borderRadius:"50%", background: open?"linear-gradient(135deg,#6366f1,#38bdf8)":"rgba(255,255,255,.08)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0, marginLeft:12, transition:"all .3s ease", transform: open?"rotate(45deg)":"none", color:"#fff" }}>+</span>
+      <span style={{ width:25, height:25, borderRadius:"50%", background: open?"var(--primary)":"var(--card-border)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:16, flexShrink:0, marginLeft:12, transition:"all .3s ease", transform: open?"rotate(45deg)":"none", color:"#fff" }}>+</span>
     </button>
     <div style={{ maxHeight: open?200:0, overflow:"hidden", transition:"max-height .45s cubic-bezier(.23,1,.32,1)" }}>
-      <p style={{ padding:"0 22px 18px", margin:0, color:"rgba(148,163,184,.8)", lineHeight:1.75, fontSize:13 }}>{a}</p>
+      <p style={{ padding:"0 22px 18px", margin:0, color:"var(--text-secondary)", lineHeight:1.75, fontSize:13 }}>{a}</p>
     </div>
   </div>
 );
@@ -122,8 +122,8 @@ const SHead = ({ chip, cc, h, sub, center=true }) => {
   return (
     <div style={{ textAlign:center?"center":"left", marginBottom:mounted ? 52 : 40 }} className="section-head">
       {chip && <Chip color={cc}>{chip}</Chip>}
-      <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:"-0.035em", lineHeight:1.1, color:"#f8fafc", margin:"0 0 16px" }} dangerouslySetInnerHTML={{__html:h}} />
-      {sub && <p style={{ fontSize:15, color:"rgba(148,163,184,.75)", maxWidth:500, margin:center?"0 auto":"0", lineHeight:1.8 }}>{sub}</p>}
+      <h2 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(28px,4vw,44px)", fontWeight:800, letterSpacing:"-0.035em", lineHeight:1.1, color:"var(--text-primary)", margin:"0 0 16px" }} dangerouslySetInnerHTML={{__html:h}} />
+      {sub && <p style={{ fontSize:15, color:"var(--text-secondary)", maxWidth:500, margin:center?"0 auto":"0", lineHeight:1.8 }}>{sub}</p>}
     </div>
   );
 };
@@ -173,15 +173,15 @@ export default function CoachLanding() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         *{box-sizing:border-box;margin:0;padding:0}
-        body{background:#08080f;overflow-x:hidden}
+        body{background:var(--background);overflow-x:hidden;transition:background-color 0.4s ease}
         @keyframes float{0%{transform:translateY(0) scale(1)}100%{transform:translateY(-20px) scale(1.07)}}
         @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
         @keyframes spin{to{transform:rotate(360deg)}}
-        .bp{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#6366f1 100%);background-size:200% auto;animation:shimmer 3.5s linear infinite;border:none;border-radius:13px;padding:13px 30px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.03em;transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 0 26px rgba(99,102,241,.38),0 4px 14px rgba(99,102,241,.25)}
-        .bp:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 42px rgba(99,102,241,.55),0 8px 22px rgba(99,102,241,.38)}
-        .bg{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:13px;padding:13px 28px;font-size:14px;font-weight:600;color:#e2e8f0;cursor:pointer;font-family:'Syne',sans-serif;transition:all .3s ease;backdrop-filter:blur(10px)}
-        .bg:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);transform:translateY(-2px)}
+        .bp{background:var(--primary);background-size:200% auto;border:none;border-radius:13px;padding:13px 30px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Syne',sans-serif;letter-spacing:.03em;transition:transform .25s ease,box-shadow .25s ease;box-shadow:0 0 26px var(--primary-glow)}
+        .bp:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 42px var(--primary-glow)}
+        .bg{background:var(--card-bg);border:1px solid var(--card-border);border-radius:13px;padding:13px 28px;font-size:14px;font-weight:600;color:var(--text-primary);cursor:pointer;font-family:'Syne',sans-serif;transition:all .3s ease;backdrop-filter:blur(10px)}
+        .bg:hover{background:var(--primary-glow);border-color:var(--primary);transform:translateY(-2px)}
         ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#08080f}::-webkit-scrollbar-thumb{background:rgba(99,102,241,.4);border-radius:2px}
         
         .mentor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; position: relative; z-index: 1; }
@@ -210,7 +210,7 @@ export default function CoachLanding() {
 
       `}</style>
 
-      <div style={{ background:"#08080f", fontFamily:"'DM Sans',sans-serif", color:"#f1f5f9" }}>
+      <div style={{ background:"var(--background)", fontFamily:"'DM Sans',sans-serif", color:"var(--text-primary)" }}>
 
         {/* ── HERO ── */}
         <section style={{ position:"relative", minHeight:"100vh", display:"flex", alignItems:"center", overflow:"hidden" }}>
@@ -218,7 +218,7 @@ export default function CoachLanding() {
           <Orb color="radial-gradient(circle,#0284c7,transparent)" sz={460} style={{ bottom:-60, right:-80, opacity:.18 }} />
           <Orb color="radial-gradient(circle,#7c3aed,transparent)" sz={260} style={{ top:"55%", left:"46%", opacity:.1 }} />
           {/* grid */}
-          <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(148,163,184,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.04) 1px,transparent 1px)", backgroundSize:"56px 56px", pointerEvents:"none" }} />
+          <div style={{ position:"absolute", inset:0, backgroundImage:`linear-gradient(var(--card-border) 0.5px,transparent 0.5px),linear-gradient(90deg,var(--card-border) 0.5px,transparent 0.5px)`, backgroundSize:"64px 64px", opacity:0.1, pointerEvents:"none" }} />
           {/* particles */}
           <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
             {mounted && pts.map(p => <div key={p.id} style={{ position:"absolute", left:`${p.x}%`, top:`${p.y}%`, width:p.sz, height:p.sz, borderRadius:"50%", background:`rgba(${p.c},${p.op})`, animation:`float ${p.dur}s ease-in-out ${p.delay}s infinite alternate` }} />)}
@@ -240,7 +240,7 @@ export default function CoachLanding() {
 
               {/* headline */}
               <div style={fade(180)}>
-                <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(42px,7vw,72px)", fontWeight:800, lineHeight:1.04, letterSpacing:"-0.045em", color:"#f8fafc" }}>
+                <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:"clamp(42px,7vw,72px)", fontWeight:800, lineHeight:1.04, letterSpacing:"-0.045em", color:"var(--text-primary)" }}>
                   Accelerate Your
                   <span style={{ display:"block", background:"linear-gradient(125deg,#38bdf8 0%,#818cf8 45%,#c084fc 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundSize:"200% auto", animation:"shimmer 4s linear infinite" }}>Dream Career</span>
                   with AI Mentors.
@@ -248,7 +248,7 @@ export default function CoachLanding() {
               </div>
 
               {/* sub */}
-              <p className="hero-sub" style={{ ...fade(290), fontSize:16, lineHeight:1.8, color:"rgba(148,163,184,.85)", maxWidth:520, marginTop:22, marginBottom:38 }}>
+              <p className="hero-sub" style={{ ...fade(290), fontSize:16, lineHeight:1.8, color:"var(--text-secondary)", maxWidth:520, marginTop:22, marginBottom:38 }}>
                 Connect with world-class mentors handpicked for your goals. Unlock personalised guidance, structured growth plans, and the network that opens every door.
               </p>
 
@@ -275,8 +275,8 @@ export default function CoachLanding() {
                   ))}
                 </div>
                 <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:"#f1f5f9" }}>50,000+ professionals growing with Coach.</div>
-                  <div style={{ fontSize:12, color:"rgba(148,163,184,.6)", marginTop:3 }}>
+                <div style={{ fontSize:13, fontWeight:600, color:"var(--text-primary)" }}>50,000+ professionals growing with Elevate.</div>
+                  <div style={{ fontSize:12, color:"var(--text-muted)", marginTop:3 }}>
                     <span style={{ color:"#fbbf24" }}>★★★★★</span>&nbsp; 4.9 / 5.0 · 12,000+ reviews
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export default function CoachLanding() {
         </section>
 
         {/* ── STATS BAND ── */}
-        <div ref={sRef} style={{ background:"rgba(255,255,255,.025)", borderTop:"1px solid rgba(255,255,255,.05)", borderBottom:"1px solid rgba(255,255,255,.05)" }}>
+        <div ref={sRef} style={{ background:"var(--card-bg)", borderTop:"1px solid var(--card-border)", borderBottom:"1px solid var(--card-border)" }}>
           <div style={{ ...W, paddingTop:36, paddingBottom:36 }}>
             <div className="stats-grid" style={{ display:"flex", gap:14, flexWrap:"wrap" }}>
               {[{n:50000,s:"+",l:"Active Members"},{n:15000,s:"+",l:"Expert Mentors"},{n:98,s:"%",l:"Satisfaction"},{n:120,s:"+",l:"Countries"}].map((d,i)=>(
@@ -299,7 +299,7 @@ export default function CoachLanding() {
         {/* ── FEATURES ── */}
         <section style={{ padding:"90px 0" }}>
           <div style={W}>
-            <SHead chip="Why Coach." cc="#38bdf8"
+            <SHead chip="Why Elevate." cc="#38bdf8"
               h={`Built for Modern <span style="background:linear-gradient(135deg,#38bdf8,#818cf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Career Growth</span>`}
               sub="Every feature reduces friction between you and the guidance that changes your trajectory."
             />
@@ -312,7 +312,7 @@ export default function CoachLanding() {
         {/* ── MENTORS ── */}
         <section style={{ padding:"0 0 90px" }}>
           <div style={W}>
-            <div style={{ background:"linear-gradient(145deg,rgba(255,255,255,.045),rgba(255,255,255,.02))", border:"1px solid rgba(255,255,255,.07)", borderRadius:34, padding:"clamp(30px, 5vw, 52px) clamp(24px, 5vw, 48px)", position:"relative", overflow:"hidden" }}>
+            <div style={{ background:"var(--card-bg)", border:"1px solid var(--card-border)", borderRadius:34, padding:"clamp(30px, 5vw, 52px) clamp(24px, 5vw, 48px)", position:"relative", overflow:"hidden" }}>
               <Orb color="radial-gradient(circle,#6366f1,transparent)" sz={360} style={{ top:-90, right:-70, opacity:.14 }} />
               <div className="mentor-grid">
                 <div>
@@ -321,8 +321,8 @@ export default function CoachLanding() {
                     World-class experts,
                     <span style={{ display:"block", background:"linear-gradient(135deg,#818cf8,#38bdf8)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>ready for you.</span>
                   </h2>
-                  <p style={{ fontSize:14, color:"rgba(148,163,184,.8)", lineHeight:1.8, marginBottom:28 }}>
-                    Every mentor on Coach. is hand-vetted — real credentials, real experience, real commitment to your success.
+                  <p style={{ fontSize:14, color:"var(--text-secondary)", lineHeight:1.8, marginBottom:28 }}>
+                    Every mentor on Elevate. is hand-vetted — real credentials, real experience, real commitment to your success.
                   </p>
                   <button className="bp">Browse all mentors →</button>
                 </div>
@@ -348,10 +348,10 @@ export default function CoachLanding() {
                 { n:"02", title:"Get matched by AI",    desc:"Our algorithm surfaces your top 3 mentor matches within 48 hours. Browse profiles and pick your fit.", col:"#38bdf8" },
                 { n:"03", title:"Start growing",        desc:"Book your first session, set goals together, and begin your structured 90-day mentorship sprint.", col:"#10b981" },
               ].map((s,i) => (
-                <div key={i} style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.07)", borderRadius:22, padding:"30px 24px", position:"relative", zIndex:1 }}>
+                <div key={i} style={{ background:"var(--card-bg)", border:"1px solid var(--card-border)", borderRadius:22, padding:"30px 24px", position:"relative", zIndex:1 }}>
                   <div style={{ width:46, height:46, borderRadius:13, marginBottom:18, background:`${s.col}1e`, border:`1px solid ${s.col}35`, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:14, color:s.col }}>{s.n}</div>
-                  <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, color:"#f1f5f9", marginBottom:9 }}>{s.title}</h3>
-                  <p style={{ fontSize:13, color:"rgba(148,163,184,.75)", lineHeight:1.75, margin:0 }}>{s.desc}</p>
+                  <h3 style={{ fontFamily:"'Syne',sans-serif", fontSize:15, fontWeight:700, color:"var(--text-primary)", marginBottom:9 }}>{s.title}</h3>
+                  <p style={{ fontSize:13, color:"var(--text-secondary)", lineHeight:1.75, margin:0 }}>{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -369,7 +369,7 @@ export default function CoachLanding() {
         {/* ── CTA ── */}
         <section style={{ padding:"0 0 90px" }}>
           <div style={W}>
-            <div style={{ background:"linear-gradient(145deg,#0c0b18,#101020)", border:"1px solid rgba(99,102,241,.2)", borderRadius:38, padding:"clamp(40px, 6vw, 68px) clamp(24px, 5vw, 52px)", textAlign:"center", position:"relative", overflow:"hidden" }}>
+            <div style={{ background:"var(--card-bg)", border:"1px solid var(--primary)", borderRadius:38, padding:"clamp(40px, 6vw, 68px) clamp(24px, 5vw, 52px)", textAlign:"center", position:"relative", overflow:"hidden" }}>
               <Orb color="radial-gradient(circle,#6366f1,transparent)" sz={460} style={{ top:-70, left:"50%", transform:"translateX(-50%)", opacity:.22 }} />
               <Orb color="radial-gradient(circle,#38bdf8,transparent)" sz={300} style={{ bottom:-80, right:-60, opacity:.14 }} />
               <div style={{ position:"relative", zIndex:1 }}>
@@ -378,12 +378,12 @@ export default function CoachLanding() {
                   Your next big move
                   <span style={{ display:"block", background:"linear-gradient(135deg,#38bdf8,#a78bfa,#f472b6)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>starts here.</span>
                 </h2>
-                <p style={{ fontSize:15, color:"rgba(148,163,184,.75)", maxWidth:440, margin:"0 auto 36px", lineHeight:1.78 }}>
+                <p style={{ fontSize:15, color:"var(--text-secondary)", maxWidth:440, margin:"0 auto 36px", lineHeight:1.78 }}>
                   Get matched with your ideal mentor in under 48 hours. No commitments, no risk — just momentum.
                 </p>
                 <div className="cta-input-group">
                   <input type="email" placeholder="Enter your work email" value={email} onChange={e=>setEmail(e.target.value)}
-                    style={{ flex:1, padding:"13px 17px", borderRadius:13, fontSize:14, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.12)", color:"#f1f5f9", outline:"none", fontFamily:"'DM Sans',sans-serif" }} />
+                    style={{ flex:1, padding:"13px 17px", borderRadius:13, fontSize:14, background:"var(--card-bg)", border:"1px solid var(--card-border)", color:"var(--text-primary)", outline:"none", fontFamily:"'DM Sans',sans-serif" }} />
                   <Link href="/login">
                     <button className="bp" style={{ flexShrink:0, padding:"13px 22px" }}>Get matched</button>
                   </Link>
@@ -398,16 +398,16 @@ export default function CoachLanding() {
         <footer style={{ borderTop:"1px solid rgba(255,255,255,.06)", padding:"36px 0" }}>
           <div className="footer-content" style={{ ...W, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:18 }}>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:21, background:"linear-gradient(135deg,#38bdf8,#818cf8)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Coach.</div>
-              <div style={{ fontSize:11, color:"rgba(148,163,184,.4)", marginTop:5 }}>AI-powered mentorship for modern careers.</div>
+              <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:21, background:"linear-gradient(135deg,#38bdf8,#818cf8)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Elevate.</div>
+              <div style={{ fontSize:11, color:"var(--text-muted)", marginTop:5 }}>AI-powered mentorship for modern careers.</div>
             </div>
             <div style={{ display:"flex", gap:26, flexWrap:"wrap" }}>
               {["Home","About","Blog","Contact","Privacy"].map(l=>(
-                <a key={l} href="#" style={{ fontSize:13, color:"rgba(148,163,184,.65)", textDecoration:"none", transition:"color .2s" }}
-                  onMouseEnter={e=>e.target.style.color="#f1f5f9"} onMouseLeave={e=>e.target.style.color="rgba(148,163,184,.65)"}>{l}</a>
+                <a key={l} href="#" style={{ fontSize:13, color:"var(--text-secondary)", textDecoration:"none", transition:"color .2s" }}
+                  onMouseEnter={e=>e.target.style.color="var(--primary)"} onMouseLeave={e=>e.target.style.color="var(--text-secondary)"}>{l}</a>
               ))}
             </div>
-            <div style={{ fontSize:11, color:"rgba(148,163,184,.3)" }}>© 2025 Coach. All rights reserved.</div>
+            <div style={{ fontSize:11, color:"rgba(148,163,184,.3)" }}>© 2025 Elevate. All rights reserved.</div>
           </div>
         </footer>
       </div>

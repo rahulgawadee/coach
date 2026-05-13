@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 const Navbar = ({ role = 'candidate', minimal = false }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -10,6 +12,7 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
 
   const pathname = usePathname();
   // If explicitly minimal, hide links. Also check pathname as fallback.
+  const { theme, toggleTheme } = useTheme();
   const isAuthPage = minimal || ['/login', '/signup', '/coach/login'].includes(pathname);
 
   useEffect(() => {
@@ -39,23 +42,23 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
         .nav-link-item{
           font-family:'DM Sans',sans-serif;
           font-size:14px;font-weight:500;
-          color:rgba(148,163,184,.8);
+          color:var(--text-secondary);
           text-decoration:none;
           transition:color .2s ease;
           white-space:nowrap;
         }
-        .nav-link-item:hover{color:#f1f5f9}
+        .nav-link-item:hover{color:var(--text-primary)}
         .nav-btn-ghost{
           font-family:'Syne',sans-serif;
           font-size:13px;font-weight:600;
           padding:9px 20px;border-radius:11px;
-          background:rgba(255,255,255,.05);
-          border:1px solid rgba(255,255,255,.12);
-          color:#e2e8f0;cursor:pointer;
+          background:var(--card-bg);
+          border:1px solid var(--card-border);
+          color:var(--text-primary);cursor:pointer;
           transition:all .25s ease;
           backdrop-filter:blur(10px);
         }
-        .nav-btn-ghost:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22);transform:translateY(-1px)}
+        .nav-btn-ghost:hover{background:var(--primary-glow);border-color:var(--primary);transform:translateY(-1px)}
         .nav-btn-primary{
           font-family:'Syne',sans-serif;
           font-size:13px;font-weight:700;
@@ -72,10 +75,10 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
         .mob-link{
           display:block;padding:12px 20px;
           font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;
-          color:rgba(148,163,184,.85);text-decoration:none;
+          color:var(--text-secondary);text-decoration:none;
           border-radius:12px;transition:all .2s ease;
         }
-        .mob-link:hover{color:#fff;background:rgba(255,255,255,0.06);transform:translateX(4px)}
+        .mob-link:hover{color:var(--text-primary);background:var(--primary-glow);transform:translateX(4px)}
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
@@ -89,11 +92,11 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         padding: '0 32px',
         background: scrolled
-          ? 'rgba(8,8,15,0.85)'
-          : 'rgba(8,8,15,0.4)',
+          ? 'var(--header-bg)'
+          : 'transparent',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${scrolled ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.04)'}`,
+        borderBottom: `1px solid var(--glass-border)`,
         transition: 'all .35s ease',
       }}>
         <div style={{ maxWidth: 1060, margin: '0 auto', height: 62, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
@@ -105,7 +108,7 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
               background: 'linear-gradient(135deg,#38bdf8,#818cf8)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               letterSpacing: '-0.02em',
-            }}>Coach.</span>
+            }}>Elevate.</span>
           </a>
 
           {/* Desktop links */}
@@ -119,16 +122,36 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
           )}
 
           {/* Desktop CTAs */}
-          {!isAuthPage && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }} className="nav-desktop">
-              <Link href={signInHref} className="nav-btn-ghost" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                Sign in
-              </Link>
-              <Link href={getStartedHref} className="nav-btn-primary" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-                Get started →
-              </Link>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            
+            {/* Theme Toggle - Always visible */}
+            <button 
+              onClick={toggleTheme}
+              style={{
+                width: 38, height: 38, borderRadius: 11,
+                background: 'var(--card-bg)',
+                border: '1px solid var(--card-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'all 0.2s ease',
+                marginRight: 8, color: theme === 'dark' ? '#818cf8' : '#f59e0b'
+              }}
+              className="hover:scale-105"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            {!isAuthPage && (
+              <>
+                <Link href={signInHref} className="nav-btn-ghost nav-desktop" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                  Sign in
+                </Link>
+                <Link href={getStartedHref} className="nav-btn-primary nav-desktop" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+                  Get started →
+                </Link>
+              </>
+            )}
+          </div>
 
           {/* Mobile burger - only if not minimal/auth page */}
           {!isAuthPage && (
@@ -136,7 +159,7 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
               onClick={() => setMobileOpen(!mobileOpen)}
               style={{
                 display: 'none', padding: 8, background: 'none', border: 'none', cursor: 'pointer',
-                color: 'rgba(148,163,184,.8)', borderRadius: 8,
+                color: 'var(--text-secondary)', borderRadius: 8,
                 transition: 'color .2s',
               }}
               className="nav-mobile-btn"
@@ -155,12 +178,12 @@ const Navbar = ({ role = 'candidate', minimal = false }) => {
         {/* Mobile drawer */}
         {!isAuthPage && mobileOpen && (
           <div className="mobile-drawer" style={{
-            borderTop: '1px solid rgba(255,255,255,.08)',
+            borderTop: '1px solid var(--glass-border)',
             padding: '20px',
-            background: 'rgba(8,8,15,0.98)',
+            background: 'var(--background)',
             backdropFilter: 'blur(30px)',
             position: 'absolute', top: '100%', left: 0, right: 0,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.4)',
+            boxShadow: 'var(--shadow-lg)',
             display: 'flex', flexDirection: 'column', gap: '8px'
           }}>
             {links.map(link => (

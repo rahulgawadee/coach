@@ -22,14 +22,15 @@ import {
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <div style={{ position:'absolute', inset:0, background:'var(--background)' }} />
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
       <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#0ea5e9" strokeWidth="0.5"/>
+        <path d="M 72 0 L 0 0 0 72" fill="none" stroke="var(--primary)" strokeWidth="0.5"/>
       </pattern>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
   </div>
 );
 
@@ -100,22 +101,22 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'message':
-        return <MessageSquare className="text-sky-400" size={20} />;
+        return <MessageSquare className="text-var(--primary)" size={20} />;
       case 'session_request':
-        return <Calendar className="text-indigo-400" size={20} />;
+        return <Calendar className="text-var(--primary)" size={20} />;
       case 'deadline':
-        return <Clock className="text-amber-400" size={20} />;
+        return <Clock className="text-rose-400" size={20} />;
       case 'assignment':
-        return <ClipboardList className="text-emerald-400" size={20} />;
+        return <ClipboardList className="text-emerald-500" size={20} />;
       default:
-        return <Bell className="text-slate-400" size={20} />;
+        return <Bell className="text-var(--text-muted)" size={20} />;
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div style={{ width:40, height:40, border:'1.5px solid rgba(14,165,233,0.15)', borderTop:'1.5px solid #0ea5e9', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
+        <div style={{ width:40, height:40, border:'1.5px solid var(--primary-glow)', borderTop:'1.5px solid var(--primary)', borderRadius:'50%', animation:'spin 0.8s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -131,13 +132,15 @@ export default function NotificationsPage() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
         .glass-card {
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.06);
-          backdrop-filter: blur(20px);
-          border-radius: 28px;
+          background: var(--card-bg);
+          border-radius: 32px;
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+          backdrop-filter: blur(24px);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid transparent;
         }
         .btn-premium {
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+          background: var(--primary);
           color: white;
           padding: 10px 20px;
           border-radius: 12px;
@@ -147,7 +150,7 @@ export default function NotificationsPage() {
           align-items: center;
           gap: 8px;
           transition: all 0.3s ease;
-          box-shadow: 0 4px 15px rgba(2,132,199,0.2);
+          box-shadow: 0 4px 15px var(--primary-glow);
         }
         .btn-premium:hover:not(:disabled) {
           transform: translateY(-2px);
@@ -164,12 +167,12 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="pt-8 px-4 sm:px-0 flex flex-col md:flex-row items-center justify-between gap-6 mb-10">
         <div className="text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-300 text-[10px] font-bold uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-var(--primary-glow) border border-var(--primary) border-opacity-20 text-var(--primary) text-[10px] font-bold uppercase tracking-widest mb-4">
             <Bell size={12} />
             Alert Inbox
           </div>
-          <h1 className="serif text-4xl sm:text-5xl text-white font-medium tracking-tight">Notifications</h1>
-          <p className="text-slate-400 font-light mt-2">
+          <h1 className="serif text-4xl sm:text-5xl text-var(--text-primary) font-medium tracking-tight">Notifications</h1>
+          <p className="text-var(--text-muted) font-light mt-2">
             {unreadCount > 0 
               ? `You have ${unreadCount} unread updates requiring your attention.` 
               : "Your communication stream is fully synchronized."}
@@ -197,23 +200,23 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       <div className="mx-4 sm:mx-0 glass-card overflow-hidden">
-        <div className="divide-y divide-white/5">
+        <div className="divide-y divide-var(--card-border)">
           {notifications.length > 0 ? (
             notifications.map((notification) => (
               <div
                 key={notification.id}
                 className={`notification-item p-6 sm:p-8 flex items-start gap-4 sm:gap-6 relative group ${
-                  !notification.read ? 'bg-sky-500/[0.02]' : ''
+                  !notification.read ? 'bg-var(--primary-glow) bg-opacity-30' : ''
                 }`}
               >
                 {!notification.read && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)]" />
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-var(--primary) shadow-[0_0_15px_var(--primary-glow)]" />
                 )}
                 
                 <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 border transition-all ${
                   !notification.read 
-                    ? 'bg-sky-500/10 border-sky-500/20 shadow-inner' 
-                    : 'bg-white/5 border-white/10'
+                    ? 'bg-var(--primary-glow) border-var(--primary) border-opacity-30 shadow-inner' 
+                    : 'bg-var(--card-bg) border-var(--card-border)'
                 }`}>
                   {getNotificationIcon(notification.type)}
                 </div>
@@ -222,20 +225,20 @@ export default function NotificationsPage() {
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <h3 className={`text-base sm:text-lg font-bold transition-colors ${
-                        !notification.read ? 'text-white' : 'text-slate-400'
+                        !notification.read ? 'text-var(--text-primary)' : 'text-var(--text-muted)'
                       }`}>
                         {notification.title}
                       </h3>
-                      <p className="text-sm sm:text-base text-slate-500 mt-1 leading-relaxed font-light">
+                      <p className="text-sm sm:text-base text-var(--text-secondary) mt-1 leading-relaxed font-light">
                         {notification.message}
                       </p>
                       <div className="flex items-center gap-4 mt-4">
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest flex items-center gap-1.5">
                           <Clock size={12} />
                           {notification.timestamp}
                         </span>
                         {!notification.read && (
-                          <span className="px-2 py-0.5 rounded-md bg-sky-500/10 border border-sky-500/20 text-[9px] font-black text-sky-500 uppercase tracking-tighter">
+                          <span className="px-2 py-0.5 rounded-md bg-var(--primary-glow) border border-var(--primary) border-opacity-30 text-[9px] font-black text-var(--primary) uppercase tracking-tighter">
                             New
                           </span>
                         )}
@@ -246,7 +249,7 @@ export default function NotificationsPage() {
                       {!notification.read && (
                         <button
                           onClick={() => handleMarkAsRead(notification.id)}
-                          className="p-3 rounded-xl bg-white/5 border border-white/10 text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition-all"
+                          className="p-3 rounded-xl bg-var(--card-bg) border border-var(--card-border) text-var(--text-muted) hover:text-var(--primary) hover:bg-var(--primary-glow) transition-all"
                           title="Mark as read"
                         >
                           <CheckCircle2 size={18} />
@@ -254,7 +257,7 @@ export default function NotificationsPage() {
                       )}
                       <button
                         onClick={() => handleDelete(notification.id)}
-                        className="p-3 rounded-xl bg-white/5 border border-white/10 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
+                        className="p-3 rounded-xl bg-var(--card-bg) border border-var(--card-border) text-var(--text-muted) hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                         title="Delete notification"
                       >
                         <Trash2 size={18} />
@@ -266,11 +269,11 @@ export default function NotificationsPage() {
             ))
           ) : (
             <div className="py-24 text-center">
-              <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6 text-slate-700">
+              <div className="w-20 h-20 rounded-full bg-var(--card-bg) border border-var(--card-border) flex items-center justify-center mx-auto mb-6 text-var(--text-muted)">
                 <Inbox size={32} />
               </div>
-              <h3 className="serif text-2xl text-white mb-2">Clean Slate</h3>
-              <p className="text-slate-500 font-light max-w-xs mx-auto">
+              <h3 className="serif text-2xl text-var(--text-primary) mb-2">Clean Slate</h3>
+              <p className="text-var(--text-muted) font-light max-w-xs mx-auto">
                 No new notifications. We'll alert you here when important program updates arrive.
               </p>
             </div>

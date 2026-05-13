@@ -5,21 +5,21 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import useLocalStorage from '@/hooks/useLocalStorage';
 import apiService from '@/services/api';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Camera } from 'lucide-react';
 
 const BackgroundGrid = () => (
   <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-    <div style={{ position:'absolute', inset:0, background:'linear-gradient(160deg,#06060f 0%,#090912 50%,#07070e 100%)' }} />
+    <div style={{ position:'absolute', inset:0, background:'var(--background)' }} />
     <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', opacity:.035 }} xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse">
-          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="#38bdf8" strokeWidth="0.5"/>
+          <path d="M 72 0 L 0 0 0 72" fill="none" stroke="var(--primary)" strokeWidth="0.5"/>
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#grid)" />
     </svg>
-    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(14,165,233,0.07) 0%, transparent 70%)', filter:'blur(40px)' }} />
-    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', top:'-20%', left:'-15%', width:'60vw', height:'60vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
+    <div style={{ position:'absolute', bottom:'-15%', right:'-10%', width:'50vw', height:'50vw', borderRadius:'50%', background:'radial-gradient(circle, var(--primary-glow) 0%, transparent 70%)', filter:'blur(40px)' }} />
   </div>
 );
 
@@ -231,13 +231,13 @@ export default function CoachProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <div className="w-12 h-12 border-2 border-sky-500/20 border-t-sky-500 rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm font-medium animate-pulse">Loading Coach Identity...</p>
+        <div className="w-12 h-12 border-2 border-var(--primary) border-opacity-20 border-t-var(--primary) rounded-full animate-spin" />
+        <p className="text-var(--text-muted) text-sm font-medium animate-pulse">Loading Coach Identity...</p>
       </div>
     );
   }
 
-  const InputClass = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500/50 outline-none text-white placeholder-slate-500 transition-all text-sm";
+  const InputClass = "w-full px-4 py-3 bg-var(--input-bg) border border-transparent rounded-2xl focus:ring-2 focus:ring-var(--primary-glow) focus:border-var(--primary) outline-none text-var(--text-primary) placeholder-var(--text-muted) transition-all text-sm";
 
   return (
     <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-24 animate-in fade-in duration-700">
@@ -248,31 +248,30 @@ export default function CoachProfilePage() {
         .profile-root { font-family: 'DM Sans', sans-serif; }
         .serif { font-family: 'DM Serif Display', Georgia, serif; }
         .glass-card {
-          background: rgba(15, 15, 25, 0.4);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: var(--card-bg);
+          border-radius: 32px;
+          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
           backdrop-filter: blur(24px);
-          border-radius: 28px;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
         .section-label {
           font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
-          color: #64748b; margin-bottom: 12px; display: block;
+          color: var(--text-muted); margin-bottom: 12px; display: block;
         }
         .btn-primary {
           display:flex; align-items:center; justify-content:center; gap:10px;
           padding:16px 32px; border-radius:18px; font-weight:700;
           font-size:15px; cursor:pointer; border:none;
-          background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-          color:#fff; box-shadow: 0 8px 25px rgba(37,99,235,0.25);
+          background: var(--primary);
+          color:#fff; box-shadow: 0 8px 25px var(--primary-glow);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 35px rgba(37,99,235,0.35); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 35px var(--primary-glow); filter: brightness(1.1); }
         .btn-primary:active { transform: translateY(0); }
         .btn-ai {
           display:inline-flex; align-items:center; gap:8px;
           padding:12px 20px; border-radius:14px; font-weight:700; font-size:12px;
-          background: rgba(14, 165, 233, 0.1); color: #38bdf8;
-          border: 1px solid rgba(14, 165, 233, 0.2); transition: all 0.2s;
+          background: var(--primary-glow); color: var(--primary);
+          border: 1px solid var(--primary); border-opacity: 20; transition: all 0.2s;
         }
         .btn-ai:hover { background: rgba(14, 165, 233, 0.2); transform: scale(1.02); }
       `}</style>
@@ -281,13 +280,13 @@ export default function CoachProfilePage() {
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pt-10">
           <div>
-            <h1 className="serif text-4xl sm:text-5xl lg:text-6xl text-white font-medium tracking-tight">Professional Profile</h1>
-            <p className="text-slate-400 mt-4 font-light text-lg max-w-2xl leading-relaxed">
+            <h1 className="serif text-4xl sm:text-5xl lg:text-6xl text-var(--text-primary) font-medium tracking-tight">Professional Profile</h1>
+            <p className="text-var(--text-muted) mt-4 font-light text-lg max-w-2xl leading-relaxed">
               Define your coaching expertise and manage how you appear to aspiring candidates.
             </p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => router.back()} className="px-6 py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all">
+            <button onClick={() => router.back()} className="px-6 py-4 rounded-2xl border border-var(--card-border) text-var(--text-primary) font-bold hover:bg-var(--primary-glow) transition-all">
               Cancel
             </button>
             <button onClick={handleSaveProfile} disabled={saving} className="btn-primary min-w-[200px]">
@@ -298,7 +297,7 @@ export default function CoachProfilePage() {
 
         {/* STATUS MESSAGES */}
         {(error || success) && (
-          <div className={`mb-8 p-5 rounded-2xl border flex items-center gap-4 animate-in slide-in-from-top-4 ${error ? 'bg-rose-500/10 border-rose-500/20 text-rose-200' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'}`}>
+          <div className={`mb-8 p-5 rounded-2xl border flex items-center gap-4 animate-in slide-in-from-top-4 ${error ? 'bg-rose-500/10 border-rose-500/20 text-rose-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
             <span className="text-xl">{error ? '⚠️' : '✅'}</span>
             <span className="font-medium">{error || success}</span>
           </div>
@@ -312,34 +311,34 @@ export default function CoachProfilePage() {
             {/* AVATAR CARD */}
             <div className="glass-card p-10 flex flex-col items-center text-center">
               <div className="relative group mb-6">
-                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-sky-500/20 bg-slate-900 shadow-2xl relative">
+                <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden border-4 border-var(--primary) border-opacity-20 bg-var(--card-bg) shadow-2xl relative">
                   {profile.profilePictureUrl ? (
                     <img src={profile.profilePictureUrl} alt="Coach" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-700" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-6xl opacity-20">👤</div>
+                    <div className="w-full h-full flex items-center justify-center text-6xl opacity-20 text-var(--text-primary)">👤</div>
                   )}
                   {uploadingPicture && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-0 bg-var(--background) bg-opacity-60 flex items-center justify-center">
+                      <div className="w-8 h-8 border-2 border-var(--primary) border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
-                <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-sky-500 text-white flex items-center justify-center cursor-pointer shadow-xl hover:bg-sky-400 transition-all border-4 border-[#0f0f19]">
-                  <span className="text-xl">📸</span>
+                <label className="absolute bottom-2 right-2 w-12 h-12 rounded-full bg-var(--primary) text-white flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-all border-4 border-var(--background)">
+                  <Camera size={20} strokeWidth={2.5} />
                   <input type="file" onChange={handleUploadPicture} className="hidden" accept="image/*" />
                 </label>
               </div>
-              <h3 className="serif text-2xl text-white mb-1">{profile.fullName || 'New Coach'}</h3>
-              <p className="text-sky-400 text-sm font-bold uppercase tracking-widest mb-6">Certified Career Coach</p>
+              <h3 className="serif text-2xl text-var(--text-primary) mb-1">{profile.fullName || 'New Coach'}</h3>
+              <p className="text-var(--primary) text-sm font-bold uppercase tracking-widest mb-6">Certified Career Coach</p>
               
-              <div className="w-full grid grid-cols-2 gap-4 pt-6 border-t border-white/5">
+              <div className="w-full grid grid-cols-2 gap-4 pt-6 border-t border-var(--card-border)">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{profile.averageRating}</p>
-                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Rating</p>
+                  <p className="text-2xl font-bold text-var(--text-primary)">{profile.averageRating}</p>
+                  <p className="text-[10px] text-var(--text-muted) uppercase font-bold tracking-widest">Rating</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-white">{profile.currentAssignmentCount}</p>
-                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Active Mentees</p>
+                  <p className="text-2xl font-bold text-var(--text-primary)">{profile.currentAssignmentCount}</p>
+                  <p className="text-[10px] text-var(--text-muted) uppercase font-bold tracking-widest">Active Mentees</p>
                 </div>
               </div>
             </div>
@@ -347,19 +346,19 @@ export default function CoachProfilePage() {
             {/* VIDEO INTRO CARD */}
             <div className="glass-card p-8">
               <label className="section-label">Intro Video</label>
-              <div className="aspect-video rounded-2xl bg-black/40 border-2 border-dashed border-white/10 flex flex-col items-center justify-center relative group overflow-hidden">
+              <div className="aspect-video rounded-2xl bg-var(--background) bg-opacity-40 border-2 border-dashed border-var(--card-border) flex flex-col items-center justify-center relative group overflow-hidden">
                 {profile.videoIntroductionUrl ? (
                   <video src={profile.videoIntroductionUrl} controls className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center p-6">
                     <span className="text-4xl mb-4 block">🎥</span>
-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+                    <p className="text-var(--text-muted) text-xs font-bold uppercase tracking-widest leading-relaxed">
                       Share your vision with<br/>potential candidates
                     </p>
                   </div>
                 )}
-                <label className="absolute inset-0 bg-sky-500/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
-                  <span className="bg-white text-sky-600 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl">
+                <label className="absolute inset-0 bg-var(--primary-glow) bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer flex items-center justify-center">
+                  <span className="bg-var(--background) text-var(--primary) px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl">
                     {uploadingVideo ? 'Uploading...' : 'Upload Video'}
                   </span>
                   <input type="file" onChange={handleUploadVideo} className="hidden" accept="video/*" />
@@ -373,7 +372,7 @@ export default function CoachProfilePage() {
             
             {/* GENERAL INFO SECTION */}
             <div className="glass-card p-8 sm:p-10">
-              <h4 className="serif text-2xl text-white mb-8 border-b border-white/5 pb-6">General Information</h4>
+              <h4 className="serif text-2xl text-var(--text-primary) mb-8 border-b border-var(--card-border) pb-6">General Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="md:col-span-2">
                   <label className="section-label">Full Professional Name</label>
@@ -392,8 +391,8 @@ export default function CoachProfilePage() {
 
             {/* PROFESSIONAL INFO SECTION */}
             <div className="glass-card p-8 sm:p-10">
-              <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
-                <h4 className="serif text-2xl text-white">Professional Background</h4>
+              <div className="flex items-center justify-between mb-8 border-b border-var(--card-border) pb-6">
+                <h4 className="serif text-2xl text-var(--text-primary)">Professional Background</h4>
                 <button onClick={handleAiEnhanceBio} disabled={aiEnhancing} className="btn-ai">
                   <Sparkles size={14} /> {aiEnhancing ? 'Writing...' : 'AI Enhance'}
                 </button>
@@ -426,8 +425,8 @@ export default function CoachProfilePage() {
                         onClick={() => handleExpertiseToggle(opt)}
                         className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
                           profile.expertise?.includes(opt) 
-                          ? 'bg-sky-500 border-sky-400 text-white shadow-lg shadow-sky-500/20' 
-                          : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'
+                          ? 'bg-var(--primary) border-var(--primary) text-white shadow-lg shadow-var(--primary-glow)' 
+                          : 'bg-var(--card-bg) border-var(--card-border) text-var(--text-muted) hover:bg-var(--primary-glow)'
                         }`}
                       >
                         {opt}
@@ -440,7 +439,7 @@ export default function CoachProfilePage() {
 
             {/* CAPACITY & HOURS SECTION */}
             <div className="glass-card p-8 sm:p-10">
-              <h4 className="serif text-2xl text-white mb-8 border-b border-white/5 pb-6">Availability & Workload</h4>
+              <h4 className="serif text-2xl text-var(--text-primary) mb-8 border-b border-var(--card-border) pb-6">Availability & Workload</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
                   <label className="section-label">Start Time</label>
@@ -461,7 +460,7 @@ export default function CoachProfilePage() {
         </div>
 
         {/* BOTTOM ACTIONS MOBILE */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-slate-950/80 backdrop-blur-xl border-t border-white/10 z-50 flex gap-3">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-var(--background) bg-opacity-80 backdrop-blur-xl border-t border-var(--card-border) z-50 flex gap-3">
           <button onClick={handleSaveProfile} disabled={saving} className="btn-primary flex-1">
             {saving ? 'Saving...' : 'Save Profile'}
           </button>
