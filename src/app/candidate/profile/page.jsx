@@ -101,6 +101,13 @@ export default function ProfilePage() {
               savedFormRef.current = { ...next };
               return next;
             });
+            
+            setUser(prevUser => {
+              if (payload.data.avatarUrl && payload.data.avatarUrl !== prevUser.avatarUrl) {
+                return { ...prevUser, avatarUrl: payload.data.avatarUrl };
+              }
+              return prevUser;
+            });
           }
         } catch (e) {
           console.error('Failed to load profile', e);
@@ -1200,10 +1207,10 @@ export default function ProfilePage() {
       </div>
 
       {aiModalOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
-          <div className="bg-var(--background) border border-var(--primary) shadow-2xl rounded-t-3xl sm:rounded-3xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 relative">
-            <div className="absolute top-[-20%] right-[-20%] w-64 h-64 bg-var(--primary-glow) rounded-full blur-[80px] pointer-events-none" />
-            <div className="p-6 border-b border-var(--card-border) flex items-center justify-between bg-white/[0.01]">
+        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+          <div className="shadow-2xl rounded-t-3xl sm:rounded-3xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300 relative" style={{ background: 'var(--background)', border: '1px solid var(--primary)' }}>
+            <div className="absolute top-[-20%] right-[-20%] w-64 h-64 rounded-full blur-[80px] pointer-events-none" style={{ background: 'var(--primary-glow)' }} />
+            <div className="p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--card-border)', background: 'var(--card-bg)' }}>
               <div>
                 <h3 className="text-lg font-bold text-var(--text-primary) flex items-center gap-2">
                   <Sparkles size={18} className="text-var(--primary)" />
@@ -1216,20 +1223,21 @@ export default function ProfilePage() {
               </button>
             </div>
             <div className="p-8 space-y-6">
-              <div className="rounded-2xl border border-var(--primary) bg-var(--primary-glow) p-5 text-sm text-var(--text-secondary) leading-relaxed font-light shadow-inner">
+              <div className="rounded-2xl border p-5 text-sm text-var(--text-secondary) leading-relaxed font-light shadow-inner" style={{ borderColor: 'var(--primary)', background: 'var(--primary-glow)' }}>
                 <strong className="text-var(--primary) font-bold block mb-1">Tell me about your background</strong>
                 To generate the best skills and professional profile for you, please briefly describe your past experience, current goals, and any tools you use.
               </div>
               <div className="space-y-3">
                 <textarea
-                  className="w-full rounded-2xl border border-var(--card-border) bg-var(--input-bg) px-5 py-4 text-var(--text-primary) placeholder-var(--text-muted) focus:border-var(--primary) focus:bg-var(--card-bg) transition-all outline-none font-medium h-32 resize-none"
+                  className="w-full rounded-2xl border px-5 py-4 text-var(--text-primary) transition-all outline-none font-medium h-32 resize-none"
+                  style={{ borderColor: 'var(--card-border)', background: 'var(--input-bg)' }}
                   placeholder="E.g., I have 5 years of experience in retail management and I want to transition into B2B sales..."
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                 />
               </div>
             </div>
-            <div className="p-6 border-t border-white/5 bg-white/[0.01] flex justify-end gap-3">
+            <div className="p-6 border-t flex justify-end gap-3" style={{ borderColor: 'var(--card-border)', background: 'var(--card-bg)' }}>
               <button className="btn-outline !w-auto" onClick={() => setAiModalOpen(false)}>Cancel</button>
               <button className="btn-ai !w-auto" onClick={enhanceProfile}>Generate with AI</button>
             </div>
@@ -1260,7 +1268,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="p-8 flex flex-col items-center gap-6">
-              <p className="text-slate-400 text-xs font-medium text-center max-w-sm">
+              <p className="text-var(--text-muted) text-xs font-medium text-center max-w-sm">
                 Position yourself in the center. Ensure good lighting and a quiet background.
               </p>
 
@@ -1282,7 +1290,7 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-var(--text-muted)">
                 {isRecording ? 'Click to Stop Recording' : 'Click to Start Recording'}
               </span>
             </div>
@@ -1314,7 +1322,7 @@ export default function ProfilePage() {
       )}
 
       {isAiGenerating && (
-        <div className="fixed inset-0 z-[300] bg-[#06060f]/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[300] bg-black/60 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
           <div className="glass-panel max-w-sm w-full p-6 sm:p-10 flex flex-col items-center text-center shadow-2xl shadow-indigo-500/10 border-indigo-500/20 animate-in zoom-in-95 duration-300">
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full animate-pulse" />
@@ -1323,7 +1331,7 @@ export default function ProfilePage() {
               </div>
             </div>
             <h3 className="serif text-xl text-var(--text-primary) mb-3">AI Assistant Working</h3>
-            <p className="text-slate-400 text-sm font-light leading-relaxed mb-6">
+            <p className="text-var(--text-muted) text-sm font-light leading-relaxed mb-6">
               {loadingMessage || 'Please wait while our AI assistant processes your request...'}
             </p>
             <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -1385,7 +1393,7 @@ export default function ProfilePage() {
                   href={previewResumeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-all flex items-center gap-2 px-3"
+                  className="p-2 rounded-xl bg-var(--input-bg) text-var(--text-secondary) hover:bg-var(--primary-glow) hover:text-var(--primary) transition-all flex items-center gap-2 px-3"
                 >
                   <Upload size={16} className="rotate-90" />
                   <span className="text-[10px] font-bold uppercase tracking-wider">Open Original</span>
@@ -1398,7 +1406,7 @@ export default function ProfilePage() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 bg-[#1a192d]">
+            <div className="flex-1 bg-var(--background)">
               <iframe
                 src={`/api/proxy/pdf?url=${encodeURIComponent(previewResumeUrl)}`}
                 className="w-full h-full border-none bg-white"
@@ -1441,7 +1449,7 @@ export default function ProfilePage() {
                 const dirty = getDirtyFields();
                 return dirty.length > 0 ? (
                   <div className="mb-5">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                    <p className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest mb-3">
                       {dirty.length} field{dirty.length > 1 ? 's' : ''} changed
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -1453,8 +1461,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-5 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
-                    <p className="text-slate-400 text-sm">Saving your current profile state.</p>
+                  <div className="mb-5 p-4 rounded-2xl bg-var(--input-bg) border border-var(--card-border) text-center">
+                    <p className="text-var(--text-muted) text-sm">Saving your current profile state.</p>
                   </div>
                 );
               })()}

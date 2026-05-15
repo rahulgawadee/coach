@@ -19,7 +19,7 @@ import {
   Zap,
 } from 'lucide-react';
 
-const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
+const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout, user }) => {
   const pathname = usePathname();
   const [messageCount, setMessageCount] = useState(0);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -344,14 +344,11 @@ const Sidebar = ({ role = 'candidate', isOpen = true, onToggle, onLogout }) => {
         <div className="sb-logo">
           {userEmail && (
             <div className="sb-logo-icon" style={{ overflow: 'hidden' }}>
-              {(() => {
-                const raw = window.localStorage.getItem('user');
-                const parsedUser = raw ? JSON.parse(raw) : null;
-                if (parsedUser?.avatarUrl) {
-                  return <img src={parsedUser.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />;
-                }
-                return <Zap size={18} color="#fff" strokeWidth={2} fill="rgba(255,255,255,0.15)" />;
-              })()}
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <Zap size={18} color="#fff" strokeWidth={2} fill="rgba(255,255,255,0.15)" />
+              )}
             </div>
           )}
           {!userEmail && (

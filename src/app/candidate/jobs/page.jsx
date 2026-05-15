@@ -163,7 +163,7 @@ export default function CandidateJobsPage() {
           filter: brightness(1.1);
         }
         .modal-overlay {
-          background: rgba(8, 8, 15, 0.8);
+          background: rgba(0, 0, 0, 0.6);
           backdrop-filter: blur(12px);
           animation: fadeIn 0.3s ease;
         }
@@ -286,8 +286,8 @@ export default function CandidateJobsPage() {
 
       {/* Application Success State */}
       {isSuccess && (
-        <div className="fixed inset-0 z-[100] modal-overlay flex items-center justify-center">
-          <div className="glass-card p-12 text-center space-y-6 max-w-md modal-content">
+        <div className="fixed inset-0 z-[120] modal-overlay flex items-center justify-center">
+          <div className="glass-card p-12 text-center space-y-6 max-w-md modal-content" style={{ background: 'var(--background)' }}>
             <div className="w-20 h-20 bg-emerald-500/20 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
               <CheckCircle2 size={48} />
             </div>
@@ -301,9 +301,9 @@ export default function CandidateJobsPage() {
 
       {/* Apply Options Modal */}
       {applying === 'options' && (
-        <div className="fixed inset-0 z-[90] modal-overlay flex items-center justify-center p-6">
-          <div className="glass-card w-full max-w-lg overflow-hidden modal-content">
-            <div className="p-8 border-b border-var(--card-border) flex justify-between items-center">
+        <div className="fixed inset-0 z-[120] modal-overlay flex items-center justify-center p-6">
+          <div className="glass-card w-full max-w-lg overflow-hidden modal-content" style={{ background: 'var(--background)' }}>
+            <div className="p-8 border-b border-var(--card-border) flex justify-between items-center" style={{ background: 'var(--background)' }}>
               <div>
                 <h3 className="text-2xl font-bold text-var(--text-primary) serif">Apply to {selectedJob?.company}</h3>
                 <p className="text-var(--text-muted) text-sm">{selectedJob?.title}</p>
@@ -313,7 +313,8 @@ export default function CandidateJobsPage() {
             <div className="p-8 space-y-4">
               <button 
                 onClick={() => handleQuickApply(selectedJob.id)}
-                className="w-full p-6 text-left glass-card border-var(--primary) bg-var(--primary-glow) hover:bg-var(--card-bg) transition-all group"
+                className="w-full p-6 text-left glass-card transition-all group"
+                style={{ border: '1px solid var(--primary)', background: 'var(--primary-glow)' }}
               >
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
@@ -329,7 +330,8 @@ export default function CandidateJobsPage() {
 
               <button 
                 onClick={() => setApplying('custom')}
-                className="w-full p-6 text-left glass-card hover:bg-var(--primary-glow) transition-all group"
+                className="w-full p-6 text-left glass-card transition-all group"
+                style={{ border: '1px solid var(--card-border)', background: 'var(--card-bg)' }}
               >
                 <div className="flex justify-between items-center">
                   <div className="space-y-1">
@@ -349,9 +351,9 @@ export default function CandidateJobsPage() {
 
       {/* Custom Apply Form Modal */}
       {applying === 'custom' && (
-        <div className="fixed inset-0 z-[90] modal-overlay flex items-center justify-center p-6 overflow-y-auto">
-          <div className="glass-card w-full max-w-2xl my-auto modal-content">
-            <div className="p-8 border-b border-var(--card-border) flex justify-between items-center sticky top-0 bg-var(--background) backdrop-blur-xl z-10">
+        <div className="fixed inset-0 z-[120] modal-overlay flex items-center justify-center p-6 overflow-y-auto">
+          <div className="glass-card w-full max-w-2xl my-auto modal-content" style={{ background: 'var(--background)' }}>
+            <div className="p-8 border-b flex justify-between items-center sticky top-0 backdrop-blur-xl z-10" style={{ borderColor: 'var(--card-border)', background: 'var(--background)' }}>
               <div>
                 <h3 className="text-2xl font-bold text-var(--text-primary) serif">Application Details</h3>
                 <p className="text-var(--text-muted) text-sm">Applying for {selectedJob?.title} at {selectedJob?.company}</p>
@@ -362,17 +364,17 @@ export default function CandidateJobsPage() {
             <form onSubmit={handleCustomApply} className="p-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Full Name</label>
+                  <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">Full Name</label>
                   <input type="text" placeholder="John Doe" required />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Email Address</label>
+                  <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">Email Address</label>
                   <input type="email" placeholder="john@example.com" required />
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Phone Number</label>
+                <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">Phone Number</label>
                 <input type="tel" placeholder="+1 (555) 000-0000" />
               </div>
 
@@ -386,24 +388,24 @@ export default function CandidateJobsPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex flex-col gap-2 text-slate-400">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">LinkedIn URL</label>
+                <div className="flex flex-col gap-2 text-var(--text-secondary)">
+                  <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">LinkedIn URL</label>
                   <div className="relative">
-                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-var(--text-muted)" />
                     <input type="url" placeholder="linkedin.com/in/..." className="pl-10 w-full" />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2 text-slate-400">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Portfolio / Github</label>
+                <div className="flex flex-col gap-2 text-var(--text-secondary)">
+                  <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">Portfolio / Github</label>
                   <div className="relative">
-                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
+                    <LinkIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-var(--text-muted)" />
                     <input type="url" placeholder="github.com/..." className="pl-10 w-full" />
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Why do you want to join?</label>
+                <label className="text-[10px] font-bold text-var(--text-muted) uppercase tracking-widest pl-1">Why do you want to join?</label>
                 <textarea rows={4} placeholder="Tell us what excites you about this role..." required />
               </div>
 
@@ -417,11 +419,11 @@ export default function CandidateJobsPage() {
 
       {/* Job Detail Modal (Optional Sidebar/Overlay) */}
       {selectedJob && !applying && (
-        <div className="fixed inset-0 z-[90] modal-overlay flex justify-end p-0 md:p-4">
-          <div className="glass-card w-full max-w-2xl bg-var(--background) h-full overflow-y-auto modal-content rounded-none md:rounded-3xl">
-            <div className="p-8 border-b border-var(--card-border) flex justify-between items-start sticky top-0 bg-var(--background) backdrop-blur-xl z-10">
+        <div className="fixed inset-0 z-[120] modal-overlay flex justify-end p-0 md:p-4">
+          <div className="glass-card w-full max-w-2xl h-full overflow-y-auto modal-content rounded-none md:rounded-3xl" style={{ background: 'var(--background)' }}>
+            <div className="p-8 border-b flex justify-between items-start sticky top-0 backdrop-blur-xl z-10" style={{ borderColor: 'var(--card-border)', background: 'var(--background)' }}>
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-var(--primary-glow) border border-var(--primary) flex items-center justify-center text-var(--primary)">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-var(--primary)" style={{ background: 'var(--primary-glow)', border: '1px solid var(--primary)' }}>
                   <Building2 size={28} />
                 </div>
                 <div>

@@ -301,6 +301,7 @@ export default function CandidateShell({ children }) {
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(p => !p)}
           onLogout={handleLogout}
+          user={user}
         />
 
         <div

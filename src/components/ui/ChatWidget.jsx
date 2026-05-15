@@ -167,10 +167,11 @@ export default function ChatWidget() {
         }
         .cw-avatar {
           width: 36px; height: 36px; border-radius: 11px;
-          background: linear-gradient(135deg,#4f46e5,#0891b2);
+          background: linear-gradient(135deg, rgba(79,70,229,0.3), rgba(8,145,178,0.3));
           display: flex; align-items: center; justify-content: center;
           font-size: 18px; flex-shrink: 0;
-          box-shadow: 0 4px 14px rgba(79,70,229,0.4);
+          box-shadow: 0 4px 14px rgba(79,70,229,0.2);
+          border: 1px solid rgba(255,255,255,0.1);
         }
         .cw-header-info { flex: 1; min-width: 0; }
         .cw-header-name { font-size: 13px; font-weight: 700; color: var(--text-primary, #fff); }
@@ -394,7 +395,9 @@ export default function ChatWidget() {
             {/* Header */}
             <div className="cw-header">
               <div className="cw-header-top">
-                <div className="cw-avatar"><Bot size={20} color="#fff" /></div>
+                <div className="cw-avatar">
+                  <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.webp" alt="Bot" style={{ width: 24, height: 24 }} />
+                </div>
                 <div className="cw-header-info">
                   <div className="cw-header-name">Elevate Assistant</div>
                   <div className="cw-header-status">
@@ -416,7 +419,9 @@ export default function ChatWidget() {
                   {messages.map((msg, i) => (
                     <div key={i} className={`cw-bubble-wrap ${msg.from}`}>
                       {msg.from === 'bot' && (
-                        <div style={{ width:24, height:24, borderRadius:8, background:'linear-gradient(135deg,#4f46e5,#0891b2)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', flexShrink:0 }}><Bot size={14} /></div>
+                        <div style={{ width:26, height:26, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                          <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.webp" alt="Bot" style={{ width: 18, height: 18 }} />
+                        </div>
                       )}
                       <div className={`cw-bubble ${msg.from}`}>
                         {renderText(msg.text)}
@@ -425,7 +430,9 @@ export default function ChatWidget() {
                   ))}
                   {typing && (
                     <div className="cw-bubble-wrap bot">
-                      <div style={{ width:24, height:24, borderRadius:8, background:'linear-gradient(135deg,#4f46e5,#0891b2)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', flexShrink:0 }}><Bot size={14} /></div>
+                      <div style={{ width:26, height:26, borderRadius:8, background:'rgba(255,255,255,0.1)', border:'1px solid rgba(255,255,255,0.1)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                        <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.webp" alt="Bot" style={{ width: 18, height: 18 }} />
+                      </div>
                       <div className="cw-typing">
                         <div className="cw-dot" />
                         <div className="cw-dot" />
@@ -496,7 +503,7 @@ export default function ChatWidget() {
             >
               {!open && <div className="cw-pulse-ring" />}
               <span style={{ transition: 'transform 0.3s', transform: open ? 'rotate(90deg)' : 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {open ? <X size={26} /> : <Bot size={26} />}
+                {open ? <X size={26} /> : <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f916/512.webp" alt="Bot" style={{ width: 34, height: 34, dropShadow: '0 4px 6px rgba(0,0,0,0.4)' }} />}
               </span>
             </button>
             {!open && <span className="cw-tooltip">Chat with us</span>}

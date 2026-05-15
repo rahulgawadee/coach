@@ -58,7 +58,7 @@ export async function GET(request) {
       phone: profile?.phone || '',
       address: profile?.address || '',
       videoUrl: profile?.videoUrl || '',
-      avatarUrl: profile?.avatarUrl || '',
+      avatarUrl: profile?.avatarUrl || user?.avatarUrl || '',
       employmentStatus: profile?.employmentStatus || 'Unemployed',
       marketingConsent: profile?.marketingConsent || false,
       dataConsent: profile?.dataConsent || false,
