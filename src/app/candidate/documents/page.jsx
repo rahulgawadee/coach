@@ -396,6 +396,7 @@ export default function CandidateDocumentsPage() {
                 </select>
               </div>
 
+              {uploading && (
                 <div className="space-y-2">
                   <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-var(--primary)">
                     <span>Uploading...</span>
