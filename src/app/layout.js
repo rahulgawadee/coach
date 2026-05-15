@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import TopNavHost from '@/components/layout/TopNavHost';
+import ChatWidget from '@/components/ui/ChatWidget';
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({ children }) {
               <TopNavHost />
               {children}
             </main>
+            <ChatWidget />
           </AuthProvider>
         </ThemeProvider>
       </body>
